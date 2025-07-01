@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.cwdarmm.controller.MarketCatalogController">
+
+    <HBox spacing="6">
+        <Button text="Add"    onAction="#onAdd"/>
+        <Button text="Edit"   onAction="#onEdit"/>
+        <Button text="Delete" onAction="#onDelete"/>
+    </HBox>
+
+    <TableView fx:id="tblMarkets" prefHeight="700">
+        <columns>
+            <TableColumn text="Symbol"        fx:id="colSymbol"/>
+            <TableColumn text="Name"          fx:id="colName"/>
+            <TableColumn text="Tick Size"     fx:id="colTickSize"/>
+            <TableColumn text="Tick Value"    fx:id="colTickValue"/>
+            <TableColumn text="Def. Stop"     fx:id="colDefaultStop"/>
+        </columns>
+    </TableView>
+</VBox>

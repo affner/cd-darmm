@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.cwdarmm.controller.RiskManagerController"
+     >
+
+    <!--  selección de parámetros  -->
+    <HBox spacing="10">
+        <Label text="Market:"/>
+        <ComboBox fx:id="cboMarket" prefWidth="180"/>
+
+        <Label text="Account:"/>
+        <ComboBox fx:id="cboAccount" prefWidth="150"/>
+
+        <Label text="Stop (ticks):"/>
+        <TextField fx:id="txtStopTicks" prefWidth="60"/>
+
+        <Button text="Calculate" onAction="#onCalculate"/>
+    </HBox>
+
+    <!-- resultado principal -->
+    <HBox spacing="6" alignment="CENTER_LEFT">
+        <Label text="# Contracts:"/>
+        <Label fx:id="lblContracts" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+    </HBox>
+
+    <!-- tabla de cálculos detallados -->
+    <TableView fx:id="tblResults" prefHeight="600">
+        <columns>
+            <TableColumn text="Stop Ticks"   fx:id="colStop"/>
+            <TableColumn text="Contracts"    fx:id="colQty"/>
+            <TableColumn text="Risk (USD)"   fx:id="colRisk"/>
+        </columns>
+    </TableView>
+</VBox>

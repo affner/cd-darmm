@@ -1,0 +1,8 @@
+.root {
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-background-color: #f4f4f4;
+}
+
+.tab-pane {
+    -fx-background-color: white;
+}

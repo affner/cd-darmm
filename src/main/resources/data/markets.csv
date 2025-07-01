@@ -1,0 +1,6 @@
+symbol,name,tickSize,tickValue,defaultStop,colorHex
+ES,S&P 500,0.25,12.5,10,#0066cc
+NQ,Nasdaq 100,0.25,5,12,#cc0066
+YM,Dow Jones,1,5,15,#009933
+CL,Crude Oil,0.01,10,25,#ff9933
+GC,Gold,0.1,10,30,#ffd700

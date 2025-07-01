@@ -1,0 +1,68 @@
+application {
+  config {
+    baseName crdarmm
+    applicationType monolith
+    authenticationType jwt
+    packageName mx.corintiogreen.core
+    databaseType sql
+    devDatabaseType h2Disk
+    prodDatabaseType postgresql
+    buildTool maven
+    clientFramework react
+    nativeLanguage es
+    serverPort 8090
+  }
+  entities *
+}
+
+entity Account {
+  name String required,
+  description String,
+  currency String required,
+  initialBalance BigDecimal required
+}
+
+entity Trade {
+  timestamp Instant required,
+  result TradeResult required, // WIN or LOSS
+  rewardRatio BigDecimal required,
+  stopLoss BigDecimal required,
+  riskAppliedPercent BigDecimal required
+}
+
+enum TradeResult {
+  WIN,
+  LOSS
+}
+
+entity RiskSession {
+  name String required,
+  startDate Instant required,
+  endDate Instant,
+  baseRiskPercent BigDecimal required,
+  confidenceIndex Float,
+  darScalingFactor Float
+}
+
+entity ConfidenceStats {
+  alpha Integer required,
+  beta Integer required,
+  confidenceIndex Float required,
+  entropy Float,
+  calculatedAt Instant required
+}
+
+relationship ManyToOne {
+  Trade{account(name)} to Account,
+  RiskSession{account(name)} to Account,
+  ConfidenceStats{riskSession(name)} to RiskSession
+}
+
+relationship OneToMany {
+  RiskSession{trades} to Trade{session(name)},
+  RiskSession{confidenceStats} to ConfidenceStats{session(name)}
+}
+
+paginate Trade, RiskSession, ConfidenceStats with pagination
+dto Trade, RiskSession, ConfidenceStats with mapstruct
+service Trade, RiskSession, ConfidenceStats with serviceClass
