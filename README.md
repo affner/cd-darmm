@@ -1,2 +1,2 @@
 # cd-darmm
-Repo prueba de cd-darmm
+Repositorio de prueba de cd-darmm
