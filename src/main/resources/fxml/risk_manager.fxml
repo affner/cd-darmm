@@ -2,38 +2,39 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.*?>
 
-<VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.cwdarmm.controller.RiskManagerController"
-     >
+<GridPane fx:controller="com.cwdarmm.controller.RiskManagerController"
+          xmlns:fx="http://javafx.com/fxml"
+          hgap="10" vgap="8" >
 
-    <!--  selección de parámetros  -->
-    <HBox spacing="10">
-        <Label text="Market:"/>
-        <ComboBox fx:id="cboMarket" prefWidth="180"/>
+    <!-- Fila 0 -->
+    <Label text="Account balance:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+    <TextField fx:id="txtBalance"           GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
-        <Label text="Account:"/>
-        <ComboBox fx:id="cboAccount" prefWidth="150"/>
+    <!-- Fila 1 -->
+    <Label text="Stop (ticks):"   GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+    <TextField fx:id="txtStopTicks"         GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
-        <Label text="Stop (ticks):"/>
-        <TextField fx:id="txtStopTicks" prefWidth="60"/>
+    <!-- Fila 2 -->
+    <Label text="Tick value:"     GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+    <TextField fx:id="txtTickValue"         GridPane.rowIndex="2" GridPane.columnIndex="1"/>
 
+    <!-- Fila 3 -->
+    <Label text="Base % risk:"    GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+    <TextField fx:id="txtRiskPct"           GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+    <!-- Fila 4 -->
+    <CheckBox text="Last trade was WIN" fx:id="chkLastWin"
+              GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+    <!-- Fila 5 -->
+    <Label text="Confidence tier:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+    <ChoiceBox fx:id="cmbConf" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+    <!-- Botones -->
+    <HBox spacing="10" alignment="CENTER_RIGHT"
+          GridPane.rowIndex="6" GridPane.columnIndex="1">
         <Button text="Calculate" onAction="#onCalculate"/>
+        <Button text="Cancel"    onAction="#onCancel"/>
     </HBox>
-
-    <!-- resultado principal -->
-    <HBox spacing="6" alignment="CENTER_LEFT">
-        <Label text="# Contracts:"/>
-        <Label fx:id="lblContracts" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-    </HBox>
-
-    <!-- tabla de cálculos detallados -->
-    <TableView fx:id="tblResults" prefHeight="600">
-        <columns>
-            <TableColumn text="Stop Ticks"   fx:id="colStop"/>
-            <TableColumn text="Contracts"    fx:id="colQty"/>
-            <TableColumn text="Risk (USD)"   fx:id="colRisk"/>
-        </columns>
-    </TableView>
-</VBox>
+</GridPane>

@@ -1,68 +1,67 @@
 package com.cwdarmm.controller;
 
-import com.cwdarmm.model.Market;
-import com.cwdarmm.model.OptimalContract;
-import com.cwdarmm.model.RiskProfile;
-import com.cwdarmm.model.TradingAccount;
-import com.cwdarmm.repository.AccountRepository;
-import com.cwdarmm.repository.MarketRepository;
-import com.cwdarmm.service.RiskEngine;
-import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import com.cwdarmm.event.RiskCalculatedEvent;
+import com.cwdarmm.model.dto.RiskRequestDTO;
+import com.cwdarmm.model.domain.RiskResult;
+import com.cwdarmm.service.RiskCalcService;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Controller;
 
 @Controller
-@Scope("prototype") // opcional, 1 instancia por carga
+@RequiredArgsConstructor
 public class RiskManagerController {
 
-    @FXML private ComboBox<Market> cboMarket;
-    @FXML private ComboBox<TradingAccount> cboAccount;
+    private final RiskCalcService riskCalcService;
+    private final ApplicationEventPublisher pub;
+
+    private String marketId;
+    private int tradeCounter = 0;                 // nº consecutivo
+
+    // --- UI ---
+    @FXML private TextField txtBalance;
     @FXML private TextField txtStopTicks;
-    @FXML private Label lblContracts;
+    @FXML private TextField txtTickValue;
+    @FXML private TextField txtRiskPct;
+    @FXML private CheckBox chkLastWin;
+    @FXML private ChoiceBox<RiskCalcService.ConfidenceTier> cmbConf;
 
-    @FXML private TableView<OptimalContract> tblResults;
-    @FXML private TableColumn<OptimalContract,Integer> colStop;
-    @FXML private TableColumn<OptimalContract,Integer> colQty;
-    @FXML private TableColumn<OptimalContract,Double> colRisk;
-
-    /* Repos básicos (CSV) */
-    @Autowired
-    private MarketRepository marketRepo;
-    @Autowired
-    private AccountRepository accountRepo;
-    @Autowired
-    private RiskEngine engine;    // KellySizer se define como @Service
-    private final ObservableList<OptimalContract> data = FXCollections.observableArrayList();
-
-    @FXML
-    private void initialize() {
-        cboMarket.setItems(FXCollections.observableArrayList(marketRepo.findAll()));
-        cboAccount.setItems(FXCollections.observableArrayList(accountRepo.findAll()));
-
-        colStop.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue().getStopTicks()));
-        colQty.setCellValueFactory( c -> new ReadOnlyObjectWrapper<>(c.getValue().getContracts()));
-        colRisk.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue().getRiskUsd()));
-        tblResults.setItems(data);
+    public void initWithMarket(com.cwdarmm.model.domain.Market m) {
+        this.marketId = m.getSymbol();
+        txtTickValue.setText(String.valueOf(m.getTickValue()));
     }
 
     @FXML
     private void onCalculate() {
-        Market m  = cboMarket.getValue();
-        TradingAccount acc = cboAccount.getValue();
-        if (m == null || acc == null) return;
+        // • construye DTO
+        RiskRequestDTO req = RiskRequestDTO.builder()
+                .marketId(marketId)
+                .accountBalance(Double.parseDouble(txtBalance.getText()))
+                .stopTicks(Double.parseDouble(txtStopTicks.getText()))
+                .tickValue(Double.parseDouble(txtTickValue.getText()))
+                .riskPercentBase(Double.parseDouble(txtRiskPct.getText()))
+                .lastTradeWin(chkLastWin.isSelected())
+                .build();
 
-        int stopTicks = Integer.parseInt(txtStopTicks.getText());
-        RiskProfile rp = new RiskProfile( /* kellyA */ 2.5, /* kellyB */ 1.5, 1.05, 0.98);
+        tradeCounter++;
 
-        OptimalContract oc = engine.calculate(m, acc, rp, stopTicks);
-        lblContracts.setText(String.valueOf(oc.getContracts()));
+        // • llama Servicio
+        RiskResult r = riskCalcService.calc(
+                req, tradeCounter,
+                cmbConf.getValue() == null ? RiskCalcService.ConfidenceTier.LOW
+                        : cmbConf.getValue());
 
-        data.clear();
-        data.add(oc);
+        // • publica evento → MarketTab y Results
+        pub.publishEvent(new RiskCalculatedEvent(marketId, r));
+
+        // opcional: cerrar auto
+        ((javafx.stage.Stage) txtBalance.getScene().getWindow()).close();
+    }
+
+    @FXML
+    private void onCancel() {
+        txtBalance.getScene().getWindow().hide();
     }
 }

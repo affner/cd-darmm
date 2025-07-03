@@ -2,24 +2,25 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.*?>
 
-<VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.cwdarmm.controller.MarketCatalogController">
+<VBox fx:controller="com.cwdarmm.controller.MarketCatalogController"
+      xmlns:fx="http://javafx.com/fxml"
+      spacing="8" prefWidth="600" prefHeight="400" >
 
-    <HBox spacing="6">
-        <Button text="Add"    onAction="#onAdd"/>
-        <Button text="Edit"   onAction="#onEdit"/>
-        <Button text="Delete" onAction="#onDelete"/>
-    </HBox>
-
-    <TableView fx:id="tblMarkets" prefHeight="700">
+    <TableView fx:id="tblMarkets" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn text="Symbol"        fx:id="colSymbol"/>
-            <TableColumn text="Name"          fx:id="colName"/>
-            <TableColumn text="Tick Size"     fx:id="colTickSize"/>
-            <TableColumn text="Tick Value"    fx:id="colTickValue"/>
-            <TableColumn text="Def. Stop"     fx:id="colDefaultStop"/>
+            <TableColumn text="Name"   prefWidth="200"
+                         fx:id="colName"   />
+            <TableColumn text="Symbol" prefWidth="100"
+                         fx:id="colSym"    />
+            <TableColumn text="Tick"   prefWidth="80"
+                         fx:id="colTick"   />
         </columns>
     </TableView>
+
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button text="Nuevo…"    onAction="#onNew"/>
+        <Button text="Open"   fx:id="btnOpen"  onAction="#onOpen"/>
+        <Button text="Cancel"               onAction="#onCancel"/>
+    </HBox>
 </VBox>

@@ -1,6 +1,6 @@
 package com.cwdarmm.service;
 
-import com.cwdarmm.model.Market;
+import com.cwdarmm.model.domain.Market;
 import javafx.scene.paint.Color;
 import org.springframework.stereotype.Service;
 

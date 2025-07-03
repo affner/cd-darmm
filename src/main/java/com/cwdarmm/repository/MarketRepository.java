@@ -1,9 +1,12 @@
 package com.cwdarmm.repository;
 
-import com.cwdarmm.model.Market;
+import com.cwdarmm.model.domain.Market;
 import java.util.List;
 
 public interface MarketRepository {
-    List<Market> findAll();
-    Market findBySymbol(String symbol);
+    List<Market> findReferenceCatalog();   // ES, NQ, GC … semilla
+    void save(Market m);
+    void archiveWeekAndReset();
+
+
 }

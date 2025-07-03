@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<HBox fx:controller="com.cwdarmm.controller.ResultsController"
+      xmlns:fx="http://javafx.com/fxml"
+      spacing="10" alignment="CENTER_LEFT" >
+
+    <Label text="Capital total usado:" style="-fx-font-weight: bold;"/>
+    <Label fx:id="lblTotalCapital" text="$0.00"/>
+</HBox>

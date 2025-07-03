@@ -1,6 +1,6 @@
 package com.cwdarmm.repository.impl;
 
-import com.cwdarmm.model.TradingAccount;
+import com.cwdarmm.model.domain.TradingAccount;
 import com.cwdarmm.repository.AccountRepository;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Repository;
@@ -12,11 +12,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
-public class CsvAccountRepository implements AccountRepository {
+public class CsvAccountRepositoryImpl implements AccountRepository {
 
     private final List<TradingAccount> cache;
 
-    public CsvAccountRepository() { cache = load(); }
+    public CsvAccountRepositoryImpl() { cache = load(); }
 
     @Override
     public List<TradingAccount> findAll() {

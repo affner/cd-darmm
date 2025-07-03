@@ -1,4 +1,4 @@
-package com.cwdarmm.model;
+package com.cwdarmm.model.domain;
 
 import lombok.*;
 
