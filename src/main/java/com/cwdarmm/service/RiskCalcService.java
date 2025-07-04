@@ -1,5 +1,6 @@
 package com.cwdarmm.service;
 
+import com.cwdarmm.model.ConfidenceTier;
 import com.cwdarmm.model.dto.RiskRequestDTO;
 import com.cwdarmm.model.domain.RiskResult;
 import lombok.RequiredArgsConstructor;
@@ -56,5 +57,4 @@ public class RiskCalcService {
         currentRiskPct = base;
     }
 
-    public enum ConfidenceTier { HIGH, MEDIUM, LOW }
 }

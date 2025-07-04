@@ -6,3 +6,11 @@
 .tab-pane {
     -fx-background-color: white;
 }
+/* risk-manager.css – pequeño skin dark */
+.label.step       { -fx-text-fill: white; -fx-font-size: 13; -fx-font-weight: bold; }
+.label.stepSub    { -fx-text-fill: white; -fx-font-size: 11; }
+.label.lbl        { -fx-text-fill: white; -fx-font-size: 11; }
+.choice-box       { -fx-font-size: 11; }
+.text-field       { -fx-font-size: 11; }
+.button           { -fx-font-size: 11; -fx-font-weight: bold; }
+.chk .text        { -fx-fill: white; }

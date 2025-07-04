@@ -1,40 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 
 <GridPane fx:controller="com.cwdarmm.controller.RiskManagerController"
           xmlns:fx="http://javafx.com/fxml"
-          hgap="10" vgap="8" >
+          hgap="12" vgap="8">
+    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
 
-    <!-- Fila 0 -->
-    <Label text="Account balance:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-    <TextField fx:id="txtBalance"           GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+    <!-- ─────────  Col-0  (etiquetas “Step”) ───────── -->
+    <Label text="Step 1"  styleClass="step"              GridPane.rowIndex="0"/>
+    <Label text="Account" styleClass="stepSub"           GridPane.rowIndex="1"/>
 
-    <!-- Fila 1 -->
-    <Label text="Stop (ticks):"   GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-    <TextField fx:id="txtStopTicks"         GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+    <Label text="Step 2"  styleClass="step"              GridPane.rowIndex="2"/>
+    <Label text="Market"  styleClass="stepSub"           GridPane.rowIndex="3"/>
 
-    <!-- Fila 2 -->
-    <Label text="Tick value:"     GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-    <TextField fx:id="txtTickValue"         GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+    <Label text="Step 3"  styleClass="step"              GridPane.rowIndex="4"/>
+    <Label text="Market Data" styleClass="stepSub"       GridPane.rowIndex="5"/>
 
-    <!-- Fila 3 -->
-    <Label text="Base % risk:"    GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-    <TextField fx:id="txtRiskPct"           GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+    <!-- ─────────  Col-1  (combos) ───────── -->
+    <ChoiceBox fx:id="cmbAccount" prefWidth="160"
+               GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
-    <!-- Fila 4 -->
-    <CheckBox text="Last trade was WIN" fx:id="chkLastWin"
-              GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+    <ChoiceBox fx:id="cmbMarket"  prefWidth="160"
+               GridPane.columnIndex="1" GridPane.rowIndex="3"/>
 
-    <!-- Fila 5 -->
-    <Label text="Confidence tier:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
-    <ChoiceBox fx:id="cmbConf" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+    <ChoiceBox fx:id="cmbMktData" prefWidth="160"
+               GridPane.columnIndex="1" GridPane.rowIndex="5"/>
 
-    <!-- Botones -->
-    <HBox spacing="10" alignment="CENTER_RIGHT"
-          GridPane.rowIndex="6" GridPane.columnIndex="1">
-        <Button text="Calculate" onAction="#onCalculate"/>
-        <Button text="Cancel"    onAction="#onCancel"/>
+    <!-- ─────────  Col-2  (labels data numéricos) ───────── -->
+    <Label text="ACCOUNT SIZE :"  styleClass="lbl"
+           GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+    <Label text="RISK TO REWARD:" styleClass="lbl"
+           GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+    <Label text="SL SIZE (Ticks) :" styleClass="lbl"
+           GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+
+    <!-- ─────────  Col-3  (fields numéricos) ───────── -->
+    <TextField fx:id="txtBalance" prefWidth="140"
+               GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+
+    <TextField fx:id="txtRR"      prefWidth="140"
+               GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+
+    <HBox spacing="6" GridPane.columnIndex="3" GridPane.rowIndex="2">
+        <TextField fx:id="txtStopTickIni"  prefWidth="46"/>
+        <TextField fx:id="txtStopTickFin"  prefWidth="46"/>
+        <TextField fx:id="txtStopTickStep" prefWidth="46"/>
     </HBox>
+
+    <Label text="(Leave blank for all sizes)"
+           style="-fx-text-fill: #d0d0d0; -fx-font-size: 10;"
+           GridPane.columnIndex="3" GridPane.rowIndex="3"/>
+
+    <!-- ─────────  Col-4  (check boxes H/L y W/L) ───────── -->
+    <VBox spacing="6" GridPane.columnIndex="4" GridPane.rowIndex="0" GridPane.rowSpan="4">
+        <CheckBox fx:id="chkHOUSE" text="HOU"  styleClass="chk"/>
+        <CheckBox fx:id="chkLUNCH" text="LUN"  styleClass="chk"/>
+        <CheckBox fx:id="chkWIN"   text="WIN"  styleClass="chk"/>
+        <CheckBox fx:id="chkLOSS"  text="LOS"  styleClass="chk"/>
+    </VBox>
+
+    <!-- ─────────  Col-5  (botones) ───────── -->
+    <VBox spacing="14" GridPane.columnIndex="5" GridPane.rowIndex="0" GridPane.rowSpan="4">
+        <Button text="OPTIMAL CONTRACTS"
+                fx:id="btnOptimal" onAction="#onOptimalContracts"
+                prefWidth="180"/>
+        <Button text="CLOSE"
+                onAction="#onClose"
+                prefWidth="180"/>
+    </VBox>
+
+    <!-- ─────────  imagen (opcional) ───────── -->
+    <!--
+    <ImageView GridPane.columnIndex="3" GridPane.rowIndex="4" GridPane.columnSpan="3"
+               fitWidth="120" fitHeight="120"
+               image="@/img/money.png"/>
+    -->
+
 </GridPane>

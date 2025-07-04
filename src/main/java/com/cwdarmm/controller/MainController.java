@@ -58,7 +58,7 @@ public class MainController {
 
     private void addMarketTab(com.cwdarmm.model.domain.Market market) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/market_tab.fxml.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/market_tab.fxml"));
             loader.setControllerFactory(ctx::getBean);
             Region view = loader.load();
 

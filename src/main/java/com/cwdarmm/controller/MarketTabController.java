@@ -4,6 +4,8 @@ import com.cwdarmm.event.RiskCalculatedEvent;
 import com.cwdarmm.model.domain.Market;
 import com.cwdarmm.model.domain.RiskResult;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
@@ -30,38 +32,46 @@ public class MarketTabController {
 
     @FXML
     private void initialize() {
-        // —— define columnas ——
-        TableColumn<RiskResult, Integer> t0 = new TableColumn<>("#");
-        t0.setPrefWidth(40);
-        t0.setCellValueFactory(new PropertyValueFactory<>("tradeNumber"));
+        // # ——————————————————————————
+        TableColumn<RiskResult, Integer> c0 = new TableColumn<>("#");
+        c0.setPrefWidth(40);
+        c0.setCellValueFactory(r ->
+                new ReadOnlyObjectWrapper<>(r.getValue().tradeNumber()));
 
-        TableColumn<RiskResult, Double> t1 = new TableColumn<>("Contracts");
-        t1.setPrefWidth(100);
-        t1.setCellValueFactory(new PropertyValueFactory<>("contracts"));
+        // Contracts ——————————————————
+        TableColumn<RiskResult, Double> c1 = new TableColumn<>("Contracts");
+        c1.setPrefWidth(100);
+        c1.setCellValueFactory(r ->
+                new ReadOnlyObjectWrapper<>(r.getValue().contracts()));
 
-        TableColumn<RiskResult, Double> t2 = new TableColumn<>("Risk $");
-        t2.setPrefWidth(100);
-        t2.setCellValueFactory(new PropertyValueFactory<>("riskUsd"));
+        // Risk $ ————————————————————
+        TableColumn<RiskResult, Double> c2 = new TableColumn<>("Risk $");
+        c2.setPrefWidth(100);
+        c2.setCellValueFactory(r ->
+                new ReadOnlyObjectWrapper<>(r.getValue().riskUsd()));
 
-        TableColumn<RiskResult, Double> t3 = new TableColumn<>("Capital used");
-        t3.setPrefWidth(120);
-        t3.setCellValueFactory(new PropertyValueFactory<>("capitalUsed"));
+        // Capital used —————————————
+        TableColumn<RiskResult, Double> c3 = new TableColumn<>("Capital used");
+        c3.setPrefWidth(120);
+        c3.setCellValueFactory(r ->
+                new ReadOnlyObjectWrapper<>(r.getValue().capitalUsed()));
 
-        TableColumn<RiskResult, Double> t4 = new TableColumn<>("R:R");
-        t4.setPrefWidth(80);
-        t4.setCellValueFactory(new PropertyValueFactory<>("rrRatio"));
+        // R:R ————————————————————————
+        TableColumn<RiskResult, Double> c4 = new TableColumn<>("R:R");
+        c4.setPrefWidth(80);
+        c4.setCellValueFactory(r ->
+                new ReadOnlyObjectWrapper<>(r.getValue().rrRatio()));
 
-        TableColumn<RiskResult, Double> t5 = new TableColumn<>("% Risk");
-        t5.setPrefWidth(80);
-        t5.setCellValueFactory(new PropertyValueFactory<>("darmmRiskPercent"));
+        // Risk % ————————————————————
+        TableColumn<RiskResult, Double> c5 = new TableColumn<>("Risk %");
+        c5.setPrefWidth(80);
+        c5.setCellValueFactory(r ->
+                new ReadOnlyObjectWrapper<>(r.getValue().darmmRiskPercent()));
 
-        tblRisk.getColumns().setAll(t0, t1, t2, t3, t4, t5);
-
-        // inicia lista vacía (por si no se asignó en initWithMarket)
-        if (tblRisk.getItems().isEmpty()) {
-            tblRisk.setItems(javafx.collections.FXCollections.observableArrayList());
-        }
+        tblRisk.getColumns().setAll(c0, c1, c2, c3, c4, c5);
+        tblRisk.setItems(FXCollections.observableArrayList());
     }
+
 
 
     /* ---------- API pública ---------- */
