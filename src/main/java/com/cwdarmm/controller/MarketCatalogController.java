@@ -4,12 +4,17 @@ import com.cwdarmm.model.domain.Market;
 import com.cwdarmm.service.MarketService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
@@ -19,7 +24,7 @@ import java.util.List;
 public class MarketCatalogController {
 
     private final MarketService marketService;
-
+    private final ApplicationContext ctx;   // <<-- AÑADE ESTA LÍNEA
     @FXML private TableView<Market> tblMarkets;
     @FXML private Button btnOpen;      // habilitado solo con selección
 
@@ -65,6 +70,27 @@ public class MarketCatalogController {
         Market dummy = new Market("","",0,0,20,"#FFFFFF");
         marketService.openWizardAndCreateMarket(dummy);
         ((Stage)tblMarkets.getScene().getWindow()).close();
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* helper que carga el fxml del wizard */
+    private void openWizard(Market base) throws Exception {
+
+        FXMLLoader fx = new FXMLLoader(getClass()
+                .getResource("/fxml/market_wizard.fxml"));
+        fx.setControllerFactory(ctx::getBean); // si usas Spring
+        Parent root = fx.load();
+
+        /* si necesitas pasar el Market base al wizard: */
+        MarketWizardController ctrl = fx.getController();
+      //  ctrl.prefill(base);              // método opcional (lo ves abajo)
+
+        Stage st = new Stage();
+        st.setTitle("Market");
+        st.setScene(new Scene(root));
+        st.initOwner(tblMarkets.getScene().getWindow());
+        st.initModality(Modality.WINDOW_MODAL);
+        st.showAndWait();
     }
 
 

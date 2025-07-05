@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+
+<GridPane fx:controller="com.cwdarmm.controller.OpenMarketController"
+          xmlns:fx="http://javafx.com/fxml" hgap="12" vgap="8"
+          minWidth="430">
+    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+    <!-- ── columnas: 0-labels, 1-inputs ── -->
+    <!-- Step 1 -->
+    <Label text="Step 1"               GridPane.rowIndex="0"/>
+    <Label text="Account"              GridPane.rowIndex="1"/>
+    <ChoiceBox fx:id="cmbAccount"      prefWidth="160"
+               GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+    <!-- Step 2 -->
+    <Label text="Step 2"               GridPane.rowIndex="2"/>
+    <Label text="Market"               GridPane.rowIndex="3"/>
+    <ChoiceBox fx:id="cmbMarket"       prefWidth="160"
+               GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+    <!-- Step 3 -->
+    <Label text="Step 3"               GridPane.rowIndex="4"/>
+    <Label text="Market Data"          GridPane.rowIndex="5"/>
+    <ChoiceBox fx:id="cmbMktData"      prefWidth="160"
+               GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+
+    <!-- Datos numéricos -->
+    <Label text="ACCOUNT SIZE :"       GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+    <TextField fx:id="txtBalance"      prefWidth="120"
+               GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+
+    <Label text="RISK PERCENTAGE A:"   GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+    <TextField fx:id="txtRiskA"        prefWidth="120"
+               GridPane.columnIndex="3" GridPane.rowIndex="2"/>
+
+    <Label text="RISK PERCENTAGE B:"   GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+    <TextField fx:id="txtRiskB"        prefWidth="120"
+               GridPane.columnIndex="3" GridPane.rowIndex="3"/>
+
+    <!-- Botones -->
+    <VBox spacing="10" GridPane.columnIndex="3" GridPane.rowIndex="5">
+        <Button text="OPEN MARKET" prefWidth="120" defaultButton="true"
+                onAction="#onOpenMarket"/>
+        <Button text="CLOSE"        prefWidth="120"
+                onAction="#onClose"/>
+    </VBox>
+</GridPane>

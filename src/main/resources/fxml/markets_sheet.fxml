@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.cwdarmm.controller.MarketsSheetController"
+      spacing="8" prefWidth="1000" prefHeight="400">
+
+    <TableView fx:id="tblSheet" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colDay"       text="Day"                         prefWidth="80"/>
+            <TableColumn fx:id="colDate"      text="Date"                        prefWidth="90"/>
+            <TableColumn fx:id="colMarket"    text="Market"                      prefWidth="120"/>
+            <TableColumn fx:id="colAccount"   text="Account"                     prefWidth="120"/>
+            <TableColumn fx:id="colMktData"   text="Market Data"                 prefWidth="120"/>
+            <TableColumn fx:id="colAccInit"   text="Account Size Initial"        prefWidth="140"/>
+            <TableColumn fx:id="colRiskA"     text="Risk % Initial A"            prefWidth="120"/>
+            <TableColumn fx:id="colRiskB"     text="Risk % Initial B"            prefWidth="120"/>
+            <TableColumn fx:id="colRiskH"     text="Risk % Final House"          prefWidth="140"/>
+            <TableColumn fx:id="colRiskL"     text="Risk % Final Lunch"          prefWidth="140"/>
+        </columns>
+    </TableView>
+
+</VBox>

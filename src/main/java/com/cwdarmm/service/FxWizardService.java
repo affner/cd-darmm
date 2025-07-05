@@ -1,6 +1,6 @@
 package com.cwdarmm.service;
 
-import com.cwdarmm.controller.OpenMarketWizardController;
+import com.cwdarmm.controller.OpenMarketController;
 import com.cwdarmm.model.domain.Market;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -18,11 +18,11 @@ public class FxWizardService {
 
     /** Abre el wizard “Open Market” y devuelve un Market completo o null si cancelan. */
     public Market runOpenMarketWizard(Market base) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/open_market_wizard.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/open_market.fxml"));
         loader.setControllerFactory(ctx::getBean);
         Parent root = loader.load();
 
-        OpenMarketWizardController ctrl = loader.getController();
+        OpenMarketController ctrl = loader.getController();
         ctrl.prefill(base);
 
         Stage st = new Stage();
