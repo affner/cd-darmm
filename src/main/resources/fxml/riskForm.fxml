@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.cwdarmm.controller.RiskFormController">
+    <!-- Top: Título de la pestaña, puede incluir icono -->
+    <top>
+        <ToolBar>
+            <Label text="RISK MANAGER" style="-fx-font-size:18px; -fx-font-weight:bold;"/>
+        </ToolBar>
+    </top>
+
+    <!-- Center: Formulario de inputs -->
+    <center>
+        <VBox spacing="12">
+            <padding>
+                <Insets top="16" right="16" bottom="16" left="16"/>
+            </padding>
+            <GridPane hgap="8" vgap="8">
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="30"/>
+                    <ColumnConstraints percentWidth="70"/>
+                </columnConstraints>
+                <!-- Step 1,2,3 -->
+                <Label text="Step 1 – Account:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <ComboBox fx:id="cbRiskAccount" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                <Label text="Step 2 – Market:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <ComboBox fx:id="cbRiskMarket" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                <Label text="Step 3 – Market Data:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <ComboBox fx:id="cbRiskMarketData" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                <!-- Parámetros de riesgo -->
+                <Label text="Account Size:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <TextField fx:id="tfRiskAccountSize" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                <Label text="Risk to Reward:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                <TextField fx:id="tfRiskReward" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                <Label text="SL Size (Ticks):" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                <HBox spacing="8" GridPane.rowIndex="5" GridPane.columnIndex="1">
+                    <TextField fx:id="tfTicksSl1" prefWidth="60"/>
+                    <TextField fx:id="tfTicksSl2" prefWidth="60"/>
+                </HBox>
+
+                <Label text="Stop Loss Size:" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+                <TextField fx:id="tfStopLossSize" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+
+                <!-- Sesiones -->
+                <HBox spacing="16" GridPane.rowIndex="7" GridPane.columnIndex="1">
+                    <CheckBox fx:id="chkHouse" text="HOUSE"/>
+                    <CheckBox fx:id="chkLunch" text="LUNCH"/>
+                    <CheckBox fx:id="chkWin" text="WIN"/>
+                    <CheckBox fx:id="chkLoss" text="LOSS"/>
+                </HBox>
+            </GridPane>
+
+            <!-- Botones -->
+            <HBox spacing="12" alignment="CENTER_RIGHT">
+                <Button text="Optimal Contracts" onAction="#onCalculate"/>
+                <Button text="Close" onAction="#onClose"/>
+            </HBox>
+        </VBox>
+    </center>
+
+    <!-- Bottom: Imagen decorativa -->
+    <bottom>
+        <ImageView fx:id="imgCoins" fitHeight="40" preserveRatio="true"
+                   pickOnBounds="true"/>
+    </bottom>
+</BorderPane>

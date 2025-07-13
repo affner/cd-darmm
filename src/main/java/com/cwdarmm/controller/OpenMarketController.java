@@ -32,6 +32,7 @@ public class OpenMarketController {
 
     private Stage dialogStage;
     private Runnable onSaveCallback;
+    private MarketDTO lastSaved;
 
     /**
      * Inicializa los ComboBoxes con datos del servicio.
@@ -74,9 +75,16 @@ public class OpenMarketController {
                 .riskB(Double.parseDouble(tfRiskB.getText()))
                 .build();
 
-        marketService.save(dto);
+        lastSaved = marketService.save(dto);
         if (onSaveCallback != null) onSaveCallback.run();
         dialogStage.close();
+    }
+
+    /**
+     * Devuelve el último MarketDTO guardado.
+     */
+    public MarketDTO getLastSavedDTO() {
+        return lastSaved;
     }
 
     /**
