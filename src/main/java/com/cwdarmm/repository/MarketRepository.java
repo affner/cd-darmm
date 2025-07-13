@@ -1,12 +1,11 @@
 package com.cwdarmm.repository;
 
-import com.cwdarmm.model.domain.Market;
-import java.util.List;
-
-public interface MarketRepository {
-    List<Market> findReferenceCatalog();   // ES, NQ, GC … semilla
-    void save(Market m);
-    void archiveWeekAndReset();
 
 
+import com.cwdarmm.model.domain.MarketEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface MarketRepository extends JpaRepository<MarketEntity, Long> {
 }

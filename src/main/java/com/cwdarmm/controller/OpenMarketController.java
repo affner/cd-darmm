@@ -1,114 +1,121 @@
 package com.cwdarmm.controller;
 
-import com.cwdarmm.event.OpenMarketEvent;
-import com.cwdarmm.model.domain.Market;
+import com.cwdarmm.model.dto.MarketDTO;
+import com.cwdarmm.service.MarketService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-
-@Controller
+/**
+ * Controlador para el formulario "Open Market".
+ * Spring @Component para inyección de dependencias.
+ */
+@Component
 @RequiredArgsConstructor
 public class OpenMarketController {
+    private final MarketService marketService;
 
-    private final ApplicationEventPublisher pub;   // enviará MarketCreatedEvent
-    /* ---------- resultado que el servicio leerá ---------- */
-    @Getter
-    private Market result;        // null si se pulsa Cancel
-    /* ── UI ── */
-    @FXML private ChoiceBox<String> cmbAccount;
-    @FXML private ChoiceBox<String> cmbMarket;
-    @FXML private ChoiceBox<String> cmbMktData;
+    @FXML private ComboBox<String> cbAccount;
+    @FXML private ComboBox<String> cbMarket;
+    @FXML private ComboBox<String> cbMarketData;
+    @FXML private TextField tfAccountSize;
+    @FXML private TextField tfRiskA;
+    @FXML private TextField tfRiskB;
+    @FXML private Button btnOpen;
+    @FXML private Button btnClose;
 
-    @FXML private TextField txtBalance;
-    @FXML private TextField txtRiskA;
-    @FXML private TextField txtRiskB;
+    private Stage dialogStage;
+    private Runnable onSaveCallback;
 
-    /* listas fijas (las mismas que en Risk-Manager) */
-    private static final List<String> ACCOUNTS = List.of(
-            "TRADEIFY","TOPSTEP","NEXGEN","NINJA TRADER","TICKTICK TRADER",
-            "BLUSKY.PRO","ONE UP TRADER","FUTURES ELITE","APEX",
-            "MY FUNDED FUTURES","TAKE PROFIT TRADER");
-
-    private static final List<String> MARKETS = List.of(
-            "NASDAQ","S&P 500","GOLD","CRUDE OIL","DOW JONES","MIDCAP",
-            "RUSSELL","SILVER","COPPER","HEATING OIL","NATURAL GAS",
-            "BRENT CRUDE","R BOB GASOLINE","PLATINUM","PALLADIUM");
-
-    private static final Map<String,List<String>> MKT_DATA =
-            Map.ofEntries(
-                    Map.entry("TRADEIFY",            List.of("TRADOVATE")),
-                    Map.entry("TOPSTEP",             List.of("TRADOVATE","RITHMIC","PROJECTX")),
-                    Map.entry("NEXGEN",              List.of("RITHMIC","PROJECTX")),
-                    Map.entry("NINJA TRADER",        List.of("PERSONAL")),
-                    Map.entry("TICKTICK TRADER",     List.of("TRADOVATE","RITHMIC","PROJECTX")),
-                    Map.entry("BLUSKY.PRO",          List.of("TRADOVATE","RITHMIC")),
-                    Map.entry("ONE UP TRADER",       List.of("RITHMIC")),
-                    Map.entry("FUTURES ELITE",       List.of("PROJECTX","DXFEED")),
-                    Map.entry("APEX",                List.of("TRADOVATE","RITHMIC")),
-                    Map.entry("MY FUNDED FUTURES",   List.of("TRADOVATE","DXFEED")),
-                    Map.entry("TAKE PROFIT TRADER",  List.of("TRADOVATE","RITHMIC"))
-            );
-
+    /**
+     * Inicializa los ComboBoxes con datos del servicio.
+     */
     @FXML
-    private void initialize() {
-        cmbAccount.setItems(FXCollections.observableArrayList(ACCOUNTS));
-        cmbMarket .setItems(FXCollections.observableArrayList(MARKETS));
-
-        cmbAccount.getSelectionModel().selectedItemProperty().addListener((o,old,v)-> {
-            cmbMktData.setItems(FXCollections.observableArrayList(
-                    MKT_DATA.getOrDefault(v, List.of())));
-            cmbMktData.getSelectionModel().clearSelection();
-        });
+    public void initialize() {
+        cbAccount.setItems(FXCollections.observableArrayList(marketService.listAccounts()));
+        cbMarket.setItems(FXCollections.observableArrayList(marketService.listMarkets()));
+        cbMarketData.setItems(FXCollections.observableArrayList(marketService.listMarketData()));
     }
 
-    /* ── OK ── */
+    /**
+     * Setter para el Stage del diálogo.
+     */
+    public void setDialogStage(Stage stage) {
+        this.dialogStage = stage;
+    }
+
+    /**
+     * Callback invocado después de guardar para refrescar las tablas.
+     */
+    public void setOnSave(Runnable callback) {
+        this.onSaveCallback = callback;
+    }
+
+    /**
+     * Acción del botón "Open Market".
+     * Valida, crea DTO y persiste vía MarketService.
+     */
     @FXML
     private void onOpenMarket() {
+        if (!validateInputs()) return;
 
-        if (cmbAccount.getValue()==null || cmbMarket.getValue()==null || cmbMktData.getValue()==null){
-            alert("Select Account / Market / Market-Data"); return;
-        }
-        if (txtBalance.getText().isBlank() || txtRiskA.getText().isBlank() || txtRiskB.getText().isBlank()){
-            alert("Fill numeric fields"); return;
-        }
+        MarketDTO dto = MarketDTO.builder()
+                .account(cbAccount.getValue())
+                .market(cbMarket.getValue())
+                .marketData(cbMarketData.getValue())
+                .accountSize(Double.parseDouble(tfAccountSize.getText()))
+                .riskA(Double.parseDouble(tfRiskA.getText()))
+                .riskB(Double.parseDouble(tfRiskB.getText()))
+                .build();
 
-        /* Aquí solo publicamos un evento simplificado con los datos
-           (puedes crear tu propio DTO u objeto de dominio)           */
-        pub.publishEvent(new OpenMarketEvent(
-                cmbMarket.getValue(),
-                cmbAccount.getValue(),
-                cmbMktData.getValue(),
-                Double.parseDouble(txtBalance.getText()),
-                Double.parseDouble(txtRiskA.getText()),
-                Double.parseDouble(txtRiskB.getText())
-        ));
-        close();
+        marketService.save(dto);
+        if (onSaveCallback != null) onSaveCallback.run();
+        dialogStage.close();
     }
 
-    @FXML private void onClose(){ close(); }
-
-    /* =================================================================
-     1.  Este método lo llama FxWizardService inmediatamente después
-         de cargar el FXML. Simplemente rellena el formulario si
-         viene un Market base (puede ser dummy o real).
-     ================================================================= */
-    public void prefill(Market base) {
-        if (base == null) return;
-
-        // Ejemplo de precarga mínima:
-        cmbMarket.setValue(base.getName());
-        // si tuvieras combos de símbolo, tickValue, etc., también aquí
+    /**
+     * Cierra el diálogo sin guardar.
+     */
+    @FXML
+    private void onClose() {
+        dialogStage.close();
     }
 
-    /* util */
-    private void alert(String msg){ new Alert(Alert.AlertType.ERROR,msg).showAndWait(); }
-    private void close(){ ((Stage) txtBalance.getScene().getWindow()).close(); }
+    /**
+     * Validaciones básicas: selección obligatoria y valores numéricos > 0.
+     */
+    private boolean validateInputs() {
+        if (cbAccount.getValue() == null || cbMarket.getValue() == null || cbMarketData.getValue() == null) {
+            showAlert(Alert.AlertType.WARNING, "Debe seleccionar Account, Market y Market Data.");
+            return false;
+        }
+        try {
+            double accSize = Double.parseDouble(tfAccountSize.getText());
+            double a = Double.parseDouble(tfRiskA.getText());
+            double b = Double.parseDouble(tfRiskB.getText());
+            if (accSize <= 0 || a <= 0 || b <= 0) throw new NumberFormatException();
+        } catch (NumberFormatException ex) {
+            showAlert(Alert.AlertType.WARNING, "Account Size, Risk A y Risk B deben ser números mayores a cero.");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Muestra un Alert genérico.
+     */
+    private void showAlert(Alert.AlertType type, String message) {
+        Alert alert = new Alert(type);
+        alert.initOwner(dialogStage);
+        alert.setTitle("Validación");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
 }

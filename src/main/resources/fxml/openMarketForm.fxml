@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.cwdarmm.controller.OpenMarketController"
+      spacing="8">
+    <padding>
+        <Insets top="16" right="16" bottom="16" left="16"/>
+    </padding>
+
+    <Label text="MARKET" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+    <GridPane hgap="8" vgap="8">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="40"/>
+            <ColumnConstraints percentWidth="60"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="NEVER"/>
+        </rowConstraints>
+
+        <Label text="Account:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="cbAccount" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="Market:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="cbMarket" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="Market Data:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="cbMarketData" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <Label text="Account Size:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextField fx:id="tfAccountSize" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+        <Label text="Risk % A:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <TextField fx:id="tfRiskA" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+        <Label text="Risk % B:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+        <TextField fx:id="tfRiskB" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <HBox spacing="8" alignment="CENTER_RIGHT">
+        <Button fx:id="btnOpen" text="Open Market" onAction="#onOpenMarket"/>
+        <Button fx:id="btnClose" text="Close" onAction="#onClose"/>
+    </HBox>
+</VBox>
