@@ -38,6 +38,7 @@
             <padding>
                 <Insets top="8" right="8" bottom="8" left="8"/>
             </padding>
+            <Button fx:id="btnExportCsv" text="Export CSV"/>
             <Button text="Close" onAction="#onClose" />
         </HBox>
     </bottom>
