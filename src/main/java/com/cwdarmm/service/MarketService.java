@@ -52,6 +52,8 @@ public class MarketService {
                 .accountSize(e.getAccountSize())
                 .riskA(e.getRiskA())
                 .riskB(e.getRiskB())
+                .riskFinalHouse(e.getRiskFinalHouse() == null ? 0 : e.getRiskFinalHouse())
+                .riskFinalLunch(e.getRiskFinalLunch() == null ? 0 : e.getRiskFinalLunch())
                 .build();
 
     }
