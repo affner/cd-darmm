@@ -84,82 +84,27 @@ public class RiskTableController {
 
     @FXML
     private void onRiskManage() throws IOException {
-        // 1) Construir la petición inicial y rellenar la tabla con trade 0
-        RiskInputDTO initialReq = RiskInputDTO.builder()
-                .account(   context.getAccount()   )
-                .market(    context.getMarket()    )
-                .marketData(context.getMarketData())
-                .accountSize(context.getAccountSize())
-                // Tomamos riskA como reward inicial
-                .riskReward(context.getRiskA())
-                // Valores por defecto para ticks y stop loss
-                .ticksSl1(0).ticksSl2(0).stopLossSize(0)
-                // Flags iniciales (no influyen)
-                .house(true).lunch(false).win(false).loss(false)
-                .build();
-
-        List<RiskResultDTO> results = riskService.calculate(initialReq);
-        tableResults.setItems(FXCollections.observableArrayList(results));
-
-        // 2) Preguntar si es el primer trade (puedes usar este flag si cambias la lógica)
-        boolean firstTrade = new Alert(Alert.AlertType.CONFIRMATION,
-                "¿Es este el primer trade?")
-                .showAndWait()
-                .filter(ButtonType.OK::equals)
-                .isPresent();
-
-        // 3) Preguntar si quiere generar el XML de estrategia
-        if (new Alert(Alert.AlertType.CONFIRMATION,
-                "¿Deseas generar el XML de estrategia?")
-                .showAndWait()
-                .filter(ButtonType.OK::equals)
-                .isPresent()) {
-
-            Path xmlFile = Path.of(System.getProperty("user.home"),
-                    context.getMarket() + ".xml");
-            // exportService.exportStrategyToXml(MarketDTO, List<Result>, Path)
-            exportService.exportStrategyToXml(context, results, xmlFile);
-            new Alert(Alert.AlertType.INFORMATION,
-                    "XML generado en:\n" + xmlFile)
-                    .showAndWait();
-        }
-
-        // 4) Preguntar si quiere generar el script AutoHotkey
-        if (new Alert(Alert.AlertType.CONFIRMATION,
-                "¿Deseas generar el script AutoHotkey?")
-                .showAndWait()
-                .filter(ButtonType.OK::equals)
-                .isPresent()) {
-
-            Path ahkFile = Path.of(System.getProperty("user.home"),
-                    context.getMarket() + ".ahk");
-            // exportService.exportStrategyToAhk(MarketDTO, List<Result>, Path)
-          //  exportService.exportStrategyToAhk(context, results, ahkFile);
-            new Alert(Alert.AlertType.INFORMATION,
-                    "AHK generado en:\n" + ahkFile)
-                    .showAndWait();
-        }
-
-        // 5) Abrir finalmente el formulario de inputs para ajustar parámetros
+        // Cargamos el FXML y obtenemos el controller
         FXMLLoader loader = springFXMLLoader.load("/fxml/RiskForm.fxml");
         RiskFormController formCtrl = loader.getController();
-        formCtrl.setDialogStage(new Stage());
+
+        // Construimos un único Stage y se lo pasamos al formulario
+        Stage dialog = new Stage();
+        formCtrl.setDialogStage(dialog);
         formCtrl.setMarketContext(context);
         formCtrl.setOnCalculated(() -> {
-            // cuando re-calculamos desde el form, refrescamos la tabla
+            // Actualizar tabla con resultados recalculados
             RiskInputDTO req = formCtrl.buildRequest();
             List<RiskResultDTO> recalculated = riskService.calculate(req);
             tableResults.setItems(FXCollections.observableArrayList(recalculated));
         });
 
-        Stage dialog = new Stage();
         dialog.initOwner(tableResults.getScene().getWindow());
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle(context.getMarket() + " – Risk Manager");
         dialog.setScene(new Scene(loader.getRoot()));
         dialog.showAndWait();
     }
-
 
 
     @FXML private void onClose() {

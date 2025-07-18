@@ -42,19 +42,41 @@ public class ExportService {
     /**
      * Genera un script AutoHotkey para seleccionar la estrategia en NinjaTrader.
      */
-    public void exportStrategyToAhk(MarketDTO market, Path target) throws IOException {
-        String name = market.getMarket().replace(" ", "_");
-        String template =
-                "#NoEnv\n" +
-                        "#SingleInstance force\n" +
-                        "\n" +
-                        "; Atajo para seleccionar la estrategia «" + market.getMarket() + "»\n" +
-                        "^+s::\n" +
-                        "    UIA := UIA_Interface()\n" +
-                        "    strat := UIA.ElementFromHandle(\"A\")\n" +
-                        "    strat.FindFirstByNameAndType(\"" + market.getMarket() + "\", \"Text\").Click(\"Left\")\n" +
-                        "    return\n";
-        Files.writeString(target, template);
+    public void exportStrategyToAhk(MarketDTO market, List<RiskResultDTO> results, Path target) throws IOException {
+        // Reemplaza espacios para usar en nombre interno si es necesario
+        String strategyName = market.getMarket().replace(" ", "_");
+        StringBuilder sb = new StringBuilder();
+
+        // Encabezado del script AHK
+        sb.append("#NoEnv").append("\n");
+        sb.append("#SingleInstance force").append("\n\n");
+
+        // Comentario con el nombre de la estrategia
+        sb.append("; Script generado para estrategia «")
+                .append(market.getMarket())
+                .append("»\n");
+
+        // Hotkey principal (Ctrl+Shift+S) para abrir la selección de estrategia
+        sb.append("^+s::\n");
+        sb.append("    UIA := UIA_Interface()\n");
+        sb.append("    strat := UIA.ElementFromHandle(\"A\")\n");
+        sb.append("    strat.FindFirstByNameAndType(\"")
+                .append(market.getMarket())
+                .append("\", \"Text\").Click(\"Left\")\n");
+        sb.append("    return\n\n");
+
+        // Opcional: generar atajos adicionales por cada trade calculado
+        for (RiskResultDTO r : results) {
+            sb.append("; Trade #").append(r.getTradeNumber())
+                    .append(" – ").append(r.getWl()).append("\n");
+            sb.append("^+").append(r.getTradeNumber()).append("::\n");
+            sb.append("    ; Aquí pones la secuencia para el trade ")
+                    .append(r.getTradeNumber()).append("\n");
+            sb.append("    return\n\n");
+        }
+
+        // Escribir fichero
+        Files.writeString(target, sb.toString());
     }
 
     /**

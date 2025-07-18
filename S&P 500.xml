@@ -1,0 +1,36 @@
+<NinjaTrader>
+  <AtmStrategy xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="SP 500" Account="ACC1" DataFeed="Data A">
+    <Brackets>
+      <Bracket>
+        <Quantity>1</Quantity>
+        <StopLoss>23.0</StopLoss>
+        <Target>11.5</Target>
+      </Bracket>
+      <Bracket>
+        <Quantity>1</Quantity>
+        <StopLoss>23.0</StopLoss>
+        <Target>11.5</Target>
+      </Bracket>
+      <Bracket>
+        <Quantity>1</Quantity>
+        <StopLoss>23.0</StopLoss>
+        <Target>11.5</Target>
+      </Bracket>
+      <Bracket>
+        <Quantity>1</Quantity>
+        <StopLoss>23.0</StopLoss>
+        <Target>11.5</Target>
+      </Bracket>
+      <Bracket>
+        <Quantity>1</Quantity>
+        <StopLoss>23.0</StopLoss>
+        <Target>11.5</Target>
+      </Bracket>
+      <Bracket>
+        <Quantity>1</Quantity>
+        <StopLoss>23.0</StopLoss>
+        <Target>11.5</Target>
+      </Bracket>
+    </Brackets>
+  </AtmStrategy>
+</NinjaTrader>
