@@ -16,6 +16,8 @@ public class RiskService {
     // si necesitas leer definiciones de mercado, inyecta MarketDefinitionRepository u otro
     // private final MarketDefinitionRepository repo;
 
+    private final RiskMetricsService riskMetricsService;
+
     public List<String> listAccounts() {
         return List.of("ACC1","ACC2","ACC3");
     }
@@ -31,7 +33,7 @@ public class RiskService {
      */
     public List<RiskResultDTO> calculate(RiskInputDTO in) {
         // Ejemplo: simulamos N trades (aquí 1 inicial + 5 siguientes)
-        return IntStream.rangeClosed(0, 5)
+        List<RiskResultDTO> list = IntStream.rangeClosed(0, 5)
                 .mapToObj(i -> {
                     RiskResultDTO r = new RiskResultDTO();
                     r.setTradeNumber(i);
@@ -44,5 +46,14 @@ public class RiskService {
                     return r;
                 })
                 .collect(Collectors.toList());
+
+        // Invocar cálculos básicos y mostrar en log
+        var sampleTrades = List.of(100.0, -50.0, 80.0);
+        double expectancy = riskMetricsService.calculateExpectancy(sampleTrades);
+        double dd = riskMetricsService.calculateDrawdown(sampleTrades);
+        double ror = riskMetricsService.calculateRiskOfRuin(0.5, 1.5, sampleTrades.size());
+        System.out.println("Risk metrics -> expectancy=" + expectancy + ", drawdown=" + dd + ", riskOfRuin=" + ror);
+
+        return list;
     }
 }
