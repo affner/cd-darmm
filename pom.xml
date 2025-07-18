@@ -107,6 +107,13 @@
             <artifactId>hibernate-community-dialects</artifactId>
         </dependency>
 
+        <!-- Dependencias para pruebas -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
 
     </dependencies>
 
