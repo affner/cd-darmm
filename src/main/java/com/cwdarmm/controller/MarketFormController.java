@@ -76,44 +76,47 @@ public class MarketFormController {
     @FXML
     private void onOpenMarket() {
         try {
-            // 1) Abrir modal de OpenMarket
+            // 1) Prepara el diálogo
             FXMLLoader openLoader = springFXMLLoader.load("/fxml/openMarketForm.fxml");
             Stage openStage = new Stage();
             openStage.initOwner(tableMarkets.getScene().getWindow());
-            openStage.initModality(Modality.APPLICATION_MODAL);
+            openStage.initModality(Modality.WINDOW_MODAL);     // WINDOW_MODAL en lugar de APPLICATION_MODAL
             openStage.setTitle("Open Market");
             openStage.setScene(new Scene(openLoader.getRoot()));
 
-            // 2) Configurar callback tras guardar
+            // 2) Configura callback para guardar el DTO y recargar la tabla
             OpenMarketController omc = openLoader.getController();
             omc.setDialogStage(openStage);
             omc.setOnSave(() -> {
-                // recarga y guarda el DTO recién creado
                 this.lastSaved = omc.getLastSavedDTO();
                 loadMarkets();
-                // New: abre ventana con tabla inicial + botón Risk Manage
-                FXMLLoader tableLoader = null;
-                try {
-                    tableLoader = springFXMLLoader.load("/fxml/riskTableView.fxml");
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                Stage tableStage = new Stage();
-                tableStage.initOwner(tableMarkets.getScene().getWindow());
-                tableStage.initModality(Modality.NONE);
-                tableStage.setTitle(lastSaved.getMarket() + " – Risk Manager");
-                tableStage.setScene(new Scene(tableLoader.getRoot()));
-                // pasar contexto al controlador
-                RiskTableController rtc = tableLoader.getController();
-                rtc.setContext(lastSaved);
-                tableStage.show();
             });
 
+            // 3) Muestra el diálogo y espera a que se cierre
             openStage.showAndWait();
+
+            // 4) Una vez cerrado, abres la ventana de Risk **fuera** del callback
+            if (lastSaved != null) {
+                FXMLLoader riskLoader = springFXMLLoader.load("/fxml/riskTableView.fxml");
+                Stage riskStage = new Stage();
+                riskStage.initOwner(tableMarkets.getScene().getWindow());
+                riskStage.initModality(Modality.NONE);
+                riskStage.setTitle(lastSaved.getMarket().getName() + " – Risk Manager");
+                riskStage.setScene(new Scene(riskLoader.getRoot()));
+
+                RiskTableController rtc = riskLoader.getController();
+                rtc.setContext(lastSaved);
+                riskStage.show();
+
+                // limpiamos la marca para la próxima vez
+                lastSaved = null;
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     private void openRiskWindow(MarketDTO context) {
         try {

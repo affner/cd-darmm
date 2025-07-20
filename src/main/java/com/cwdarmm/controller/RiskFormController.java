@@ -15,6 +15,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -32,47 +33,34 @@ public class RiskFormController {
     private Runnable onCalculated;
     private MarketDTO marketContext;
 
-    @FXML
-    private ComboBox<AccountDefinition> cbRiskAccount;
-    @FXML
-    private ComboBox<MarketMaster> cbRiskMarket;
-    @FXML
-    private ComboBox<FeedDefinition> cbRiskMarketData;
-    @FXML
-    private TextField tfRiskAccountSize;
-    @FXML
-    private TextField tfRiskReward;
-    @FXML
-    private TextField tfTicksSl1;
-    @FXML
-    private TextField tfTicksSl2;
-    @FXML
-    private TextField tfStopLossSize;
-    @FXML
-    private CheckBox chkHouse;
-    @FXML
-    private CheckBox chkLunch;
-    @FXML
-    private CheckBox chkWin;
-    @FXML
-    private CheckBox chkLoss;
-    @FXML
-    private ImageView imgCoins;
+    @FXML private ComboBox<AccountDefinition> cbRiskAccount;
+    @FXML private ComboBox<MarketMaster>    cbRiskMarket;
+    @FXML private ComboBox<FeedDefinition>  cbRiskMarketData;
+    @FXML private TextField tfRiskAccountSize;
+    @FXML private TextField tfRiskReward;
+    @FXML private TextField tfTicksSl1;
+    @FXML private TextField tfTicksSl2;
+    @FXML private TextField tfStopLossSize;
+    @FXML private CheckBox chkHouse;
+    @FXML private CheckBox chkLunch;
+    @FXML private CheckBox chkWin;
+    @FXML private CheckBox chkLoss;
+    @FXML private ImageView imgCoins;
 
     @FXML
     public void initialize() {
-        // 1) Accounts
+        // 1) Cargamos cuentas
         List<AccountDefinition> accounts = catalogService.listAccounts();
         cbRiskAccount.setItems(FXCollections.observableArrayList(accounts));
-
+        setupCombo(cbRiskAccount, AccountDefinition::getName);
         // 2) Markets (static list)
         List<MarketMaster> markets = catalogService.listMarkets();
         cbRiskMarket.setItems(FXCollections.observableArrayList(markets));
 
-        // Disable MarketData until account selected
+        // Disable MarketData until account selectedﬁ
         cbRiskMarketData.setDisable(true);
-
-        // 3) When Account changes, enable & load MarketData
+        setupCombo(cbRiskMarket, MarketMaster::getName);
+        // 3) Al cambiar Account → cargamos Markets asociados
         cbRiskAccount.getSelectionModel().selectedItemProperty().addListener((obs, oldAcc, newAcc) -> {
             if (newAcc != null) {
                 // find accountId
@@ -86,7 +74,9 @@ public class RiskFormController {
                 cbRiskMarketData.setDisable(true);
             }
         });
-        // Carga imagen de monedas
+        setupCombo(cbRiskMarketData, FeedDefinition::getName);
+
+        // Carga imagen
         imgCoins.setImage(new Image(getClass().getResourceAsStream("/img/coins.png")));
     }
 
@@ -94,12 +84,8 @@ public class RiskFormController {
         this.dialogStage = stage;
     }
 
-    /**
-     * Recibe el MarketDTO del formulario principal.
-     */
     public void setMarketContext(MarketDTO context) {
         this.marketContext = context;
-        // Pre-popular los combobox o labels según context
         cbRiskAccount.setValue(context.getAccount());
         cbRiskMarket.setValue(context.getMarket());
         cbRiskMarketData.setValue(context.getMarketData());
@@ -112,8 +98,6 @@ public class RiskFormController {
     @FXML
     private void onCalculate() throws IOException {
         if (!validate()) return;
-
-        // 1) Construir request y calcular
         RiskInputDTO req = buildRequest();
         List<RiskResultDTO> results = riskService.calculate(req);
 
@@ -126,7 +110,7 @@ public class RiskFormController {
                 "¿Deseas generar el XML de estrategia?")
                 .showAndWait().filter(ButtonType.OK::equals).isPresent()) {
             Path xml = Path.of(System.getProperty("user.home"),
-                    marketContext.getMarket() + ".xml");
+                    marketContext.getMarket().getName() + ".xml");
             exportService.exportStrategyToXml(marketContext, results, xml);
             new Alert(Alert.AlertType.INFORMATION,
                     "XML generado en:\n" + xml).showAndWait();
@@ -137,7 +121,7 @@ public class RiskFormController {
                 "¿Deseas generar el script AutoHotkey?")
                 .showAndWait().filter(ButtonType.OK::equals).isPresent()) {
             Path ahk = Path.of(System.getProperty("user.home"),
-                    marketContext.getMarket() + ".ahk");
+                    marketContext.getMarket().getName() + ".ahk");
             exportService.exportStrategyToAhk(marketContext, results, ahk);
             new Alert(Alert.AlertType.INFORMATION,
                     "AHK generado en:\n" + ahk).showAndWait();
@@ -153,30 +137,46 @@ public class RiskFormController {
         dialogStage.close();
     }
 
+    // ————— Helpers —————
+
+    private <T> void setupCombo(ComboBox<T> combo, java.util.function.Function<T,String> toString) {
+        combo.setCellFactory(lv -> new ListCell<>() {
+            @Override protected void updateItem(T item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item==null ? null : toString.apply(item));
+            }
+        });
+        combo.setButtonCell(new ListCell<>() {
+            @Override protected void updateItem(T item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item==null ? null : toString.apply(item));
+            }
+        });
+        combo.setConverter(new StringConverter<>() {
+            @Override public String toString(T obj) {
+                return obj==null ? "" : toString.apply(obj);
+            }
+            @Override public T fromString(String s) { return null; }
+        });
+    }
+
     private boolean validate() {
-        // similar a OpenMarket + validación de checkboxes
-        if (cbRiskAccount.getValue() == null || cbRiskMarket.getValue() == null || cbRiskMarketData.getValue() == null) {
-            alert("Selecciona Account, Market y Market Data.");
-            return false;
+        if (cbRiskAccount.getValue()==null || cbRiskMarket.getValue()==null || cbRiskMarketData.getValue()==null) {
+            alert("Selecciona Account, Market y Market Data."); return false;
         }
         if (!chkHouse.isSelected() && !chkLunch.isSelected()) {
-            alert("Selecciona al menos HOUSE o LUNCH.");
-            return false;
+            alert("Selecciona al menos HOUSE o LUNCH."); return false;
         }
         if (!chkWin.isSelected() && !chkLoss.isSelected()) {
-            alert("Selecciona al menos WIN o LOSS.");
-            return false;
+            alert("Selecciona al menos WIN o LOSS."); return false;
         }
-        // numéricos >0
         try {
-            if (Double.parseDouble(tfRiskAccountSize.getText()) <= 0 ||
-                    Double.parseDouble(tfRiskReward.getText()) <= 0 ||
-                    Integer.parseInt(tfTicksSl1.getText()) <= 0 ||
-                    Integer.parseInt(tfTicksSl2.getText()) <= 0)
-                throw new NumberFormatException();
+            if (Double.parseDouble(tfRiskAccountSize.getText())<=0 ||
+                    Double.parseDouble(tfRiskReward.getText())<=0 ||
+                    Integer.parseInt(tfTicksSl1.getText())<=0 ||
+                    Integer.parseInt(tfTicksSl2.getText())<=0 ) throw new Exception();
         } catch (Exception e) {
-            alert("Revisa los valores numéricos.");
-            return false;
+            alert("Revisa los valores numéricos."); return false;
         }
         return true;
     }
@@ -202,13 +202,11 @@ public class RiskFormController {
                 .riskReward(Double.parseDouble(tfRiskReward.getText()))
                 .ticksSl1(Integer.parseInt(tfTicksSl1.getText()))
                 .ticksSl2(Integer.parseInt(tfTicksSl2.getText()))
-                .stopLossSize(tfStopLossSize.getText().isEmpty() ? 0
-                        : Integer.parseInt(tfStopLossSize.getText()))
+                .stopLossSize(tfStopLossSize.getText().isEmpty()?0:Integer.parseInt(tfStopLossSize.getText()))
                 .house(chkHouse.isSelected())
                 .lunch(chkLunch.isSelected())
                 .win(chkWin.isSelected())
                 .loss(chkLoss.isSelected())
                 .build();
     }
-
 }
