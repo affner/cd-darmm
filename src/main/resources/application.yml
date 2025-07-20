@@ -5,7 +5,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
 
     # Aquí solamente el FQCN, sin citas ni espacios adicionales:

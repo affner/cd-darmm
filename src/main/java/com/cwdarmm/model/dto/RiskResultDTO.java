@@ -1,5 +1,7 @@
 package com.cwdarmm.model.dto;
 
+import com.cwdarmm.model.domain.AccountDefinition;
+import com.cwdarmm.model.domain.FeedDefinition;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,8 +11,8 @@ import lombok.NoArgsConstructor;
 public class RiskResultDTO {
     private int tradeNumber;
     private String wl;
-    private String account;
-    private String marketData;
+    private AccountDefinition account;
+    private FeedDefinition marketData;
     private double accountSize;
     private double riskKellyA;
     private double riskKellyB;

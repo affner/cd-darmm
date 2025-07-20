@@ -46,7 +46,7 @@ public class RiskTableController {
 
     public void setContext(MarketDTO context) {
         this.context = context;
-        lblContext.setText(context.getMarket());
+        lblContext.setText(context.getMarket().getName());
         // inicializar la tabla con el resultado inicial (trade 0):
         var initial = List.of(RiskResultDTO.builder()
                 .tradeNumber(0).wl("INITIAL")

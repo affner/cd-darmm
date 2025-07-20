@@ -1,67 +1,99 @@
 package com.cwdarmm.controller;
 
 import com.cwdarmm.model.dto.MarketDTO;
+import com.cwdarmm.model.domain.AccountDefinition;
+import com.cwdarmm.model.domain.FeedDefinition;
+import com.cwdarmm.model.domain.MarketMaster;
+import com.cwdarmm.service.CatalogService;
 import com.cwdarmm.service.MarketService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/**
- * Controlador para el formulario "Open Market".
- * Spring @Component para inyección de dependencias.
- */
 @Component
 @RequiredArgsConstructor
 public class OpenMarketController {
+    private final CatalogService catalogService;
     private final MarketService marketService;
-
-    @FXML private ComboBox<String> cbAccount;
-    @FXML private ComboBox<String> cbMarket;
-    @FXML private ComboBox<String> cbMarketData;
-    @FXML private TextField tfAccountSize;
-    @FXML private TextField tfRiskA;
-    @FXML private TextField tfRiskB;
-    @FXML private Button btnOpen;
-    @FXML private Button btnClose;
-
     private Stage dialogStage;
     private Runnable onSaveCallback;
     private MarketDTO lastSaved;
 
-    /**
-     * Inicializa los ComboBoxes con datos del servicio.
-     */
+    @FXML private ComboBox<AccountDefinition> cbAccount;
+    @FXML private ComboBox<MarketMaster> cbMarket;
+    @FXML private ComboBox<FeedDefinition> cbMarketData;
+    @FXML private TextField tfAccountSize;
+    @FXML private TextField tfRiskA;
+    @FXML private TextField tfRiskB;
+
     @FXML
     public void initialize() {
-        cbAccount.setItems(FXCollections.observableArrayList(marketService.listAccounts()));
-        cbMarket.setItems(FXCollections.observableArrayList(marketService.listMarkets()));
-        cbMarketData.setItems(FXCollections.observableArrayList(marketService.listMarketData()));
+        // 1) Poblar Account
+        cbAccount.setItems(FXCollections.observableArrayList(
+                catalogService.listAccounts()));
+        cbAccount.setCellFactory(list -> new ListCell<>() {
+            @Override protected void updateItem(AccountDefinition item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item.getName());
+            }
+        });
+        cbAccount.setConverter(new StringConverter<>() {
+            @Override public String toString(AccountDefinition a) {
+                return (a == null ? "" : a.getName());
+            }
+            @Override public AccountDefinition fromString(String s) { return null; }
+        });
+
+        // 2) Poblar Market (estático o según negocio)
+        cbMarket.setItems(FXCollections.observableArrayList(
+                catalogService.listMarkets()));
+        cbMarket.setCellFactory(list -> new ListCell<>() {
+            @Override protected void updateItem(MarketMaster m, boolean empty) {
+                super.updateItem(m, empty);
+                setText(empty || m == null ? null : m.getName());
+            }
+        });
+        cbMarket.setConverter(new StringConverter<>() {
+            @Override public String toString(MarketMaster m) {
+                return (m == null ? "" : m.getName());
+            }
+            @Override public MarketMaster fromString(String s) { return null; }
+        });
+
+        // 3) MarketData deshabilitado hasta seleccionar Account
+        cbMarketData.setDisable(true);
+        cbAccount.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
+            if (sel != null) {
+                // Cargar Market Data por Account ID
+                cbMarketData.setItems(FXCollections.observableArrayList(
+                        catalogService.listFeedsByAccount(sel.getId())));
+                cbMarketData.setCellFactory(list -> new ListCell<>() {
+                    @Override protected void updateItem(FeedDefinition f, boolean empty) {
+                        super.updateItem(f, empty);
+                        setText(empty || f == null ? null : f.getName());
+                    }
+                });
+                cbMarketData.setConverter(new StringConverter<>() {
+                    @Override public String toString(FeedDefinition f) {
+                        return (f == null ? "" : f.getName());
+                    }
+                    @Override public FeedDefinition fromString(String s) { return null; }
+                });
+                cbMarketData.setDisable(false);
+            } else {
+                cbMarketData.getItems().clear();
+                cbMarketData.setDisable(true);
+            }
+        });
     }
 
-    /**
-     * Setter para el Stage del diálogo.
-     */
-    public void setDialogStage(Stage stage) {
-        this.dialogStage = stage;
-    }
-
-    /**
-     * Callback invocado después de guardar para refrescar las tablas.
-     */
-    public void setOnSave(Runnable callback) {
-        this.onSaveCallback = callback;
-    }
-
-    /**
-     * Acción del botón "Open Market".
-     * Valida, crea DTO y persiste vía MarketService.
-     */
     @FXML
     private void onOpenMarket() {
         if (!validateInputs()) return;
@@ -80,34 +112,33 @@ public class OpenMarketController {
         dialogStage.close();
     }
 
-    /**
-     * Devuelve el último MarketDTO guardado.
-     */
-    public MarketDTO getLastSavedDTO() {
-        return lastSaved;
-    }
-
-    /**
-     * Cierra el diálogo sin guardar.
-     */
     @FXML
     private void onClose() {
         dialogStage.close();
     }
 
-    /**
-     * Validaciones básicas: selección obligatoria y valores numéricos > 0.
-     */
+    public void setDialogStage(Stage stage) {
+        this.dialogStage = stage;
+    }
+
+    public void setOnSave(Runnable callback) {
+        this.onSaveCallback = callback;
+    }
+
+    public MarketDTO getLastSavedDTO() {
+        return lastSaved;
+    }
+
     private boolean validateInputs() {
         if (cbAccount.getValue() == null || cbMarket.getValue() == null || cbMarketData.getValue() == null) {
             showAlert(Alert.AlertType.WARNING, "Debe seleccionar Account, Market y Market Data.");
             return false;
         }
         try {
-            double accSize = Double.parseDouble(tfAccountSize.getText());
+            double size = Double.parseDouble(tfAccountSize.getText());
             double a = Double.parseDouble(tfRiskA.getText());
             double b = Double.parseDouble(tfRiskB.getText());
-            if (accSize <= 0 || a <= 0 || b <= 0) throw new NumberFormatException();
+            if (size <= 0 || a <= 0 || b <= 0) throw new NumberFormatException();
         } catch (NumberFormatException ex) {
             showAlert(Alert.AlertType.WARNING, "Account Size, Risk A y Risk B deben ser números mayores a cero.");
             return false;
@@ -115,9 +146,6 @@ public class OpenMarketController {
         return true;
     }
 
-    /**
-     * Muestra un Alert genérico.
-     */
     private void showAlert(Alert.AlertType type, String message) {
         Alert alert = new Alert(type);
         alert.initOwner(dialogStage);

@@ -1,8 +1,12 @@
 package com.cwdarmm.controller;
 
+import com.cwdarmm.model.domain.AccountDefinition;
+import com.cwdarmm.model.domain.FeedDefinition;
+import com.cwdarmm.model.domain.MarketMaster;
 import com.cwdarmm.model.dto.MarketDTO;
 import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.RiskResultDTO;
+import com.cwdarmm.service.CatalogService;
 import com.cwdarmm.service.ExportService;
 import com.cwdarmm.service.RiskService;
 import javafx.collections.FXCollections;
@@ -22,18 +26,18 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RiskFormController {
     private final RiskService riskService;
-
+    private final CatalogService catalogService;
     private final ExportService exportService;
     private Stage dialogStage;
     private Runnable onCalculated;
     private MarketDTO marketContext;
 
     @FXML
-    private ComboBox<String> cbRiskAccount;
+    private ComboBox<AccountDefinition> cbRiskAccount;
     @FXML
-    private ComboBox<String> cbRiskMarket;
+    private ComboBox<MarketMaster> cbRiskMarket;
     @FXML
-    private ComboBox<String> cbRiskMarketData;
+    private ComboBox<FeedDefinition> cbRiskMarketData;
     @FXML
     private TextField tfRiskAccountSize;
     @FXML
@@ -57,11 +61,31 @@ public class RiskFormController {
 
     @FXML
     public void initialize() {
-        // Poblar comboboxes al igual que en OpenMarket
-        cbRiskAccount.setItems(FXCollections.observableArrayList(riskService.listAccounts()));
-        cbRiskMarket.setItems(FXCollections.observableArrayList(riskService.listMarkets()));
-        cbRiskMarketData.setItems(FXCollections.observableArrayList(riskService.listMarketData()));
+        // 1) Accounts
+        List<AccountDefinition> accounts = catalogService.listAccounts();
+        cbRiskAccount.setItems(FXCollections.observableArrayList(accounts));
 
+        // 2) Markets (static list)
+        List<MarketMaster> markets = catalogService.listMarkets();
+        cbRiskMarket.setItems(FXCollections.observableArrayList(markets));
+
+        // Disable MarketData until account selected
+        cbRiskMarketData.setDisable(true);
+
+        // 3) When Account changes, enable & load MarketData
+        cbRiskAccount.getSelectionModel().selectedItemProperty().addListener((obs, oldAcc, newAcc) -> {
+            if (newAcc != null) {
+                // find accountId
+                Long accId = newAcc.getId();
+                // load feeds for that account
+                List<FeedDefinition> feeds = catalogService.listFeedsByAccount(accId);
+                cbRiskMarketData.setItems(FXCollections.observableArrayList(feeds));
+                cbRiskMarketData.setDisable(false);
+            } else {
+                cbRiskMarketData.getItems().clear();
+                cbRiskMarketData.setDisable(true);
+            }
+        });
         // Carga imagen de monedas
         imgCoins.setImage(new Image(getClass().getResourceAsStream("/img/coins.png")));
     }

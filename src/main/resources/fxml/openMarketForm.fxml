@@ -2,6 +2,9 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import com.cwdarmm.model.domain.AccountDefinition?>
+<?import com.cwdarmm.model.domain.MarketMaster?>
+<?import com.cwdarmm.model.domain.FeedDefinition?>
 
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.cwdarmm.controller.OpenMarketController"
@@ -26,14 +29,20 @@
             <RowConstraints vgrow="NEVER"/>
         </rowConstraints>
 
+        <!-- Account ComboBox ahora enlazado a AccountDefinition -->
         <Label text="Account:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-        <ComboBox fx:id="cbAccount" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        <ComboBox fx:id="cbAccount"
+                  GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
+        <!-- Market ComboBox: MarketMaster -->
         <Label text="Market:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-        <ComboBox fx:id="cbMarket" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <ComboBox fx:id="cbMarket"
+                  GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
+        <!-- Market Data ComboBox: FeedDefinition -->
         <Label text="Market Data:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-        <ComboBox fx:id="cbMarketData" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <ComboBox fx:id="cbMarketData"
+                  GridPane.rowIndex="2" GridPane.columnIndex="1"/>
 
         <Label text="Account Size:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
         <TextField fx:id="tfAccountSize" GridPane.rowIndex="3" GridPane.columnIndex="1"/>

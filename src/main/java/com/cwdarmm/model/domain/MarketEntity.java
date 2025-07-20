@@ -1,28 +1,43 @@
 package com.cwdarmm.model.domain;
 
-
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 
 @Entity
 @Table(name = "markets")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class MarketEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String account;
-    private String market;
-    @Column(name = "market_data")
-    private String marketData;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", nullable = false)
+    private AccountDefinition account;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "market_id", nullable = false)
+    private MarketMaster market;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "feed_id", nullable = false)
+    private FeedDefinition marketData;
+
+    @Column(name = "account_size")
     private Double accountSize;
+
+    @Column(name = "riska")
     private Double riskA;
+
+    @Column(name = "riskb")
     private Double riskB;
+
+    @Column(name = "risk_final_house")
     private Double riskFinalHouse;
+
+    @Column(name = "risk_final_lunch")
     private Double riskFinalLunch;
 }

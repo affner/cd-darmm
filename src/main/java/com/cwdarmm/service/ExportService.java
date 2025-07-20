@@ -44,7 +44,6 @@ public class ExportService {
      */
     public void exportStrategyToAhk(MarketDTO market, List<RiskResultDTO> results, Path target) throws IOException {
         // Reemplaza espacios para usar en nombre interno si es necesario
-        String strategyName = market.getMarket().replace(" ", "_");
         StringBuilder sb = new StringBuilder();
 
         // Encabezado del script AHK
