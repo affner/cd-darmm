@@ -2,7 +2,6 @@ package com.cwdarmm.model.dto;
 
 import com.cwdarmm.model.domain.AccountDefinition;
 import com.cwdarmm.model.domain.FeedDefinition;
-import com.cwdarmm.model.domain.MarketDefinition;
 import com.cwdarmm.model.domain.MarketMaster;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

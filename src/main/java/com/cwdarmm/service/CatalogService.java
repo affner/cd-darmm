@@ -2,29 +2,29 @@ package com.cwdarmm.service;
 
 import com.cwdarmm.model.domain.AccountDefinition;
 import com.cwdarmm.model.domain.FeedDefinition;
-import com.cwdarmm.model.domain.AccountFeed;
 import com.cwdarmm.model.domain.MarketMaster;
 import com.cwdarmm.repository.AccountDefinitionRepository;
-import com.cwdarmm.repository.FeedDefinitionRepository;
-import com.cwdarmm.repository.AccountFeedRepository;
 import com.cwdarmm.repository.MarketMasterRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CatalogService {
+
     private final AccountDefinitionRepository accountRepo;
     private final MarketMasterRepository marketRepo;
-    private final FeedDefinitionRepository feedRepo;
-    private final AccountFeedRepository accountFeedRepo;
 
     /**
      * Devuelve todas las cuentas (para el combo Account)
      */
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<AccountDefinition> listAccounts() {
         return accountRepo.findAll();
     }
@@ -32,6 +32,7 @@ public class CatalogService {
     /**
      * Devuelve todos los mercados (para el combo Market)
      */
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<MarketMaster> listMarkets() {
         return marketRepo.findAll();
     }
@@ -39,10 +40,15 @@ public class CatalogService {
     /**
      * Devuelve los feeds (Market Data) disponibles para una cuenta dada.
      */
+    @Transactional(Transactional.TxType.SUPPORTS)
     public List<FeedDefinition> listFeedsByAccount(Long accountId) {
-        return accountFeedRepo.findByAccountId(accountId)
-                .stream()
-                .map(AccountFeed::getFeed)
-                .collect(Collectors.toList());
+        return accountRepo.findById(accountId)
+                .map(AccountDefinition::getFeeds)         // Set<FeedDefinition>
+                .map(this::toList)
+                .orElse(Collections.emptyList());
+    }
+
+    private List<FeedDefinition> toList(Set<FeedDefinition> set) {
+        return set.stream().collect(Collectors.toList());
     }
 }

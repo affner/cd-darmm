@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <BorderPane fx:id="root" xmlns:fx="http://javafx.com/fxml" fx:controller="com.cwdarmm.controller.MarketFormController">
     <top>
         <ToolBar>
@@ -9,17 +10,51 @@
         </ToolBar>
     </top>
     <center>
-        <TableView fx:id="tableMarkets">
+        <TableView fx:id="tableMarkets" xmlns:fx="http://javafx.com/fxml">
             <columns>
-                <TableColumn text="Account"      fx:id="colAccount"/>
-                <TableColumn text="Market"       fx:id="colMarket"/>
-                <TableColumn text="Market Data"  fx:id="colMarketData"/>
-                <TableColumn text="Account Size" fx:id="colSize"/>
-                <TableColumn text="Risk A"       fx:id="colRiskA"/>
-                <TableColumn text="Risk B"       fx:id="colRiskB"/>
-                <TableColumn text="Final House"  fx:id="colFinalHouse"/>
-                <TableColumn text="Final Lunch"  fx:id="colFinalLunch"/>
+                <TableColumn fx:id="colAccount" text="Account">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="account.name"/>
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="colMarket" text="Market">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="market.name"/>
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="colMarketData" text="Market Data">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="marketData.name"/>
+                    </cellValueFactory>
+                </TableColumn>
+
+                <TableColumn fx:id="colSize" text="Account Size">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="accountSize"/>
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="colRiskA" text="Risk A">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="riskA"/>
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="colRiskB" text="Risk B">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="riskB"/>
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="colFinalHouse" text="Final House">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="riskFinalHouse"/>
+                    </cellValueFactory>
+                </TableColumn>
+                <TableColumn fx:id="colFinalLunch" text="Final Lunch">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="riskFinalLunch"/>
+                    </cellValueFactory>
+                </TableColumn>
             </columns>
         </TableView>
+
     </center>
 </BorderPane>

@@ -9,7 +9,6 @@ import com.cwdarmm.repository.AccountDefinitionRepository;
 import com.cwdarmm.repository.MarketMasterRepository;
 import com.cwdarmm.repository.FeedDefinitionRepository;
 import com.cwdarmm.repository.MarketRepository;
-import com.cwdarmm.repository.AccountMarketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +22,6 @@ public class MarketService {
     private final MarketMasterRepository marketMasterRepo;
     private final FeedDefinitionRepository feedRepo;
     private final MarketRepository marketRepo;
-    private final AccountMarketRepository accountMarketRepo;
 
     /**
      * Persistir nueva configuración de mercado.
@@ -56,7 +54,7 @@ public class MarketService {
      * Listar todas las configuraciones guardadas.
      */
     public List<MarketDTO> findAll() {
-        return marketRepo.findAll().stream()
+        return marketRepo.findAllWithFetch().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }

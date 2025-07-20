@@ -4,6 +4,7 @@ package com.cwdarmm.controller;
 import com.cwdarmm.model.dto.MarketDTO;
 import com.cwdarmm.service.MarketService;
 import com.cwdarmm.config.SpringFXMLLoader;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -52,9 +53,12 @@ public class MarketFormController {
 
     @FXML
     public void initialize() {
-        colAccount.setCellValueFactory(new PropertyValueFactory<>("account"));
-        colMarket.setCellValueFactory(new PropertyValueFactory<>("market"));
-        colMarketData.setCellValueFactory(new PropertyValueFactory<>("marketData"));
+        colAccount.setCellValueFactory(feat ->
+                new ReadOnlyStringWrapper(feat.getValue().getAccount().getName()));
+        colMarket.setCellValueFactory(feat ->
+                new ReadOnlyStringWrapper(feat.getValue().getMarket().getName()));
+        colMarketData.setCellValueFactory(feat ->
+                new ReadOnlyStringWrapper(feat.getValue().getMarketData().getName()));
         colSize.setCellValueFactory(new PropertyValueFactory<>("accountSize"));
         colRiskA.setCellValueFactory(new PropertyValueFactory<>("riskA"));
         colRiskB.setCellValueFactory(new PropertyValueFactory<>("riskB"));

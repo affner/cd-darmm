@@ -7,6 +7,8 @@ import com.cwdarmm.model.dto.RiskResultDTO;
 import com.cwdarmm.service.ExportService;
 import com.cwdarmm.service.OutputService;
 import com.cwdarmm.service.RiskService;
+import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -38,7 +40,6 @@ public class RiskTableController {
     @FXML private TableColumn<RiskResultDTO,Double>  colRiskB;
     @FXML private Button btnExportCsv;
 
-    private final ExportService exportService;
     private final OutputService outputService;
     private final SpringFXMLLoader springFXMLLoader;
     private final RiskService riskService; // inyectado con Spring
@@ -59,25 +60,42 @@ public class RiskTableController {
         tableResults.setItems(FXCollections.observableArrayList(initial));
     }
 
-    @FXML public void initialize() {
-        colTrade      .setCellValueFactory(new PropertyValueFactory<>("tradeNumber"));
-        colWl         .setCellValueFactory(new PropertyValueFactory<>("wl"));
-        colAccount    .setCellValueFactory(new PropertyValueFactory<>("account"));
-        colMarketData .setCellValueFactory(new PropertyValueFactory<>("marketData"));
-        colAccountSize.setCellValueFactory(new PropertyValueFactory<>("accountSize"));
-        colRiskA      .setCellValueFactory(new PropertyValueFactory<>("riskKellyA"));
-        colRiskB      .setCellValueFactory(new PropertyValueFactory<>("riskKellyB"));
+    @FXML
+    public void initialize() {
+        colTrade.setCellValueFactory(new PropertyValueFactory<>("tradeNumber"));
+        colWl   .setCellValueFactory(new PropertyValueFactory<>("wl"));
+
+        // <<— Aquí sacamos el name manualmente en vez de "account.name" —>>
+        colAccount.setCellValueFactory(feat -> {
+            var acc = feat.getValue().getAccount();
+            String txt = (acc != null ? acc.getName() : "");
+            return new ReadOnlyStringWrapper(txt);
+        });
+
+        colMarketData.setCellValueFactory(feat -> {
+            var fd = feat.getValue().getMarketData();
+            String txt = (fd != null ? fd.getName() : "");
+            return new ReadOnlyStringWrapper(txt);
+        });
+
+        // Para los doubles podemos seguir con wrappers
+        colAccountSize.setCellValueFactory(feat ->
+                new ReadOnlyObjectWrapper<>(feat.getValue().getAccountSize()));
+        colRiskA       .setCellValueFactory(feat ->
+                new ReadOnlyObjectWrapper<>(feat.getValue().getRiskKellyA()));
+        colRiskB       .setCellValueFactory(feat ->
+                new ReadOnlyObjectWrapper<>(feat.getValue().getRiskKellyB()));
+
         btnExportCsv.setOnAction(evt -> {
             try {
-                // suponiendo que tableResults ya tiene los datos
                 var list = tableResults.getItems();
-                // eliges la ubicación, por ejemplo:
                 Path file = Path.of(System.getProperty("user.home"), "risk-results.csv");
                 outputService.exportRiskResultsToCsv(list, file);
-                // muestra confirmación
-                new Alert(Alert.AlertType.INFORMATION, "CSV exportado en:\n" + file).showAndWait();
+                new Alert(Alert.AlertType.INFORMATION, "CSV exportado en:\n" + file)
+                        .showAndWait();
             } catch (IOException e) {
-                new Alert(Alert.AlertType.ERROR, "Error al exportar CSV:\n" + e.getMessage()).showAndWait();
+                new Alert(Alert.AlertType.ERROR, "Error al exportar CSV:\n" + e.getMessage())
+                        .showAndWait();
             }
         });
     }
