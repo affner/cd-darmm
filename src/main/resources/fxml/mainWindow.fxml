@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.cwdarmm.controller.MainWindowController">
+    <center>
+        <TabPane fx:id="tabPane">
+            <!-- Tab existente de Markets -->
+            <Tab text="Markets" fx:id="tabMarkets">
+                <fx:include source="marketForm.fxml"/>
+            </Tab>
+            <!-- NUEVO: Resultados -->
+            <Tab text="Results" fx:id="tabResults">
+                <fx:include source="resultForm.fxml"/>
+            </Tab>
+            <!-- NUEVO: BD_Market -->
+            <Tab text="Market DB" fx:id="tabMarketDb">
+                <fx:include source="marketDbForm.fxml"/>
+            </Tab>
+        </TabPane>
+    </center>
+</BorderPane>

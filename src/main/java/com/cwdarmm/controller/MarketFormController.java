@@ -10,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
@@ -66,6 +67,17 @@ public class MarketFormController {
         colFinalLunch.setCellValueFactory(new PropertyValueFactory<>("riskFinalLunch"));
 
         loadMarkets();
+
+        tableMarkets.setRowFactory(tv -> {
+            TableRow<MarketDTO> row = new TableRow<>();
+            row.setOnMouseClicked(evt -> {
+                if (!row.isEmpty() && evt.getClickCount() == 2) {
+                    MarketDTO clicked = row.getItem();
+                    openRiskTableWindow(clicked);
+                }
+            });
+            return row;
+        });
     }
 
     private void loadMarkets() {
@@ -118,25 +130,27 @@ public class MarketFormController {
     }
 
 
-    private void openRiskWindow(MarketDTO context) {
+    private void openRiskTableWindow(MarketDTO context) {
         try {
-            FXMLLoader riskLoader = springFXMLLoader.load("/fxml/RiskForm.fxml");
+            // 1) Carga el FXML de la vista de tabla de riesgo
+            FXMLLoader riskLoader = springFXMLLoader.load("/fxml/riskTableView.fxml");
             Stage riskStage = new Stage();
             riskStage.initOwner(tableMarkets.getScene().getWindow());
             riskStage.initModality(Modality.NONE);
-            riskStage.setTitle(context.getMarket() + " – Risk Manager");
+            riskStage.setTitle(context.getMarket().getName() + " – Risk Manager");
             riskStage.setScene(new Scene(riskLoader.getRoot()));
 
-            RiskFormController rfc = riskLoader.getController();
-            rfc.setDialogStage(riskStage);
-            rfc.setMarketContext(context);
-            rfc.setOnCalculated(this::loadMarkets);
+            // 2) Pasa el contexto al controller de Risk Table
+            RiskTableController rtc = riskLoader.getController();
+            rtc.setContext(context);
 
+            // 3) Muestra la ventana
             riskStage.show();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     /**
      * Permite acceder al DTO creado desde OpenMarketController.

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.cwdarmm.controller.MarketDbFormController"
+      spacing="10">
+
+    <padding>
+        <Insets top="16" right="16" bottom="16" left="16"/>
+    </padding>
+
+    <Label text="BD_MARKET" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
+
+    <TableView fx:id="tblMarketDb" prefHeight="400">
+        <columns>
+            <TableColumn text="Future"        fx:id="colFuture"/>
+            <TableColumn text="Account"       fx:id="colAccount"/>
+            <TableColumn text="Market Data"   fx:id="colMarketData"/>
+            <TableColumn text="Name"          fx:id="colName"/>
+            <TableColumn text="Symbol"        fx:id="colSymbol"/>
+            <TableColumn text="Multiplier"    fx:id="colMultiplier"/>
+            <TableColumn text="Tick Size"     fx:id="colTickSize"/>
+            <TableColumn text="Tick Value"    fx:id="colTickValue"/>
+            <TableColumn text="Margin"        fx:id="colMargin"/>
+            <TableColumn text="Commission"    fx:id="colCommission"/>
+        </columns>
+    </TableView>
+
+    <HBox spacing="8" alignment="CENTER_RIGHT">
+        <Button text="Refresh"    onAction="#onRefresh"/>
+        <Button text="Close"      onAction="#onClose"/>
+    </HBox>
+</VBox>
