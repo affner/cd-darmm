@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 
 <VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.cwdarmm.controller.ResultFormController"
+      fx:controller="com.cwdarmm.controller.ResultViewController"
       spacing="10">
 
     <padding>

@@ -9,15 +9,15 @@
         <TabPane fx:id="tabPane">
             <!-- Tab existente de Markets -->
             <Tab text="Markets" fx:id="tabMarkets">
-                <fx:include source="marketForm.fxml"/>
+                <fx:include source="MarketManagerView.fxml"/>
             </Tab>
             <!-- NUEVO: Resultados -->
             <Tab text="Results" fx:id="tabResults">
-                <fx:include source="resultForm.fxml"/>
+                <fx:include source="ResultView.fxml"/>
             </Tab>
             <!-- NUEVO: BD_Market -->
             <Tab text="Market DB" fx:id="tabMarketDb">
-                <fx:include source="marketDbForm.fxml"/>
+                <fx:include source="MarketDbView.fxml"/>
             </Tab>
         </TabPane>
     </center>

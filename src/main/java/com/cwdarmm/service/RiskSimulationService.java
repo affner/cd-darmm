@@ -1,10 +1,8 @@
 // src/main/java/com/cwdarmm/service/RiskSimulationService.java
 package com.cwdarmm.service;
 
-import com.cwdarmm.model.domain.MarketDefinition;
 import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.RiskResultDTO;
-import com.cwdarmm.repository.MarketDefinitionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

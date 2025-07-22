@@ -1,8 +1,8 @@
 package com.cwdarmm.model.dto;
 
-import com.cwdarmm.model.domain.AccountDefinition;
-import com.cwdarmm.model.domain.FeedDefinition;
-import com.cwdarmm.model.domain.MarketMaster;
+import com.cwdarmm.model.domain.TradingAccount;
+import com.cwdarmm.model.domain.PriceFeed;
+import com.cwdarmm.model.domain.OpenMarket;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,9 +15,9 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class RiskInputDTO {
-    private AccountDefinition account;
-    private MarketMaster market;
-    private FeedDefinition marketData;
+    private TradingAccount account;
+    private OpenMarket market;
+    private PriceFeed marketData;
     private BigDecimal accountSize;
     private double riskReward;
     private int ticksSl1;

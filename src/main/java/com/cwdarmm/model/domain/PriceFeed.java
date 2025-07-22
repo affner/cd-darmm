@@ -13,7 +13,7 @@ import java.util.Set;
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
-public class FeedDefinition {
+public class PriceFeed {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,5 +29,5 @@ public class FeedDefinition {
     @Builder.Default
     @ManyToMany(mappedBy = "feeds", fetch = FetchType.LAZY)
     @EqualsAndHashCode.Exclude
-    private Set<AccountDefinition> accounts = new HashSet<>();
+    private Set<TradingAccount> accounts = new HashSet<>();
 }

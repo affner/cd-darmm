@@ -13,7 +13,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class MarketDbFormController {
+public class MarketDbViewController {
 
     @FXML private TableView<MarketDbRowDTO> tblMarketDb;
     @FXML private TableColumn<MarketDbRowDTO, String>  colFuture;

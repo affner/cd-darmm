@@ -1,6 +1,6 @@
 package com.cwdarmm.config;
 
-import com.cwdarmm.model.domain.AccountDefinition;
+import com.cwdarmm.model.domain.TradingAccount;
 import com.cwdarmm.repository.AccountDefinitionRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class AccountDefinitionDataLoader {
                         Long id = Long.parseLong(parts[0].trim());
                         String name = parts[1].trim();
                         Double initialSize = Double.parseDouble(parts[2].trim());
-                        AccountDefinition account = AccountDefinition.builder()
+                        TradingAccount account = TradingAccount.builder()
                                 .id(id)
                                 .name(name)
                                 .initialSize(initialSize)

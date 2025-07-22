@@ -4,9 +4,8 @@ import com.cwdarmm.config.SpringFXMLLoader;
 import com.cwdarmm.model.dto.MarketDTO;
 import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.RiskResultDTO;
-import com.cwdarmm.service.ExportService;
 import com.cwdarmm.service.OutputService;
-import com.cwdarmm.service.RiskService;
+import com.cwdarmm.service.RiskAnalysisService;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -27,7 +26,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class RiskTableController {
+public class MarketRiskDashboardController {
     @FXML
     private Label lblContext;
     @FXML private TableView<RiskResultDTO> tableResults;
@@ -43,7 +42,7 @@ public class RiskTableController {
 
     private final OutputService outputService;
     private final SpringFXMLLoader springFXMLLoader;
-    private final RiskService riskService; // inyectado con Spring
+    private final RiskAnalysisService riskAnalysisService; // inyectado con Spring
     private MarketDTO context;
 
     public void setContext(MarketDTO context) {
@@ -104,8 +103,8 @@ public class RiskTableController {
     @FXML
     private void onRiskManage() throws IOException {
         // Cargamos el FXML y obtenemos el controller
-        FXMLLoader loader = springFXMLLoader.load("/fxml/RiskForm.fxml");
-        RiskFormController formCtrl = loader.getController();
+        FXMLLoader loader = springFXMLLoader.load("/fxml/RiskConfigForm.fxml");
+        RiskConfigController formCtrl = loader.getController();
 
         // Construimos un único Stage y se lo pasamos al formulario
         Stage dialog = new Stage();
@@ -114,7 +113,7 @@ public class RiskTableController {
         formCtrl.setOnCalculated(() -> {
             // Actualizar tabla con resultados recalculados
             RiskInputDTO req = formCtrl.buildRequest();
-            List<RiskResultDTO> recalculated = riskService.calculate(req);
+            List<RiskResultDTO> recalculated = riskAnalysisService.calculate(req);
             tableResults.setItems(FXCollections.observableArrayList(recalculated));
         });
 

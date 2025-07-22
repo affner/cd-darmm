@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 
 <VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.cwdarmm.controller.MarketDbFormController"
+      fx:controller="com.cwdarmm.controller.MarketDbViewController"
       spacing="10">
 
     <padding>

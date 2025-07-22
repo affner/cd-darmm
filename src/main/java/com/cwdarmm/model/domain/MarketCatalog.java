@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MarketDefinition {
+public class MarketCatalog {
     @Id
     @Column(name = "symbol", length = 10)
     private String symbol;

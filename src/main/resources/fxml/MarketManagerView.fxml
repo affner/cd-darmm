@@ -2,7 +2,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
-<BorderPane fx:id="root" xmlns:fx="http://javafx.com/fxml" fx:controller="com.cwdarmm.controller.MarketFormController">
+<BorderPane fx:id="root" xmlns:fx="http://javafx.com/fxml" fx:controller="com.cwdarmm.controller.MarketManagerController">
     <top>
         <ToolBar>
             <Label text="Markets" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>

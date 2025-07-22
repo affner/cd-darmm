@@ -1,11 +1,11 @@
 package com.cwdarmm.controller;
 
+import com.cwdarmm.model.domain.OpenMarket;
+import com.cwdarmm.model.domain.TradingAccount;
 import com.cwdarmm.model.dto.MarketDTO;
-import com.cwdarmm.model.domain.AccountDefinition;
-import com.cwdarmm.model.domain.FeedDefinition;
-import com.cwdarmm.model.domain.MarketMaster;
-import com.cwdarmm.service.CatalogService;
-import com.cwdarmm.service.MarketService;
+import com.cwdarmm.model.domain.PriceFeed;
+import com.cwdarmm.service.ReferenceDataService;
+import com.cwdarmm.service.MarketDataService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -21,9 +21,9 @@ import java.math.BigDecimal;
 
 @Component
 @RequiredArgsConstructor
-public class OpenMarketController {
-    private final CatalogService catalogService;
-    private final MarketService marketService;
+public class OpenMarketSessionController {
+    private final ReferenceDataService referenceDataService;
+    private final MarketDataService marketDataService;
     private Stage dialogStage;
     private Runnable onSaveCallback;
     private MarketDTO lastSaved;
@@ -31,11 +31,11 @@ public class OpenMarketController {
     private MarketDTO existingDto;
 
     @FXML
-    private ComboBox<AccountDefinition> cbAccount;
+    private ComboBox<TradingAccount> cbAccount;
     @FXML
-    private ComboBox<MarketMaster> cbMarket;
+    private ComboBox<OpenMarket> cbMarket;
     @FXML
-    private ComboBox<FeedDefinition> cbMarketData;
+    private ComboBox<PriceFeed> cbMarketData;
     @FXML
     private TextField tfAccountSize;
     @FXML
@@ -47,44 +47,44 @@ public class OpenMarketController {
     public void initialize() {
         // 1) Poblar Account
         cbAccount.setItems(FXCollections.observableArrayList(
-                catalogService.listAccounts()));
+                referenceDataService.listAccounts()));
         cbAccount.setCellFactory(list -> new ListCell<>() {
             @Override
-            protected void updateItem(AccountDefinition item, boolean empty) {
+            protected void updateItem(TradingAccount item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? null : item.getName());
             }
         });
         cbAccount.setConverter(new StringConverter<>() {
             @Override
-            public String toString(AccountDefinition a) {
+            public String toString(TradingAccount a) {
                 return (a == null ? "" : a.getName());
             }
 
             @Override
-            public AccountDefinition fromString(String s) {
+            public TradingAccount fromString(String s) {
                 return null;
             }
         });
 
         // 2) Poblar Market (estático o según negocio)
         cbMarket.setItems(FXCollections.observableArrayList(
-                catalogService.listMarkets()));
+                referenceDataService.listMarkets()));
         cbMarket.setCellFactory(list -> new ListCell<>() {
             @Override
-            protected void updateItem(MarketMaster m, boolean empty) {
+            protected void updateItem(OpenMarket m, boolean empty) {
                 super.updateItem(m, empty);
                 setText(empty || m == null ? null : m.getName());
             }
         });
         cbMarket.setConverter(new StringConverter<>() {
             @Override
-            public String toString(MarketMaster m) {
+            public String toString(OpenMarket m) {
                 return (m == null ? "" : m.getName());
             }
 
             @Override
-            public MarketMaster fromString(String s) {
+            public OpenMarket fromString(String s) {
                 return null;
             }
         });
@@ -95,22 +95,22 @@ public class OpenMarketController {
             if (sel != null) {
                 // Cargar Market Data por Account ID
                 cbMarketData.setItems(FXCollections.observableArrayList(
-                        catalogService.listFeedsByAccount(sel.getId())));
+                        referenceDataService.listFeedsByAccount(sel.getId())));
                 cbMarketData.setCellFactory(list -> new ListCell<>() {
                     @Override
-                    protected void updateItem(FeedDefinition f, boolean empty) {
+                    protected void updateItem(PriceFeed f, boolean empty) {
                         super.updateItem(f, empty);
                         setText(empty || f == null ? null : f.getName());
                     }
                 });
                 cbMarketData.setConverter(new StringConverter<>() {
                     @Override
-                    public String toString(FeedDefinition f) {
+                    public String toString(PriceFeed f) {
                         return (f == null ? "" : f.getName());
                     }
 
                     @Override
-                    public FeedDefinition fromString(String s) {
+                    public PriceFeed fromString(String s) {
                         return null;
                     }
                 });
@@ -137,7 +137,7 @@ public class OpenMarketController {
         if (existingDto != null) {
             dto.setId(existingDto.getId());
         }
-        lastSaved = marketService.save(dto);
+        lastSaved = marketDataService.save(dto);
         if (onSaveCallback != null) onSaveCallback.run();
         dialogStage.close();
     }
@@ -208,7 +208,7 @@ public class OpenMarketController {
             cbMarket .getSelectionModel().select(dto.getMarket());
             cbMarketData.setDisable(false);
             cbMarketData.setItems(FXCollections.observableArrayList(
-                    catalogService.listFeedsByAccount(dto.getAccount().getId())
+                    referenceDataService.listFeedsByAccount(dto.getAccount().getId())
             ));
             cbMarketData.getSelectionModel().select(dto.getMarketData());
             tfAccountSize.setText(dto.getAccountSize().toPlainString());

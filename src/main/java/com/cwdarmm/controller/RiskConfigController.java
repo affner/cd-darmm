@@ -1,14 +1,14 @@
 package com.cwdarmm.controller;
 
-import com.cwdarmm.model.domain.AccountDefinition;
-import com.cwdarmm.model.domain.FeedDefinition;
-import com.cwdarmm.model.domain.MarketMaster;
+import com.cwdarmm.model.domain.OpenMarket;
+import com.cwdarmm.model.domain.TradingAccount;
+import com.cwdarmm.model.domain.PriceFeed;
 import com.cwdarmm.model.dto.MarketDTO;
 import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.RiskResultDTO;
-import com.cwdarmm.service.CatalogService;
+import com.cwdarmm.service.ReferenceDataService;
 import com.cwdarmm.service.ExportService;
-import com.cwdarmm.service.RiskService;
+import com.cwdarmm.service.RiskAnalysisService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -26,17 +26,17 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class RiskFormController {
-    private final RiskService riskService;
-    private final CatalogService catalogService;
+public class RiskConfigController {
+    private final RiskAnalysisService riskAnalysisService;
+    private final ReferenceDataService referenceDataService;
     private final ExportService exportService;
     private Stage dialogStage;
     private Runnable onCalculated;
     private MarketDTO marketContext;
 
-    @FXML private ComboBox<AccountDefinition> cbRiskAccount;
-    @FXML private ComboBox<MarketMaster>    cbRiskMarket;
-    @FXML private ComboBox<FeedDefinition>  cbRiskMarketData;
+    @FXML private ComboBox<TradingAccount> cbRiskAccount;
+    @FXML private ComboBox<OpenMarket>    cbRiskMarket;
+    @FXML private ComboBox<PriceFeed>  cbRiskMarketData;
     @FXML private TextField tfRiskAccountSize;
     @FXML private TextField tfRiskReward;
     @FXML private TextField tfTicksSl1;
@@ -51,23 +51,23 @@ public class RiskFormController {
     @FXML
     public void initialize() {
         // 1) Cargamos cuentas
-        List<AccountDefinition> accounts = catalogService.listAccounts();
+        List<TradingAccount> accounts = referenceDataService.listAccounts();
         cbRiskAccount.setItems(FXCollections.observableArrayList(accounts));
-        setupCombo(cbRiskAccount, AccountDefinition::getName);
+        setupCombo(cbRiskAccount, TradingAccount::getName);
         // 2) Markets (static list)
-        List<MarketMaster> markets = catalogService.listMarkets();
+        List<OpenMarket> markets = referenceDataService.listMarkets();
         cbRiskMarket.setItems(FXCollections.observableArrayList(markets));
 
         // Disable MarketData until account selectedﬁ
         cbRiskMarketData.setDisable(true);
-        setupCombo(cbRiskMarket, MarketMaster::getName);
+        setupCombo(cbRiskMarket, OpenMarket::getName);
         // 3) Al cambiar Account → cargamos Markets asociados
         cbRiskAccount.getSelectionModel().selectedItemProperty().addListener((obs, oldAcc, newAcc) -> {
             if (newAcc != null) {
                 // find accountId
                 Long accId = newAcc.getId();
                 // load feeds for that account
-                List<FeedDefinition> feeds = catalogService.listFeedsByAccount(accId);
+                List<PriceFeed> feeds = referenceDataService.listFeedsByAccount(accId);
                 cbRiskMarketData.setItems(FXCollections.observableArrayList(feeds));
                 cbRiskMarketData.setDisable(false);
             } else {
@@ -75,7 +75,7 @@ public class RiskFormController {
                 cbRiskMarketData.setDisable(true);
             }
         });
-        setupCombo(cbRiskMarketData, FeedDefinition::getName);
+        setupCombo(cbRiskMarketData, PriceFeed::getName);
 
         // Carga imagen
         imgCoins.setImage(new Image(getClass().getResourceAsStream("/img/coins.png")));
@@ -100,7 +100,7 @@ public class RiskFormController {
     private void onCalculate() throws IOException {
         if (!validate()) return;
         RiskInputDTO req = buildRequest();
-        List<RiskResultDTO> results = riskService.calculate(req);
+        List<RiskResultDTO> results = riskAnalysisService.calculate(req);
 
         // 2) Primer trade?
         new Alert(Alert.AlertType.CONFIRMATION, "¿Es este el primer trade?")

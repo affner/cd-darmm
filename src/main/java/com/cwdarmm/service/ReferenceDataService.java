@@ -1,8 +1,8 @@
 package com.cwdarmm.service;
 
-import com.cwdarmm.model.domain.AccountDefinition;
-import com.cwdarmm.model.domain.FeedDefinition;
-import com.cwdarmm.model.domain.MarketMaster;
+import com.cwdarmm.model.domain.TradingAccount;
+import com.cwdarmm.model.domain.PriceFeed;
+import com.cwdarmm.model.domain.OpenMarket;
 import com.cwdarmm.repository.AccountDefinitionRepository;
 import com.cwdarmm.repository.MarketMasterRepository;
 import jakarta.transaction.Transactional;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class CatalogService {
+public class ReferenceDataService {
 
     private final AccountDefinitionRepository accountRepo;
     private final MarketMasterRepository marketRepo;
@@ -25,7 +25,7 @@ public class CatalogService {
      * Devuelve todas las cuentas (para el combo Account)
      */
     @Transactional(Transactional.TxType.SUPPORTS)
-    public List<AccountDefinition> listAccounts() {
+    public List<TradingAccount> listAccounts() {
         return accountRepo.findAll();
     }
 
@@ -33,7 +33,7 @@ public class CatalogService {
      * Devuelve todos los mercados (para el combo Market)
      */
     @Transactional(Transactional.TxType.SUPPORTS)
-    public List<MarketMaster> listMarkets() {
+    public List<OpenMarket> listMarkets() {
         return marketRepo.findAll();
     }
 
@@ -41,14 +41,14 @@ public class CatalogService {
      * Devuelve los feeds (Market Data) disponibles para una cuenta dada.
      */
     @Transactional(Transactional.TxType.SUPPORTS)
-    public List<FeedDefinition> listFeedsByAccount(Long accountId) {
+    public List<PriceFeed> listFeedsByAccount(Long accountId) {
         return accountRepo.findById(accountId)
-                .map(AccountDefinition::getFeeds)         // Set<FeedDefinition>
+                .map(TradingAccount::getFeeds)         // Set<PriceFeed>
                 .map(this::toList)
                 .orElse(Collections.emptyList());
     }
 
-    private List<FeedDefinition> toList(Set<FeedDefinition> set) {
+    private List<PriceFeed> toList(Set<PriceFeed> set) {
         return set.stream().collect(Collectors.toList());
     }
 }

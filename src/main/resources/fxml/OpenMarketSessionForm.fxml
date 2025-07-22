@@ -2,12 +2,12 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import com.cwdarmm.model.domain.AccountDefinition?>
-<?import com.cwdarmm.model.domain.MarketMaster?>
-<?import com.cwdarmm.model.domain.FeedDefinition?>
+<?import com.cwdarmm.model.domain.TradingAccount?>
+<?import com.cwdarmm.model.domain.OpenMarket?>
+<?import com.cwdarmm.model.domain.PriceFeed?>
 
 <VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.cwdarmm.controller.OpenMarketController"
+      fx:controller="com.cwdarmm.controller.OpenMarketSessionController"
       spacing="8">
     <padding>
         <Insets top="16" right="16" bottom="16" left="16"/>
@@ -29,17 +29,17 @@
             <RowConstraints vgrow="NEVER"/>
         </rowConstraints>
 
-        <!-- Account ComboBox ahora enlazado a AccountDefinition -->
+        <!-- Account ComboBox ahora enlazado a TradingAccount -->
         <Label text="Account:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
         <ComboBox fx:id="cbAccount"
                   GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
-        <!-- Market ComboBox: MarketMaster -->
+        <!-- Market ComboBox: OpenMarket -->
         <Label text="Market:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
         <ComboBox fx:id="cbMarket"
                   GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
-        <!-- Market Data ComboBox: FeedDefinition -->
+        <!-- Market Data ComboBox: PriceFeed -->
         <Label text="Market Data:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
         <ComboBox fx:id="cbMarketData"
                   GridPane.rowIndex="2" GridPane.columnIndex="1"/>

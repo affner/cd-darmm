@@ -18,15 +18,15 @@ public class MarketEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
-    private AccountDefinition account;
+    private TradingAccount account;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "market_id", nullable = false)
-    private MarketMaster market;
+    private OpenMarket market;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "feed_id", nullable = false)
-    private FeedDefinition marketData;
+    private PriceFeed marketData;
 
     @Column(name = "account_size", precision = 19, scale = 8)
     private BigDecimal accountSize;

@@ -1,6 +1,6 @@
 package com.cwdarmm.config;
 
-import com.cwdarmm.model.domain.MarketDefinition;
+import com.cwdarmm.model.domain.MarketCatalog;
 import com.cwdarmm.repository.MarketDefinitionRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -28,7 +27,7 @@ public class MarketDefinitionDataLoader {
                     .filter(line -> !line.isBlank() && !line.startsWith("//"))
                     .forEach(line -> {
                         String[] c = line.split(",");
-                        MarketDefinition def = MarketDefinition.builder()
+                        MarketCatalog def = MarketCatalog.builder()
                                 .symbol(c[0].trim())
                                 .multiplier(Double.parseDouble(c[1].trim()))
                                 .tickSize(Double.parseDouble(c[2].trim()))

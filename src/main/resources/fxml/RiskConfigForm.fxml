@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.cwdarmm.controller.RiskFormController">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.cwdarmm.controller.RiskConfigController">
     <!-- Top: Título de la pestaña, puede incluir icono -->
     <top>
         <ToolBar>

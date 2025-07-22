@@ -1,4 +1,4 @@
-// RiskService.java
+// RiskAnalysisService.java
 package com.cwdarmm.service;
 
 import com.cwdarmm.model.dto.RiskInputDTO;
@@ -8,12 +8,10 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
-public class RiskService {
+public class RiskAnalysisService {
     private final RiskMetricsService riskMetricsService;
     private final RiskSimulationService simulationService;
 

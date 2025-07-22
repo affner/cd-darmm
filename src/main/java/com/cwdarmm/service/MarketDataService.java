@@ -1,10 +1,10 @@
 package com.cwdarmm.service;
 
+import com.cwdarmm.model.domain.PriceFeed;
+import com.cwdarmm.model.domain.TradingAccount;
 import com.cwdarmm.model.dto.MarketDTO;
-import com.cwdarmm.model.domain.AccountDefinition;
 import com.cwdarmm.model.domain.MarketEntity;
-import com.cwdarmm.model.domain.MarketMaster;
-import com.cwdarmm.model.domain.FeedDefinition;
+import com.cwdarmm.model.domain.OpenMarket;
 import com.cwdarmm.repository.AccountDefinitionRepository;
 import com.cwdarmm.repository.MarketMasterRepository;
 import com.cwdarmm.repository.FeedDefinitionRepository;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class MarketService {
+public class MarketDataService {
     private final AccountDefinitionRepository accountRepo;
     private final MarketMasterRepository marketMasterRepo;
     private final FeedDefinitionRepository feedRepo;
@@ -30,11 +30,11 @@ public class MarketService {
     @Transactional
     public MarketDTO save(MarketDTO dto) {
         // Resolver entidades
-        AccountDefinition acc = accountRepo.findById(dto.getAccount().getId())
+        TradingAccount acc = accountRepo.findById(dto.getAccount().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Cuenta no existe: " + dto.getAccount()));
-        MarketMaster mkt = marketMasterRepo.findById(dto.getMarket().getId())
+        OpenMarket mkt = marketMasterRepo.findById(dto.getMarket().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Mercado no existe: " + dto.getMarket()));
-        FeedDefinition fd = feedRepo.findById(dto.getMarketData().getId())
+        PriceFeed fd = feedRepo.findById(dto.getMarketData().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Feed no existe: " + dto.getMarketData()));
 
         MarketEntity entity = MarketEntity.builder()
@@ -68,15 +68,15 @@ public class MarketService {
     /**
      * Catálogos para UI
      */
-    public List<AccountDefinition> listAccounts() {
+    public List<TradingAccount> listAccounts() {
         return accountRepo.findAll();
     }
 
-    public List<MarketMaster> listMarkets() {
+    public List<OpenMarket> listMarkets() {
         return marketMasterRepo.findAll();
     }
 
-    public List<FeedDefinition> listMarketData() {
+    public List<PriceFeed> listMarketData() {
         return feedRepo.findAll();
     }
 

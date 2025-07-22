@@ -12,7 +12,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AccountDefinition {
+public class TradingAccount {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,5 +28,5 @@ public class AccountDefinition {
     @JoinTable(name = "account_feeds",
             joinColumns = @JoinColumn(name = "account_id"),
             inverseJoinColumns = @JoinColumn(name = "feed_id"))
-    private Set<FeedDefinition> feeds = new HashSet<>();
+    private Set<PriceFeed> feeds = new HashSet<>();
 }

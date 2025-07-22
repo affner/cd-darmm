@@ -13,7 +13,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class ResultFormController {
+public class ResultViewController {
 
     @FXML private TableView<ResultRowDTO> tblResults;
     @FXML private TableColumn<ResultRowDTO, String> colAsset;

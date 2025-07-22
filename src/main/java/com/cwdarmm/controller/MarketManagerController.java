@@ -1,7 +1,7 @@
 package com.cwdarmm.controller;
 
 import com.cwdarmm.model.dto.MarketDTO;
-import com.cwdarmm.service.MarketService;
+import com.cwdarmm.service.MarketDataService;
 import com.cwdarmm.config.SpringFXMLLoader;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-public class MarketFormController {
-    private final MarketService marketService;
+public class MarketManagerController {
+    private final MarketDataService marketDataService;
     private final SpringFXMLLoader springFXMLLoader;
 
     @FXML
@@ -51,9 +51,9 @@ public class MarketFormController {
 
     private MarketDTO lastSaved;
 
-    public MarketFormController(MarketService marketService,
-                                SpringFXMLLoader springFXMLLoader) {
-        this.marketService = marketService;
+    public MarketManagerController(MarketDataService marketDataService,
+                                   SpringFXMLLoader springFXMLLoader) {
+        this.marketDataService = marketDataService;
         this.springFXMLLoader = springFXMLLoader;
     }
 
@@ -102,7 +102,7 @@ public class MarketFormController {
     }
 
     private void loadMarkets() {
-        List<MarketDTO> list = marketService.findAll();
+        List<MarketDTO> list = marketDataService.findAll();
         tableMarkets.setItems(FXCollections.observableArrayList(list));
     }
 
@@ -110,7 +110,7 @@ public class MarketFormController {
     private void onOpenMarket() {
         try {
             // 1) Prepara el diálogo
-            FXMLLoader openLoader = springFXMLLoader.load("/fxml/openMarketForm.fxml");
+            FXMLLoader openLoader = springFXMLLoader.load("/fxml/OpenMarketSessionForm.fxml");
             Stage openStage = new Stage();
             openStage.initOwner(tableMarkets.getScene().getWindow());
             openStage.initModality(Modality.WINDOW_MODAL);     // WINDOW_MODAL en lugar de APPLICATION_MODAL
@@ -118,7 +118,7 @@ public class MarketFormController {
             openStage.setScene(new Scene(openLoader.getRoot()));
 
             // 2) Configura callback para guardar el DTO y recargar la tabla
-            OpenMarketController omc = openLoader.getController();
+            OpenMarketSessionController omc = openLoader.getController();
             omc.initForm(null);
             omc.setDialogStage(openStage);
             omc.setOnSave(() -> {
@@ -131,14 +131,14 @@ public class MarketFormController {
 
             // 4) Una vez cerrado, abres la ventana de Risk **fuera** del callback
             if (lastSaved != null) {
-                FXMLLoader riskLoader = springFXMLLoader.load("/fxml/riskTableView.fxml");
+                FXMLLoader riskLoader = springFXMLLoader.load("/fxml/MarketRiskDashboard.fxml");
                 Stage riskStage = new Stage();
                 riskStage.initOwner(tableMarkets.getScene().getWindow());
                 riskStage.initModality(Modality.NONE);
                 riskStage.setTitle(lastSaved.getMarket().getName() + " – Risk Manager");
                 riskStage.setScene(new Scene(riskLoader.getRoot()));
 
-                RiskTableController rtc = riskLoader.getController();
+                MarketRiskDashboardController rtc = riskLoader.getController();
                 rtc.setContext(lastSaved);
                 riskStage.show();
 
@@ -155,7 +155,7 @@ public class MarketFormController {
     private void openRiskTableWindow(MarketDTO context) {
         try {
             // 1) Carga el FXML de la vista de tabla de riesgo
-            FXMLLoader riskLoader = springFXMLLoader.load("/fxml/riskTableView.fxml");
+            FXMLLoader riskLoader = springFXMLLoader.load("/fxml/MarketRiskDashboard.fxml");
             Stage riskStage = new Stage();
             riskStage.initOwner(tableMarkets.getScene().getWindow());
             riskStage.initModality(Modality.NONE);
@@ -163,7 +163,7 @@ public class MarketFormController {
             riskStage.setScene(new Scene(riskLoader.getRoot()));
 
             // 2) Pasa el contexto al controller de Risk Table
-            RiskTableController rtc = riskLoader.getController();
+            MarketRiskDashboardController rtc = riskLoader.getController();
             rtc.setContext(context);
 
             // 3) Muestra la ventana
@@ -206,14 +206,14 @@ public class MarketFormController {
     // Método de edición (reusa tu flujo de onOpenMarket pero precargando existingDto)
     private void onEditMarket(MarketDTO dto) {
         try {
-            FXMLLoader loader = springFXMLLoader.load("/fxml/openMarketForm.fxml");
+            FXMLLoader loader = springFXMLLoader.load("/fxml/OpenMarketSessionForm.fxml");
             Stage dialog = new Stage();
             dialog.initOwner(tableMarkets.getScene().getWindow());
             dialog.initModality(Modality.WINDOW_MODAL);
             dialog.setTitle("Editar Market");
             dialog.setScene(new Scene(loader.getRoot()));
 
-            OpenMarketController omc = loader.getController();
+            OpenMarketSessionController omc = loader.getController();
             omc.setDialogStage(dialog);
             omc.initForm(dto);        // <-- precarga
             omc.setOnSave(() -> {
@@ -233,13 +233,13 @@ public class MarketFormController {
                 "¿Eliminar este market?", ButtonType.YES, ButtonType.NO);
         Optional<ButtonType> res = confirm.showAndWait();
         if (res.orElse(ButtonType.NO) == ButtonType.YES) {
-            marketService.delete(dto.getId());  // necesitas este método en tu servicio
+            marketDataService.delete(dto.getId());  // necesitas este método en tu servicio
             loadMarkets();
         }
     }
 
     /**
-     * Permite acceder al DTO creado desde OpenMarketController.
+     * Permite acceder al DTO creado desde OpenMarketSessionController.
      */
     public MarketDTO getLastSavedDTO() {
         return lastSaved;

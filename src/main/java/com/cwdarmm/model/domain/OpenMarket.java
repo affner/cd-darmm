@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MarketMaster {
+public class OpenMarket {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

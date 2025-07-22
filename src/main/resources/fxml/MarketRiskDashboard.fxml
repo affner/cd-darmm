@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.geometry.Insets?>
 <BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.cwdarmm.controller.RiskTableController">
+            fx:controller="com.cwdarmm.controller.MarketRiskDashboardController">
     <!-- Top: Título y botón Risk Manage -->
     <top>
         <ToolBar>

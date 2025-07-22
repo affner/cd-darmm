@@ -1,7 +1,6 @@
 package com.cwdarmm.config;
 
-import com.cwdarmm.model.domain.AccountDefinition;
-import com.cwdarmm.model.domain.FeedDefinition;
+import com.cwdarmm.model.domain.PriceFeed;
 import com.cwdarmm.repository.FeedDefinitionRepository;
 import com.cwdarmm.repository.AccountDefinitionRepository;
 import jakarta.annotation.PostConstruct;
@@ -32,7 +31,7 @@ public class FeedDataLoader {
                         .filter(l -> !l.isBlank() && !l.startsWith("//") && !l.toLowerCase().startsWith("id,"))
                         .map(l -> l.split(",", 2))
                         .forEach(cols -> {
-                            var feed = FeedDefinition.builder()
+                            var feed = PriceFeed.builder()
                                     .id(Long.parseLong(cols[0].trim()))
                                     .name(cols[1].trim())
                                     .build();

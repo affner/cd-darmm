@@ -1,6 +1,6 @@
 package com.cwdarmm.config;
 
-import com.cwdarmm.model.domain.MarketMaster;
+import com.cwdarmm.model.domain.OpenMarket;
 import com.cwdarmm.repository.MarketMasterRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class MarketMasterDataLoader {
                     .forEach(cols -> {
                         Long id   = Long.parseLong(cols[0].trim());
                         String name = cols[1].trim();
-                        marketRepo.save(MarketMaster.builder()
+                        marketRepo.save(OpenMarket.builder()
                                 .id(id)
                                 .name(name)
                                 .build());

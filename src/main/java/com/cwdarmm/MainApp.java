@@ -28,7 +28,7 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) throws Exception {
         // Usa nuestro SpringFXMLLoader para inyectar controladores
         SpringFXMLLoader loader = context.getBean(SpringFXMLLoader.class);
-        FXMLLoader fxmlLoader = loader.load("/fxml/mainWindow.fxml");
+        FXMLLoader fxmlLoader = loader.load("/fxml/MainWindow.fxml");
         Parent root = fxmlLoader.getRoot();
 
         Scene scene = new Scene(root);
