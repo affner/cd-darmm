@@ -6,6 +6,7 @@ import com.cwdarmm.model.dto.RiskResultDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -23,16 +24,26 @@ public class RiskService {
         List<RiskResultDTO> results = simulationService.simulateTrades(in);
 
         // Construir serie de PnL para métricas
-        List<Double> pnlSeries = results.stream()
+// 1) Construir serie de PnL como BigDecimal
+        List<BigDecimal> pnlSeries = results.stream()
                 .filter(r -> r.getTradeNumber() > 0)
-                .map(r -> r.getAccountSize() - results.get(r.getTradeNumber() - 1).getAccountSize())
+                .map(r -> r.getAccountSize()
+                        .subtract(results.get(r.getTradeNumber() - 1).getAccountSize()))
                 .toList();
 
-        double expectancy = riskMetricsService.calculateExpectancy(pnlSeries);
-        double drawdown  = riskMetricsService.calculateDrawdown(
+        // 2) Llamar a los métodos ahora con BigDecimal
+        BigDecimal expectancy = riskMetricsService.calculateExpectancy(pnlSeries);
+        BigDecimal drawdown = riskMetricsService.calculateDrawdown(
                 results.stream().map(RiskResultDTO::getAccountSize).toList());
-        double ruinRisk  = riskMetricsService.calculateRiskOfRuin(
-                /* pWin */ 0.5, /* payoff */ 1.0, pnlSeries.size());
+        BigDecimal ruinRisk = riskMetricsService.calculateRiskOfRuin(
+                BigDecimal.valueOf(0.5), BigDecimal.valueOf(1.0), pnlSeries.size());
+
+        // 3) Log con toPlainString()
+        System.out.printf("Metrics -> E=%s, DD=%s, RoR=%s%n",
+                expectancy.toPlainString(),
+                drawdown.toPlainString(),
+                ruinRisk.toPlainString());
+
         System.out.printf("Metrics -> E=%.2f, DD=%.2f, RoR=%.4f%n", expectancy, drawdown, ruinRisk);
 
         return results;

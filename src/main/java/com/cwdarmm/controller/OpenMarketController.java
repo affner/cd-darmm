@@ -17,6 +17,8 @@ import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+
 @Component
 @RequiredArgsConstructor
 public class OpenMarketController {
@@ -26,12 +28,20 @@ public class OpenMarketController {
     private Runnable onSaveCallback;
     private MarketDTO lastSaved;
 
-    @FXML private ComboBox<AccountDefinition> cbAccount;
-    @FXML private ComboBox<MarketMaster> cbMarket;
-    @FXML private ComboBox<FeedDefinition> cbMarketData;
-    @FXML private TextField tfAccountSize;
-    @FXML private TextField tfRiskA;
-    @FXML private TextField tfRiskB;
+    private MarketDTO existingDto;
+
+    @FXML
+    private ComboBox<AccountDefinition> cbAccount;
+    @FXML
+    private ComboBox<MarketMaster> cbMarket;
+    @FXML
+    private ComboBox<FeedDefinition> cbMarketData;
+    @FXML
+    private TextField tfAccountSize;
+    @FXML
+    private TextField tfRiskA;
+    @FXML
+    private TextField tfRiskB;
 
     @FXML
     public void initialize() {
@@ -39,32 +49,44 @@ public class OpenMarketController {
         cbAccount.setItems(FXCollections.observableArrayList(
                 catalogService.listAccounts()));
         cbAccount.setCellFactory(list -> new ListCell<>() {
-            @Override protected void updateItem(AccountDefinition item, boolean empty) {
+            @Override
+            protected void updateItem(AccountDefinition item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? null : item.getName());
             }
         });
         cbAccount.setConverter(new StringConverter<>() {
-            @Override public String toString(AccountDefinition a) {
+            @Override
+            public String toString(AccountDefinition a) {
                 return (a == null ? "" : a.getName());
             }
-            @Override public AccountDefinition fromString(String s) { return null; }
+
+            @Override
+            public AccountDefinition fromString(String s) {
+                return null;
+            }
         });
 
         // 2) Poblar Market (estático o según negocio)
         cbMarket.setItems(FXCollections.observableArrayList(
                 catalogService.listMarkets()));
         cbMarket.setCellFactory(list -> new ListCell<>() {
-            @Override protected void updateItem(MarketMaster m, boolean empty) {
+            @Override
+            protected void updateItem(MarketMaster m, boolean empty) {
                 super.updateItem(m, empty);
                 setText(empty || m == null ? null : m.getName());
             }
         });
         cbMarket.setConverter(new StringConverter<>() {
-            @Override public String toString(MarketMaster m) {
+            @Override
+            public String toString(MarketMaster m) {
                 return (m == null ? "" : m.getName());
             }
-            @Override public MarketMaster fromString(String s) { return null; }
+
+            @Override
+            public MarketMaster fromString(String s) {
+                return null;
+            }
         });
 
         // 3) MarketData deshabilitado hasta seleccionar Account
@@ -75,16 +97,22 @@ public class OpenMarketController {
                 cbMarketData.setItems(FXCollections.observableArrayList(
                         catalogService.listFeedsByAccount(sel.getId())));
                 cbMarketData.setCellFactory(list -> new ListCell<>() {
-                    @Override protected void updateItem(FeedDefinition f, boolean empty) {
+                    @Override
+                    protected void updateItem(FeedDefinition f, boolean empty) {
                         super.updateItem(f, empty);
                         setText(empty || f == null ? null : f.getName());
                     }
                 });
                 cbMarketData.setConverter(new StringConverter<>() {
-                    @Override public String toString(FeedDefinition f) {
+                    @Override
+                    public String toString(FeedDefinition f) {
                         return (f == null ? "" : f.getName());
                     }
-                    @Override public FeedDefinition fromString(String s) { return null; }
+
+                    @Override
+                    public FeedDefinition fromString(String s) {
+                        return null;
+                    }
                 });
                 cbMarketData.setDisable(false);
             } else {
@@ -102,11 +130,13 @@ public class OpenMarketController {
                 .account(cbAccount.getValue())
                 .market(cbMarket.getValue())
                 .marketData(cbMarketData.getValue())
-                .accountSize(Double.parseDouble(tfAccountSize.getText()))
+                .accountSize(new BigDecimal(tfAccountSize.getText()))
                 .riskA(Double.parseDouble(tfRiskA.getText()))
                 .riskB(Double.parseDouble(tfRiskB.getText()))
                 .build();
-
+        if (existingDto != null) {
+            dto.setId(existingDto.getId());
+        }
         lastSaved = marketService.save(dto);
         if (onSaveCallback != null) onSaveCallback.run();
         dialogStage.close();
@@ -154,4 +184,37 @@ public class OpenMarketController {
         alert.setContentText(message);
         alert.showAndWait();
     }
+
+
+    /**
+     * Inicializa el formulario:
+     *  - si dto == null, limpia todos los campos para crear uno nuevo
+     *  - si dto != null, precarga para edición
+     */
+    public void initForm(MarketDTO dto) {
+        this.existingDto = dto;
+        if (dto == null) {
+            // Nuevo registro: limpia selecciones y campos
+            cbAccount.getSelectionModel().clearSelection();
+            cbMarket .getSelectionModel().clearSelection();
+            cbMarketData.getItems().clear();
+            cbMarketData.setDisable(true);
+            tfAccountSize.clear();
+            tfRiskA.clear();
+            tfRiskB.clear();
+        } else {
+            // Edición: tu código actual de setExistingDTO
+            cbAccount.getSelectionModel().select(dto.getAccount());
+            cbMarket .getSelectionModel().select(dto.getMarket());
+            cbMarketData.setDisable(false);
+            cbMarketData.setItems(FXCollections.observableArrayList(
+                    catalogService.listFeedsByAccount(dto.getAccount().getId())
+            ));
+            cbMarketData.getSelectionModel().select(dto.getMarketData());
+            tfAccountSize.setText(dto.getAccountSize().toPlainString());
+            tfRiskA.setText(String.valueOf(dto.getRiskA()));
+            tfRiskB.setText(String.valueOf(dto.getRiskB()));
+        }
+    }
+
 }

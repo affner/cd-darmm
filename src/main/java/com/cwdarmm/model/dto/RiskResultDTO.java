@@ -7,13 +7,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
 public class RiskResultDTO {
     private int tradeNumber;
     private String wl;
     private AccountDefinition account;
     private FeedDefinition marketData;
-    private double accountSize;
+    private BigDecimal accountSize;
     private double riskKellyA;
     private double riskKellyB;
 }

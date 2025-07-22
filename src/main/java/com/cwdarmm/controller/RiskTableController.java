@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class RiskTableController {
     @FXML private TableColumn<RiskResultDTO,String>  colWl;
     @FXML private TableColumn<RiskResultDTO,String>  colAccount;
     @FXML private TableColumn<RiskResultDTO,String>  colMarketData;
-    @FXML private TableColumn<RiskResultDTO,Double>  colAccountSize;
+    @FXML private TableColumn<RiskResultDTO, BigDecimal>  colAccountSize;
     @FXML private TableColumn<RiskResultDTO,Double>  colRiskA;
     @FXML private TableColumn<RiskResultDTO,Double>  colRiskB;
     @FXML private Button btnExportCsv;

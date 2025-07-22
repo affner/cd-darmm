@@ -1,4 +1,3 @@
-// MarketFormController.java
 package com.cwdarmm.controller;
 
 import com.cwdarmm.model.dto.MarketDTO;
@@ -9,16 +8,18 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class MarketFormController {
@@ -27,6 +28,8 @@ public class MarketFormController {
 
     @FXML
     private TableView<MarketDTO> tableMarkets;
+
+    @FXML private TableColumn<MarketDTO, Long> colId;
     @FXML
     private TableColumn<MarketDTO, String> colAccount;
     @FXML
@@ -34,7 +37,7 @@ public class MarketFormController {
     @FXML
     private TableColumn<MarketDTO, String> colMarketData;
     @FXML
-    private TableColumn<MarketDTO, Double> colSize;
+    private TableColumn<MarketDTO, BigDecimal> colSize;
     @FXML
     private TableColumn<MarketDTO, Double> colRiskA;
     @FXML
@@ -43,6 +46,8 @@ public class MarketFormController {
     private TableColumn<MarketDTO, Double> colFinalHouse;
     @FXML
     private TableColumn<MarketDTO, Double> colFinalLunch;
+    @FXML private TableColumn<MarketDTO, Void> colActions;
+
 
     private MarketDTO lastSaved;
 
@@ -54,6 +59,7 @@ public class MarketFormController {
 
     @FXML
     public void initialize() {
+        colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colAccount.setCellValueFactory(feat ->
                 new ReadOnlyStringWrapper(feat.getValue().getAccount().getName()));
         colMarket.setCellValueFactory(feat ->
@@ -61,6 +67,19 @@ public class MarketFormController {
         colMarketData.setCellValueFactory(feat ->
                 new ReadOnlyStringWrapper(feat.getValue().getMarketData().getName()));
         colSize.setCellValueFactory(new PropertyValueFactory<>("accountSize"));
+        colSize.setCellFactory(tc -> new TableCell<>() {
+            @Override
+            protected void updateItem(BigDecimal value, boolean empty) {
+                super.updateItem(value, empty);
+                if (empty || value == null) {
+                    setText(null);
+                } else {
+                    // convierte el double a BigDecimal para toPlainString()
+                    setText(value.toPlainString());
+                }
+            }
+        });
+
         colRiskA.setCellValueFactory(new PropertyValueFactory<>("riskA"));
         colRiskB.setCellValueFactory(new PropertyValueFactory<>("riskB"));
         colFinalHouse.setCellValueFactory(new PropertyValueFactory<>("riskFinalHouse"));
@@ -78,6 +97,8 @@ public class MarketFormController {
             });
             return row;
         });
+
+        initActionsColumn();
     }
 
     private void loadMarkets() {
@@ -98,6 +119,7 @@ public class MarketFormController {
 
             // 2) Configura callback para guardar el DTO y recargar la tabla
             OpenMarketController omc = openLoader.getController();
+            omc.initForm(null);
             omc.setDialogStage(openStage);
             omc.setOnSave(() -> {
                 this.lastSaved = omc.getLastSavedDTO();
@@ -151,6 +173,70 @@ public class MarketFormController {
         }
     }
 
+    private void initActionsColumn() {
+        colActions.setCellFactory(new Callback<>() {
+            @Override
+            public TableCell<MarketDTO, Void> call(TableColumn<MarketDTO, Void> param) {
+                return new TableCell<>() {
+                    private final Button btnEdit   = new Button("✎");
+                    private final Button btnDelete = new Button("✖");
+                    private final HBox pane = new HBox(5, btnEdit, btnDelete);
+
+                    {
+                        btnEdit.setOnAction(e -> {
+                            MarketDTO dto = getTableView().getItems().get(getIndex());
+                            onEditMarket(dto);
+                        });
+                        btnDelete.setOnAction(e -> {
+                            MarketDTO dto = getTableView().getItems().get(getIndex());
+                            onDeleteMarket(dto);
+                        });
+                    }
+
+                    @Override
+                    protected void updateItem(Void item, boolean empty) {
+                        super.updateItem(item, empty);
+                        setGraphic(empty ? null : pane);
+                    }
+                };
+            }
+        });
+    }
+
+    // Método de edición (reusa tu flujo de onOpenMarket pero precargando existingDto)
+    private void onEditMarket(MarketDTO dto) {
+        try {
+            FXMLLoader loader = springFXMLLoader.load("/fxml/openMarketForm.fxml");
+            Stage dialog = new Stage();
+            dialog.initOwner(tableMarkets.getScene().getWindow());
+            dialog.initModality(Modality.WINDOW_MODAL);
+            dialog.setTitle("Editar Market");
+            dialog.setScene(new Scene(loader.getRoot()));
+
+            OpenMarketController omc = loader.getController();
+            omc.setDialogStage(dialog);
+            omc.initForm(dto);        // <-- precarga
+            omc.setOnSave(() -> {
+                lastSaved = omc.getLastSavedDTO();
+                loadMarkets();
+            });
+
+            dialog.showAndWait();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    // Método de borrado con confirmación
+    private void onDeleteMarket(MarketDTO dto) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                "¿Eliminar este market?", ButtonType.YES, ButtonType.NO);
+        Optional<ButtonType> res = confirm.showAndWait();
+        if (res.orElse(ButtonType.NO) == ButtonType.YES) {
+            marketService.delete(dto.getId());  // necesitas este método en tu servicio
+            loadMarkets();
+        }
+    }
 
     /**
      * Permite acceder al DTO creado desde OpenMarketController.

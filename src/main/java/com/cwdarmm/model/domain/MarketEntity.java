@@ -3,6 +3,8 @@ package com.cwdarmm.model.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "markets")
 @Data
@@ -26,8 +28,8 @@ public class MarketEntity {
     @JoinColumn(name = "feed_id", nullable = false)
     private FeedDefinition marketData;
 
-    @Column(name = "account_size")
-    private Double accountSize;
+    @Column(name = "account_size", precision = 19, scale = 8)
+    private BigDecimal accountSize;
 
     @Column(name = "riska")
     private Double riskA;

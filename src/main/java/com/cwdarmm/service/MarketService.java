@@ -11,6 +11,7 @@ import com.cwdarmm.repository.FeedDefinitionRepository;
 import com.cwdarmm.repository.MarketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,8 +25,9 @@ public class MarketService {
     private final MarketRepository marketRepo;
 
     /**
-     * Persistir nueva configuración de mercado.
+     * Persistir nueva configuración de mercado (o actualizar existente).
      */
+    @Transactional
     public MarketDTO save(MarketDTO dto) {
         // Resolver entidades
         AccountDefinition acc = accountRepo.findById(dto.getAccount().getId())
@@ -36,6 +38,7 @@ public class MarketService {
                 .orElseThrow(() -> new IllegalArgumentException("Feed no existe: " + dto.getMarketData()));
 
         MarketEntity entity = MarketEntity.builder()
+                .id(dto.getId())
                 .account(acc)
                 .market(mkt)
                 .marketData(fd)
@@ -47,6 +50,9 @@ public class MarketService {
                 .build();
 
         entity = marketRepo.save(entity);
+        entity.getAccount().getName();
+        entity.getMarket().getName();
+        entity.getMarketData().getName();
         return toDTO(entity);
     }
 
@@ -75,8 +81,12 @@ public class MarketService {
     }
 
 
+    public void delete(Long id) {
+        marketRepo.deleteById(id);
+    }
     private MarketDTO toDTO(MarketEntity e) {
         return MarketDTO.builder()
+                .id(e.getId())
                 .account(e.getAccount())
                 .market(e.getMarket())
                 .marketData(e.getMarketData())

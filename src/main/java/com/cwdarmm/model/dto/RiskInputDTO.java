@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,7 +18,7 @@ public class RiskInputDTO {
     private AccountDefinition account;
     private MarketMaster market;
     private FeedDefinition marketData;
-    private double accountSize;
+    private BigDecimal accountSize;
     private double riskReward;
     private int ticksSl1;
     private int ticksSl2;

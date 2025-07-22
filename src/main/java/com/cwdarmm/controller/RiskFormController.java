@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -198,7 +199,7 @@ public class RiskFormController {
                 .account(cbRiskAccount.getValue())
                 .market(cbRiskMarket.getValue())
                 .marketData(cbRiskMarketData.getValue())
-                .accountSize(Double.parseDouble(tfRiskAccountSize.getText()))
+                .accountSize(new BigDecimal(tfRiskAccountSize.getText()))
                 .riskReward(Double.parseDouble(tfRiskReward.getText()))
                 .ticksSl1(Integer.parseInt(tfTicksSl1.getText()))
                 .ticksSl2(Integer.parseInt(tfTicksSl2.getText()))

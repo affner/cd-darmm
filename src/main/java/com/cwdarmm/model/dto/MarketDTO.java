@@ -8,15 +8,19 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class MarketDTO {
+
+    private Long id;
     private AccountDefinition account;
     private MarketMaster market;
     private FeedDefinition marketData;
-    private double accountSize;
+    private BigDecimal accountSize;
     private double riskA;
     private double riskB;
     private double riskFinalHouse;

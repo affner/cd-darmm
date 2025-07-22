@@ -12,6 +12,13 @@
     <center>
         <TableView fx:id="tableMarkets" xmlns:fx="http://javafx.com/fxml">
             <columns>
+                <!-- columna oculta para el id -->
+                <TableColumn fx:id="colId" visible="false">
+                    <cellValueFactory>
+                        <PropertyValueFactory property="id"/>
+                    </cellValueFactory>
+                </TableColumn>
+
                 <TableColumn fx:id="colAccount" text="Account">
                     <cellValueFactory>
                         <PropertyValueFactory property="account.name"/>
@@ -28,11 +35,12 @@
                     </cellValueFactory>
                 </TableColumn>
 
-                <TableColumn fx:id="colSize" text="Account Size">
+                <TableColumn fx:id="colSize" text="Account Size" prefWidth="100">
                     <cellValueFactory>
                         <PropertyValueFactory property="accountSize"/>
                     </cellValueFactory>
                 </TableColumn>
+
                 <TableColumn fx:id="colRiskA" text="Risk A">
                     <cellValueFactory>
                         <PropertyValueFactory property="riskA"/>
@@ -53,6 +61,8 @@
                         <PropertyValueFactory property="riskFinalLunch"/>
                     </cellValueFactory>
                 </TableColumn>
+                <TableColumn fx:id="colActions" text="Acciones" prefWidth="80"/>
+
             </columns>
         </TableView>
 

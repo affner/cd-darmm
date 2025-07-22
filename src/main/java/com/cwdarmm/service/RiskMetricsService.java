@@ -2,7 +2,8 @@ package com.cwdarmm.service;
 
 import org.springframework.stereotype.Service;
 
-import java.util.DoubleSummaryStatistics;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.List;
 
 /**
@@ -11,54 +12,74 @@ import java.util.List;
 @Service
 public class RiskMetricsService {
 
+    private static final MathContext MC = MathContext.DECIMAL64;
+
     /**
      * Calcula la expectativa del sistema.
      * Fórmula: E = (avgWin * pWin) - (avgLoss * (1 - pWin))
      * trades: lista de PnL de cada trade (positivos y negativos)
      */
-    public double calculateExpectancy(List<Double> trades) {
-        if (trades == null || trades.isEmpty()) return 0.0;
-        long total = trades.size();
-        long wins = trades.stream().filter(v -> v > 0).count();
+    public BigDecimal calculateExpectancy(List<BigDecimal> trades) {
+        if (trades == null || trades.isEmpty()) {
+            return BigDecimal.ZERO.stripTrailingZeros();
+        }
+
+        int total = trades.size();
+        long wins = trades.stream().filter(v -> v.compareTo(BigDecimal.ZERO) > 0).count();
         long losses = total - wins;
 
-        double pWin = (double) wins / total;
+        BigDecimal bdTotal = BigDecimal.valueOf(total);
+        BigDecimal pWin = BigDecimal.valueOf(wins).divide(bdTotal, MC);
 
-        DoubleSummaryStatistics stats = trades.stream()
-                .filter(v -> v > 0)
-                .mapToDouble(Double::doubleValue)
-                .summaryStatistics();
-        double avgWin = stats.getCount() > 0 ? stats.getAverage() : 0.0;
+        // avgWin
+        BigDecimal sumWin = trades.stream()
+                .filter(v -> v.compareTo(BigDecimal.ZERO) > 0)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal avgWin = wins > 0
+                ? sumWin.divide(BigDecimal.valueOf(wins), MC)
+                : BigDecimal.ZERO;
 
-        DoubleSummaryStatistics lossStats = trades.stream()
-                .filter(v -> v < 0)
-                .mapToDouble(Math::abs)
-                .summaryStatistics();
-        double avgLoss = lossStats.getCount() > 0 ? lossStats.getAverage() : 0.0;
+        // avgLoss (usamos valores absolutos)
+        BigDecimal sumLoss = trades.stream()
+                .filter(v -> v.compareTo(BigDecimal.ZERO) < 0)
+                .map(BigDecimal::abs)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal avgLoss = losses > 0
+                ? sumLoss.divide(BigDecimal.valueOf(losses), MC)
+                : BigDecimal.ZERO;
 
-        return (avgWin * pWin) - (avgLoss * (1 - pWin));
+        BigDecimal termWin  = avgWin.multiply(pWin, MC);
+        BigDecimal termLoss = avgLoss.multiply(
+                BigDecimal.ONE.subtract(pWin, MC), MC);
+
+        return termWin.subtract(termLoss, MC)
+                .stripTrailingZeros();
     }
 
     /**
      * Calcula el drawdown máximo de la curva de capital.
      * drawdown = máximo pico menos valle subsecuente
      */
-    public double calculateDrawdown(List<Double> equityCurve) {
-        if (equityCurve == null || equityCurve.isEmpty()) return 0.0;
-        double peak = Double.NEGATIVE_INFINITY;
-        double maxDrawdown = 0.0;
+    public BigDecimal calculateDrawdown(List<BigDecimal> equityCurve) {
+        if (equityCurve == null || equityCurve.isEmpty()) {
+            return BigDecimal.ZERO.stripTrailingZeros();
+        }
 
-        for (double value : equityCurve) {
-            if (value > peak) {
+        BigDecimal peak = equityCurve.get(0);
+        BigDecimal maxDrawdown = BigDecimal.ZERO;
+
+        for (BigDecimal value : equityCurve) {
+            if (value.compareTo(peak) > 0) {
                 peak = value;
             } else {
-                double dd = peak - value;
-                if (dd > maxDrawdown) {
+                BigDecimal dd = peak.subtract(value, MC);
+                if (dd.compareTo(maxDrawdown) > 0) {
                     maxDrawdown = dd;
                 }
             }
         }
-        return maxDrawdown;
+
+        return maxDrawdown.stripTrailingZeros();
     }
 
     /**
@@ -66,12 +87,22 @@ public class RiskMetricsService {
      * Aproximación: (q / (p * payoff)) ^ trades
      * donde q = 1 - p, p = winRate, payoff = ratio de ganancia por pérdida
      */
-    public double calculateRiskOfRuin(double winRate, double payoff, int trades) {
-        if (winRate <= 0 || winRate >= 1 || payoff <= 0 || trades <= 0) return 1.0;
-        double q = 1.0 - winRate;
-        double factor = q / (winRate * payoff);
-        return Math.pow(factor, trades);
+    public BigDecimal calculateRiskOfRuin(BigDecimal winRate,
+                                          BigDecimal payoff,
+                                          int trades) {
+        if (winRate.compareTo(BigDecimal.ZERO) <= 0
+                || winRate.compareTo(BigDecimal.ONE)  >= 0
+                || payoff.compareTo(BigDecimal.ZERO) <= 0
+                || trades <= 0) {
+            return BigDecimal.ONE;
+        }
+
+        BigDecimal q      = BigDecimal.ONE.subtract(winRate, MC);
+        BigDecimal denom  = winRate.multiply(payoff, MC);
+        BigDecimal factor = q.divide(denom, MC);
+
+        // pow(int) existe en BigDecimal
+        BigDecimal result = factor.pow(trades, MC);
+        return result.stripTrailingZeros();
     }
-
-
 }

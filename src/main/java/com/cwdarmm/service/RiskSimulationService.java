@@ -8,6 +8,7 @@ import com.cwdarmm.repository.MarketDefinitionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,10 +24,18 @@ public class RiskSimulationService {
         List<RiskResultDTO> results = new ArrayList<>();
         results.add(buildInitialResult(req));
 
-        // Simular tres trades de ejemplo
-        double base = req.getAccountSize();
+        // Simular tres trades de ejemplo, actualizando base acumulada
+        BigDecimal base = req.getAccountSize();
         for (int i = 1; i <= 3; i++) {
-            double newSize = base * (1 + (i % 2 == 1 ? 0.02 : -0.01));
+            // calcular factor = 1 + 0.02 en ganancia, o 1 - 0.01 en pérdida
+            BigDecimal change = (i % 2 == 1)
+                    ? BigDecimal.valueOf(0.02)
+                    : BigDecimal.valueOf(-0.01);
+            BigDecimal factor = BigDecimal.ONE.add(change);
+
+            // newSize = base * factor
+            BigDecimal newSize = base.multiply(factor);
+
             results.add(RiskResultDTO.builder()
                     .tradeNumber(i)
                     .wl(i % 2 == 1 ? "WIN" : "LOSS")
@@ -36,6 +45,9 @@ public class RiskSimulationService {
                     .riskKellyA(req.getRiskReward())
                     .riskKellyB(req.getRiskReward())
                     .build());
+
+            // para la siguiente iteración, partimos de este newSize
+            base = newSize;
         }
         return results;
     }
