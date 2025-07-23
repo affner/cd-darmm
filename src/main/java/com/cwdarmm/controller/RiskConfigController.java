@@ -99,39 +99,62 @@ public class RiskConfigController {
     @FXML
     private void onCalculate() throws IOException {
         if (!validate()) return;
+
+        // 1) ¿Es este el primer trade?
+        Alert firstAlert = new Alert(Alert.AlertType.CONFIRMATION,
+                "¿Es este el primer trade?");
+        firstAlert.initOwner(dialogStage);
+        boolean first = firstAlert
+                .showAndWait()
+                .filter(ButtonType.OK::equals)
+                .isPresent();
+
+        // 2) ¿Generar XML?
+        Alert xmlAlert = new Alert(Alert.AlertType.CONFIRMATION,
+                "¿Deseas generar el XML de estrategia?");
+        xmlAlert.initOwner(dialogStage);
+        boolean doXml = xmlAlert
+                .showAndWait()
+                .filter(ButtonType.OK::equals)
+                .isPresent();
+
+        // 3) ¿Generar AHK?
+        Alert ahkAlert = new Alert(Alert.AlertType.CONFIRMATION,
+                "¿Deseas generar el script AutoHotkey?");
+        ahkAlert.initOwner(dialogStage);
+        boolean doAhk = ahkAlert
+                .showAndWait()
+                .filter(ButtonType.OK::equals)
+                .isPresent();
+
+        // 4) Construimos el DTO con el flag
         RiskInputDTO req = buildRequest();
-        List<RiskResultDTO> results = riskAnalysisService.calculate(req);
+        req.setFirstTrade(first);
 
-        // 2) Primer trade?
-        new Alert(Alert.AlertType.CONFIRMATION, "¿Es este el primer trade?")
-                .showAndWait().filter(ButtonType.OK::equals);
+        // 5) Llamamos al servicio que **YA NO** simula nada, solo construye INITIAL + OPTIMAL
+        List<RiskResultDTO> rows = riskAnalysisService.calculate(req);
 
-        // 3) Generar XML si el usuario acepta
-        if (new Alert(Alert.AlertType.CONFIRMATION,
-                "¿Deseas generar el XML de estrategia?")
-                .showAndWait().filter(ButtonType.OK::equals).isPresent()) {
+        // 6) Export si el usuario lo pidió
+        if (doXml) {
             Path xml = Path.of(System.getProperty("user.home"),
                     marketContext.getMarket().getName() + ".xml");
-            exportService.exportStrategyToXml(marketContext, results, xml);
+            exportService.exportStrategyToXml(marketContext, rows, xml);
             new Alert(Alert.AlertType.INFORMATION,
                     "XML generado en:\n" + xml).showAndWait();
         }
-
-        // 4) Generar AHK si el usuario acepta
-        if (new Alert(Alert.AlertType.CONFIRMATION,
-                "¿Deseas generar el script AutoHotkey?")
-                .showAndWait().filter(ButtonType.OK::equals).isPresent()) {
+        if (doAhk) {
             Path ahk = Path.of(System.getProperty("user.home"),
                     marketContext.getMarket().getName() + ".ahk");
-            exportService.exportStrategyToAhk(marketContext, results, ahk);
+            exportService.exportStrategyToAhk(marketContext, rows, ahk);
             new Alert(Alert.AlertType.INFORMATION,
                     "AHK generado en:\n" + ahk).showAndWait();
         }
 
-        // 5) Refrescar la tabla y cerrar el form
+        // 7) Refrescar tabla (tu callback monta estas filas en la TableView)
         if (onCalculated != null) onCalculated.run();
         dialogStage.close();
     }
+
 
     @FXML
     private void onClose() {

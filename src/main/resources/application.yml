@@ -2,7 +2,10 @@ spring:
   datasource:
     url: jdbc:sqlite:cwdarmm.db
     driver-class-name: org.sqlite.JDBC
-
+  banner:
+    location: banner.txt
+  main:
+    banner-mode: console
   jpa:
     hibernate:
       ddl-auto: create
@@ -10,4 +13,3 @@ spring:
 
     # Aquí solamente el FQCN, sin citas ni espacios adicionales:
     database-platform: org.hibernate.community.dialect.SQLiteDialect
-

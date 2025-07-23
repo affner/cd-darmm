@@ -16,6 +16,6 @@ public class RiskResultDTO {
     private TradingAccount account;
     private PriceFeed marketData;
     private BigDecimal accountSize;
-    private double riskKellyA;
-    private double riskKellyB;
+    private Double riskKellyA;
+    private Double riskKellyB;
 }

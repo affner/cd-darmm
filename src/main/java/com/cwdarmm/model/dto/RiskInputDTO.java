@@ -20,11 +20,12 @@ public class RiskInputDTO {
     private PriceFeed marketData;
     private BigDecimal accountSize;
     private double riskReward;
-    private int ticksSl1;
-    private int ticksSl2;
+    private Integer ticksSl1;
+    private Integer ticksSl2;
     private int stopLossSize;
     private boolean house;
     private boolean lunch;
     private boolean win;
     private boolean loss;
+    private boolean firstTrade;
 }

@@ -111,11 +111,20 @@ public class MarketRiskDashboardController {
         formCtrl.setDialogStage(dialog);
         formCtrl.setMarketContext(context);
         formCtrl.setOnCalculated(() -> {
-            // Actualizar tabla con resultados recalculados
             RiskInputDTO req = formCtrl.buildRequest();
-            List<RiskResultDTO> recalculated = riskAnalysisService.calculate(req);
-            tableResults.setItems(FXCollections.observableArrayList(recalculated));
+            List<RiskResultDTO> rows = riskAnalysisService.calculate(req);
+
+            var items = tableResults.getItems();
+            if (req.isFirstTrade()) {
+                // primer trade → borramos todo (o podrías cargar INITIAL por separado)
+                items.clear();
+            }
+            // calculate() devuelve:
+            //  - [INITIAL, OPTIMAL] si isFirstTrade
+            //  - [OPTIMAL] si !isFirstTrade
+            items.addAll(rows);
         });
+
 
         dialog.initOwner(tableResults.getScene().getWindow());
         dialog.initModality(Modality.APPLICATION_MODAL);

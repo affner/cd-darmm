@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,31 +20,52 @@ public class RiskAnalysisService {
      * Ejecuta la simulación de trades y calcula métricas básicas.
      */
     public List<RiskResultDTO> calculate(RiskInputDTO in) {
-        List<RiskResultDTO> results = simulationService.simulateTrades(in);
+        List<RiskResultDTO> rows = new ArrayList<>();
 
-        // Construir serie de PnL para métricas
-// 1) Construir serie de PnL como BigDecimal
-        List<BigDecimal> pnlSeries = results.stream()
-                .filter(r -> r.getTradeNumber() > 0)
-                .map(r -> r.getAccountSize()
-                        .subtract(results.get(r.getTradeNumber() - 1).getAccountSize()))
-                .toList();
+        // a) INITIAL (solo si el usuario dijo que sí es el primer trade)
+        if (in.isFirstTrade()) {
+            rows.add(RiskResultDTO.builder()
+                    .tradeNumber(0)
+                    .wl("INITIAL")
+                    .account(in.getAccount())
+                    .marketData(in.getMarketData())
+                    .accountSize(in.getAccountSize())
+                    .riskKellyA(in.getTicksSl1().doubleValue())
+                    .riskKellyB(in.getTicksSl2().doubleValue())
+                    .build()
+            );
+        }
 
-        // 2) Llamar a los métodos ahora con BigDecimal
-        BigDecimal expectancy = riskMetricsService.calculateExpectancy(pnlSeries);
-        BigDecimal drawdown = riskMetricsService.calculateDrawdown(
-                results.stream().map(RiskResultDTO::getAccountSize).toList());
-        BigDecimal ruinRisk = riskMetricsService.calculateRiskOfRuin(
-                BigDecimal.valueOf(0.5), BigDecimal.valueOf(1.0), pnlSeries.size());
+        // b) Cálculo de “Optimal Contracts”
+        int tradeNum = in.isFirstTrade() ? 1 : 1;
+        // Si quieres recuperar el último número de la tabla anterior,
+        // hazlo en el controller antes de llamar al servicio.
 
-        // 3) Log con toPlainString()
-        System.out.printf("Metrics -> E=%s, DD=%s, RoR=%s%n",
-                expectancy.toPlainString(),
-                drawdown.toPlainString(),
-                ruinRisk.toPlainString());
+        // Fórmula genérica (ajusta según tu Excel)
+        Integer tick = in.isHouse()
+                ? in.getTicksSl1()
+                : in.getTicksSl2();
+        BigDecimal contracts = in.getAccountSize()
+                .multiply(new BigDecimal(tick))
+                .divideToIntegralValue(
+                        BigDecimal.valueOf(in.getStopLossSize())
+                );
+        // aquí recogemos WIN o LOSS según el checkbox
+        String wl = in.isWin()
+                ? "WIN"
+                : "LOSS";
+        rows.add(RiskResultDTO.builder()
+                .tradeNumber(tradeNum)
+                .wl(wl)
+                .account(in.getAccount())
+                .marketData(in.getMarketData())
+                // Aquí mostramos #contratos en la columna AccountSize
+                .accountSize(contracts)
+                .riskKellyA(in.isHouse() ? in.getTicksSl1().doubleValue() : null)
+                .riskKellyB(in.isLunch() ? in.getTicksSl2().doubleValue() : null)
+                .build()
+        );
 
-        System.out.printf("Metrics -> E=%.2f, DD=%.2f, RoR=%.4f%n", expectancy, drawdown, ruinRisk);
-
-        return results;
+        return rows;
     }
 }
