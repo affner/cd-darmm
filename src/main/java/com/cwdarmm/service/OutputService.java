@@ -3,6 +3,8 @@ package com.cwdarmm.service;
 
 import com.cwdarmm.model.dto.RiskResultDTO;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -15,21 +17,25 @@ import java.util.List;
 @RequiredArgsConstructor
 public class  OutputService {
 
-    private static final String HEADER = "TradeNumber,WL,Account,MarketData,AccountSize,RiskKellyA,RiskKellyB";
-
+    private static final String[] HEADERS = {
+            "TradeNumber", "WL", "Account", "MarketData",
+            "AccountSize", "RiskKellyA", "RiskKellyB"
+    };
 
     public void exportRiskResultsToCsv(List<RiskResultDTO> results, Path outputFile) throws IOException {
-        var sb = new StringBuilder();
-        sb.append(HEADER).append("\n");
-        for (RiskResultDTO r : results) {
-            sb.append(r.getTradeNumber()).append(',')
-                    .append(r.getWl()).append(',')
-                    .append(r.getAccount()).append(',')
-                    .append(r.getMarketData()).append(',')
-                    .append(r.getAccountSize()).append(',')
-                    .append(r.getRiskKellyA()).append(',')
-                    .append(r.getRiskKellyB()).append('\n');
+        try (var writer = Files.newBufferedWriter(outputFile, StandardCharsets.UTF_8);
+             var printer = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(HEADERS))) {
+            for (RiskResultDTO r : results) {
+                printer.printRecord(
+                        r.getTradeNumber(),
+                        r.getWl(),
+                        r.getAccount(),
+                        r.getMarketData(),
+                        r.getAccountSize(),
+                        r.getRiskKellyA(),
+                        r.getRiskKellyB()
+                );
+            }
         }
-        Files.writeString(outputFile, sb.toString(), StandardCharsets.UTF_8);
     }
 }

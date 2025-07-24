@@ -36,16 +36,16 @@ public class RiskAnalysisService {
         }
 
         // b) Cálculo de “Optimal Contracts”
-        int tradeNum = in.isFirstTrade() ? 1 : 1;
+        int tradeNum = 1;
         // Si quieres recuperar el último número de la tabla anterior,
         // hazlo en el controller antes de llamar al servicio.
 
         // Fórmula genérica (ajusta según tu Excel)
-        Integer tick = in.isHouse()
+        int tick = in.isHouse()
                 ? in.getTicksSl1()
                 : in.getTicksSl2();
         BigDecimal contracts = in.getAccountSize()
-                .multiply(new BigDecimal(tick))
+                .multiply(BigDecimal.valueOf(tick))
                 .divideToIntegralValue(
                         BigDecimal.valueOf(in.getStopLossSize())
                 );
