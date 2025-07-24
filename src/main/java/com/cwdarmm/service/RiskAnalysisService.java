@@ -13,8 +13,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class RiskAnalysisService {
-    private final RiskMetricsService riskMetricsService;
-    private final RiskSimulationService simulationService;
+
 
     /**
      * Ejecuta la simulación de trades y calcula métricas básicas.
