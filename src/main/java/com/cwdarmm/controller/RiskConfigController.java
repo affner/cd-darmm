@@ -13,7 +13,7 @@ import com.cwdarmm.service.RiskAnalysisService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
+import com.cwdarmm.config.SpringFXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -35,6 +35,7 @@ public class RiskConfigController {
     private final RiskAnalysisService riskAnalysisService;
     private final ReferenceDataService referenceDataService;
     private final ExportService exportService;
+    private final SpringFXMLLoader springFXMLLoader;
     private Stage dialogStage;
     private Runnable onCalculated;
     private MarketDTO marketContext;
@@ -167,17 +168,18 @@ public class RiskConfigController {
     }
 
     private void showOptimalContracts(List<OptimalContractRow> rows, String criteriaAccount) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/OptimalContractsView.fxml"));
-        Parent root = loader.load();
+        FXMLLoader loader = springFXMLLoader.load("/fxml/OptimalContractsView.fxml");
         OptimalContractsController ctrl = loader.getController();
         ctrl.setCriteriaAccount(criteriaAccount);
         ctrl.setItems(rows);
 
         Stage popup = new Stage();
-        popup.initOwner(dialogStage);
+        if (dialogStage != null && dialogStage.getOwner() != null) {
+            popup.initOwner(dialogStage.getOwner());
+        }
         popup.initModality(Modality.NONE);
         popup.setTitle(criteriaAccount + " – Optimal Contracts");
-        popup.setScene(new Scene(root));
+        popup.setScene(new Scene(loader.getRoot()));
         popup.show();
     }
 
