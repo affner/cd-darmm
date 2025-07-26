@@ -4,6 +4,7 @@ import com.cwdarmm.model.domain.OpenMarket;
 import com.cwdarmm.model.domain.TradingAccount;
 import com.cwdarmm.model.domain.PriceFeed;
 import com.cwdarmm.model.dto.MarketDTO;
+import com.cwdarmm.model.dto.OptimalContractRow;
 import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.RiskResultDTO;
 import com.cwdarmm.service.ReferenceDataService;
@@ -11,9 +12,13 @@ import com.cwdarmm.service.ExportService;
 import com.cwdarmm.service.RiskAnalysisService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
@@ -151,10 +156,30 @@ public class RiskConfigController {
         }
 
         // 7) Refrescar tabla (tu callback monta estas filas en la TableView)
-        if (onCalculated != null) onCalculated.run();
+        if (onCalculated != null){
+            onCalculated.run();
+        }
+
+        // 8) Mostrar ventana de Optimal Contracts
+        List<OptimalContractRow> optimalRows = riskAnalysisService.generateOptimalContracts(req);
+        showOptimalContracts(optimalRows, req.getAccount().getName());
         dialogStage.close();
     }
 
+    private void showOptimalContracts(List<OptimalContractRow> rows, String criteriaAccount) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/OptimalContractsView.fxml"));
+        Parent root = loader.load();
+        OptimalContractsController ctrl = loader.getController();
+        ctrl.setCriteriaAccount(criteriaAccount);
+        ctrl.setItems(rows);
+
+        Stage popup = new Stage();
+        popup.initOwner(dialogStage);
+        popup.initModality(Modality.NONE);
+        popup.setTitle(criteriaAccount + " – Optimal Contracts");
+        popup.setScene(new Scene(root));
+        popup.show();
+    }
 
     @FXML
     private void onClose() {

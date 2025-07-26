@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.cwdarmm.controller.OptimalContractsController"
+            prefWidth="500" prefHeight="300">
+
+    <top>
+        <ToolBar>
+            <Label fx:id="lblAccount"
+                   style="-fx-font-size:14px; -fx-font-weight:bold;"/>
+        </ToolBar>
+    </top>
+
+    <center>
+        <TableView fx:id="tblOptimal">
+            <columns>
+                <TableColumn fx:id="colSlSize"   text="SL Size (Ticks)" />
+                <TableColumn fx:id="colTicker"   text="FUTURES TICKER" />
+                <TableColumn fx:id="colOptimal"  text="Optimal Contract" />
+                <TableColumn fx:id="colTarget"   text="Target (Ticks)" />
+            </columns>
+        </TableView>
+    </center>
+
+</BorderPane>
