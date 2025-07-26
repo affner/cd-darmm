@@ -45,4 +45,18 @@ public class MarketDbService {
 
         return list;
     }
+
+    /**
+     * Devuelve la primera fila que coincida con los criterios de búsqueda.
+     * En esta versión en memoria simplemente recorre la lista en
+     * {@link #listAll()} y filtra por future, account y marketData.
+     */
+    public MarketDbRowDTO find(String future, String account, String marketData) {
+        return listAll().stream()
+                .filter(r -> r.getFuture().equalsIgnoreCase(future))
+                .filter(r -> r.getAccount().equalsIgnoreCase(account))
+                .filter(r -> r.getMarketData().equalsIgnoreCase(marketData))
+                .findFirst()
+                .orElse(null);
+    }
 }

@@ -4,16 +4,21 @@ package com.cwdarmm.service;
 import com.cwdarmm.model.dto.OptimalContractRow;
 import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.RiskResultDTO;
+import com.cwdarmm.model.dto.MarketDbRowDTO;
+import com.cwdarmm.service.MarketDbService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.RoundingMode;
 
 @Service
 @RequiredArgsConstructor
 public class RiskAnalysisService {
+
+    private final MarketDbService marketDbService;
 
 
     /**
@@ -36,13 +41,28 @@ public class RiskAnalysisService {
             );
         }
 
-        // b) Cálculo de “Optimal Contracts”
+        // b) Cálculo de “Optimal Contracts” simplificado
         int tradeNum = 1;
 
-        // aquí sólo devolvemos la fila OPTIMAL “genérica”
-        int tick = in.isHouse() ? in.getTicksSl1() : in.getTicksSl2();
-        BigDecimal contracts = in.getAccountSize().multiply(BigDecimal.valueOf(tick)).divideToIntegralValue(
-                BigDecimal.valueOf(in.getStopLossSize()));
+        // Para este ejemplo tomamos el SL de la sesión seleccionada
+        int sl = in.isHouse() ? in.getTicksSl1() : in.getTicksSl2();
+
+        MarketDbRowDTO row = marketDbService.find(
+                in.getMarket().getName(),
+                in.getAccount().getName(),
+                in.getMarketData().getName());
+
+        double tickValue = row != null ? row.getTickValue() : 1.0;
+        double commission = row != null ? row.getCommission() : 0.0;
+
+        double riskPct = sl; // interpretamos sl como porcentaje de riesgo
+        double riskPerContract = tickValue * in.getStopLossSize() + commission;
+        BigDecimal currentRisk = in.getAccountSize()
+                .multiply(BigDecimal.valueOf(riskPct))
+                .divide(BigDecimal.valueOf(100));
+
+        BigDecimal contracts = currentRisk
+                .divide(BigDecimal.valueOf(riskPerContract), 0, RoundingMode.DOWN);
         // aquí recogemos WIN o LOSS según el checkbox
         String wl = in.isWin() ? "WIN" : "LOSS";
 
@@ -78,20 +98,31 @@ public class RiskAnalysisService {
         return out;
     }
 
-    private OptimalContractRow makeRow(RiskInputDTO in, int slTicks) {
-        // 1) Cálculo de contratos (sólo parte entera)
-        BigDecimal possible = in.getAccountSize()
-                .multiply(BigDecimal.valueOf(slTicks))
-                .divideToIntegralValue(BigDecimal.valueOf(in.getStopLossSize()));
+    private OptimalContractRow makeRow(RiskInputDTO in, int riskPct) {
+        int slTicks = in.getStopLossSize();
 
-        // 2) Cálculo del target en ticks = SL * RiskReward
-        int target = (int) Math.round(in.getRiskReward() * slTicks);
+        MarketDbRowDTO row = marketDbService.find(
+                in.getMarket().getName(),
+                in.getAccount().getName(),
+                in.getMarketData().getName());
 
-        // 3) Ticker o mensaje
-        String ticker = in.getMarketData().getName(); // o getTicker()
+        double tickValue = row != null ? row.getTickValue() : 1.0;
+        double commission = row != null ? row.getCommission() : 0.0;
+
+        double riskPerContract = tickValue * slTicks + commission;
+        BigDecimal currentRisk = in.getAccountSize()
+                .multiply(BigDecimal.valueOf(riskPct))
+                .divide(BigDecimal.valueOf(100));
+
+        BigDecimal possible = currentRisk
+                .divide(BigDecimal.valueOf(riskPerContract), 0, RoundingMode.DOWN);
+
+        int r = "NASDAQ".equalsIgnoreCase(in.getMarket().getName()) ? 2 : 1;
+        int target = (int) Math.round(in.getRiskReward() * slTicks + r);
+
+        String ticker = row != null ? row.getSymbol() : in.getMarketData().getName();
 
         if (possible.compareTo(BigDecimal.ONE) < 0) {
-            // no alcanzas ni a 1 contrato → mensaje de “riesgo muy alto”
             return new OptimalContractRow(
                     slTicks,
                     "The risk is too high",
