@@ -1,9 +1,9 @@
 package com.cwdarmm.controller;
 
-import com.cwdarmm.model.domain.OpenMarket;
-import com.cwdarmm.model.domain.TradingAccount;
+import com.cwdarmm.model.domain.CatAccount;
+import com.cwdarmm.model.domain.CatMarket;
+import com.cwdarmm.model.domain.CatMarketData;
 import com.cwdarmm.model.dto.MarketDTO;
-import com.cwdarmm.model.domain.PriceFeed;
 import com.cwdarmm.service.ReferenceDataService;
 import com.cwdarmm.service.MarketDataService;
 import javafx.collections.FXCollections;
@@ -31,11 +31,11 @@ public class OpenMarketSessionController {
     private MarketDTO existingDto;
 
     @FXML
-    private ComboBox<TradingAccount> cbAccount;
+    private ComboBox<CatAccount> cbAccount;
     @FXML
-    private ComboBox<OpenMarket> cbMarket;
+    private ComboBox<CatMarket> cbMarket;
     @FXML
-    private ComboBox<PriceFeed> cbMarketData;
+    private ComboBox<CatMarketData> cbMarketData;
     @FXML
     private TextField tfAccountSize;
     @FXML
@@ -50,19 +50,19 @@ public class OpenMarketSessionController {
                 referenceDataService.listAccounts()));
         cbAccount.setCellFactory(list -> new ListCell<>() {
             @Override
-            protected void updateItem(TradingAccount item, boolean empty) {
+            protected void updateItem(CatAccount item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty || item == null ? null : item.getName());
+                setText(empty || item == null ? null : item.getDescription());
             }
         });
         cbAccount.setConverter(new StringConverter<>() {
             @Override
-            public String toString(TradingAccount a) {
-                return (a == null ? "" : a.getName());
+            public String toString(CatAccount a) {
+                return (a == null ? "" : a.getDescription());
             }
 
             @Override
-            public TradingAccount fromString(String s) {
+            public CatAccount fromString(String s) {
                 return null;
             }
         });
@@ -72,19 +72,19 @@ public class OpenMarketSessionController {
                 referenceDataService.listMarkets()));
         cbMarket.setCellFactory(list -> new ListCell<>() {
             @Override
-            protected void updateItem(OpenMarket m, boolean empty) {
+            protected void updateItem(CatMarket m, boolean empty) {
                 super.updateItem(m, empty);
-                setText(empty || m == null ? null : m.getName());
+                setText(empty || m == null ? null : m.getDescription());
             }
         });
         cbMarket.setConverter(new StringConverter<>() {
             @Override
-            public String toString(OpenMarket m) {
-                return (m == null ? "" : m.getName());
+            public String toString(CatMarket m) {
+                return (m == null ? "" : m.getDescription());
             }
 
             @Override
-            public OpenMarket fromString(String s) {
+            public CatMarket fromString(String s) {
                 return null;
             }
         });
@@ -98,19 +98,19 @@ public class OpenMarketSessionController {
                         referenceDataService.listFeedsByAccount(sel.getId())));
                 cbMarketData.setCellFactory(list -> new ListCell<>() {
                     @Override
-                    protected void updateItem(PriceFeed f, boolean empty) {
+                    protected void updateItem(CatMarketData f, boolean empty) {
                         super.updateItem(f, empty);
-                        setText(empty || f == null ? null : f.getName());
+                        setText(empty || f == null ? null : f.getDescription());
                     }
                 });
                 cbMarketData.setConverter(new StringConverter<>() {
                     @Override
-                    public String toString(PriceFeed f) {
-                        return (f == null ? "" : f.getName());
+                    public String toString(CatMarketData f) {
+                        return (f == null ? "" : f.getDescription());
                     }
 
                     @Override
-                    public PriceFeed fromString(String s) {
+                    public CatMarketData fromString(String s) {
                         return null;
                     }
                 });

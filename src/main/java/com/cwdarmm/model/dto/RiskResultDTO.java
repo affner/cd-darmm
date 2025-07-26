@@ -1,7 +1,7 @@
 package com.cwdarmm.model.dto;
 
-import com.cwdarmm.model.domain.TradingAccount;
-import com.cwdarmm.model.domain.PriceFeed;
+import com.cwdarmm.model.domain.CatAccount;
+import com.cwdarmm.model.domain.CatMarketData;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,8 +13,8 @@ import java.math.BigDecimal;
 public class RiskResultDTO {
     private int tradeNumber;
     private String wl;
-    private TradingAccount account;
-    private PriceFeed marketData;
+    private CatAccount account;
+    private CatMarketData marketData;
     private BigDecimal accountSize;
     private Double riskKellyA;
     private Double riskKellyB;

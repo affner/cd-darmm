@@ -61,11 +61,11 @@ public class MarketManagerController {
     public void initialize() {
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colAccount.setCellValueFactory(feat ->
-                new ReadOnlyStringWrapper(feat.getValue().getAccount().getName()));
+                new ReadOnlyStringWrapper(feat.getValue().getAccount().getDescription()));
         colMarket.setCellValueFactory(feat ->
-                new ReadOnlyStringWrapper(feat.getValue().getMarket().getName()));
+                new ReadOnlyStringWrapper(feat.getValue().getMarket().getDescription()));
         colMarketData.setCellValueFactory(feat ->
-                new ReadOnlyStringWrapper(feat.getValue().getMarketData().getName()));
+                new ReadOnlyStringWrapper(feat.getValue().getMarketData().getDescription()));
         colSize.setCellValueFactory(new PropertyValueFactory<>("accountSize"));
         colSize.setCellFactory(tc -> new TableCell<>() {
             @Override
@@ -135,7 +135,7 @@ public class MarketManagerController {
                 Stage riskStage = new Stage();
                 riskStage.initOwner(tableMarkets.getScene().getWindow());
                 riskStage.initModality(Modality.NONE);
-                riskStage.setTitle(lastSaved.getMarket().getName() + " – Risk Manager");
+                riskStage.setTitle(lastSaved.getMarket().getDescription() + " – Risk Manager");
                 riskStage.setScene(new Scene(riskLoader.getRoot()));
 
                 MarketRiskDashboardController rtc = riskLoader.getController();
@@ -159,7 +159,7 @@ public class MarketManagerController {
             Stage riskStage = new Stage();
             riskStage.initOwner(tableMarkets.getScene().getWindow());
             riskStage.initModality(Modality.NONE);
-            riskStage.setTitle(context.getMarket().getName() + " – Risk Manager");
+            riskStage.setTitle(context.getMarket().getDescription() + " – Risk Manager");
             riskStage.setScene(new Scene(riskLoader.getRoot()));
 
             // 2) Pasa el contexto al controller de Risk Table

@@ -1,10 +1,10 @@
 package com.cwdarmm.service;
 
-import com.cwdarmm.model.domain.TradingAccount;
-import com.cwdarmm.model.domain.PriceFeed;
-import com.cwdarmm.model.domain.OpenMarket;
-import com.cwdarmm.repository.AccountDefinitionRepository;
-import com.cwdarmm.repository.MarketMasterRepository;
+import com.cwdarmm.model.domain.CatAccount;
+import com.cwdarmm.model.domain.CatMarketData;
+import com.cwdarmm.model.domain.CatMarket;
+import com.cwdarmm.repository.CatAccountRepository;
+import com.cwdarmm.repository.CatMarketRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,14 +18,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ReferenceDataService {
 
-    private final AccountDefinitionRepository accountRepo;
-    private final MarketMasterRepository marketRepo;
+    private final CatAccountRepository accountRepo;
+    private final CatMarketRepository marketRepo;
 
     /**
      * Devuelve todas las cuentas (para el combo Account)
      */
     @Transactional(Transactional.TxType.SUPPORTS)
-    public List<TradingAccount> listAccounts() {
+    public List<CatAccount> listAccounts() {
         return accountRepo.findAll();
     }
 
@@ -33,7 +33,7 @@ public class ReferenceDataService {
      * Devuelve todos los mercados (para el combo Market)
      */
     @Transactional(Transactional.TxType.SUPPORTS)
-    public List<OpenMarket> listMarkets() {
+    public List<CatMarket> listMarkets() {
         return marketRepo.findAll();
     }
 
@@ -41,14 +41,14 @@ public class ReferenceDataService {
      * Devuelve los feeds (Market Data) disponibles para una cuenta dada.
      */
     @Transactional(Transactional.TxType.SUPPORTS)
-    public List<PriceFeed> listFeedsByAccount(Long accountId) {
+    public List<CatMarketData> listFeedsByAccount(Long accountId) {
         return accountRepo.findById(accountId)
-                .map(TradingAccount::getFeeds)         // Set<PriceFeed>
+                .map(CatAccount::getMarketDataList)         // Set<CatMarketData>
                 .map(this::toList)
                 .orElse(Collections.emptyList());
     }
 
-    private List<PriceFeed> toList(Set<PriceFeed> set) {
+    private List<CatMarketData> toList(Set<CatMarketData> set) {
         return set.stream().collect(Collectors.toList());
     }
 }

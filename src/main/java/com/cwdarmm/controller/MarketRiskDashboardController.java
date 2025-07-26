@@ -47,7 +47,7 @@ public class MarketRiskDashboardController {
 
     public void setContext(MarketDTO context) {
         this.context = context;
-        lblContext.setText(context.getMarket().getName());
+        lblContext.setText(context.getMarket().getDescription());
         // inicializar la tabla con el resultado inicial (trade 0):
         var initial = List.of(RiskResultDTO.builder()
                 .tradeNumber(0).wl("INITIAL")
@@ -68,13 +68,13 @@ public class MarketRiskDashboardController {
         // <<— Aquí sacamos el name manualmente en vez de "account.name" —>>
         colAccount.setCellValueFactory(feat -> {
             var acc = feat.getValue().getAccount();
-            String txt = (acc != null ? acc.getName() : "");
+            String txt = (acc != null ? acc.getDescription() : "");
             return new ReadOnlyStringWrapper(txt);
         });
 
         colMarketData.setCellValueFactory(feat -> {
             var fd = feat.getValue().getMarketData();
-            String txt = (fd != null ? fd.getName() : "");
+            String txt = (fd != null ? fd.getDescription() : "");
             return new ReadOnlyStringWrapper(txt);
         });
 
@@ -128,7 +128,7 @@ public class MarketRiskDashboardController {
 
         dialog.initOwner(tableResults.getScene().getWindow());
         dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setTitle(context.getMarket() + " – Risk Manager");
+        dialog.setTitle(context.getMarket().getDescription() + " – Risk Manager");
         dialog.setScene(new Scene(loader.getRoot()));
         dialog.showAndWait();
     }

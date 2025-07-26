@@ -7,26 +7,26 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "accounts")
+@Table(name = "cat_accounts")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TradingAccount {
+public class CatAccount {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", length = 50, nullable = false, unique = true)
-    private String name;
+    @Column(name = "description", length = 50, nullable = false, unique = true)
+    private String description;
 
     @Column(name = "initial_size", nullable = false)
     private Double initialSize;
 
     @Builder.Default
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "account_feeds",
-            joinColumns = @JoinColumn(name = "account_id"),
-            inverseJoinColumns = @JoinColumn(name = "feed_id"))
-    private Set<PriceFeed> feeds = new HashSet<>();
+    @JoinTable(name = "account_marketdata",
+            joinColumns = @JoinColumn(name = "cat_account_id"),
+            inverseJoinColumns = @JoinColumn(name = "cat_market_data_id"))
+    private Set<CatMarketData> marketDataList = new HashSet<>();
 }

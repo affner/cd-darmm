@@ -6,14 +6,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "feeds")
+@Table(name = "cat_market_data")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
-public class PriceFeed {
+public class CatMarketData {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,13 +21,13 @@ public class PriceFeed {
     @ToString.Include
     private Long id;
 
-    @Column(name = "name", nullable = false, unique = true)
+    @Column(name = "description", nullable = false, unique = true)
     @EqualsAndHashCode.Include
     @ToString.Include
-    private String name;
+    private String description;
 
     @Builder.Default
-    @ManyToMany(mappedBy = "feeds", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "marketDataList", fetch = FetchType.LAZY)
     @EqualsAndHashCode.Exclude
-    private Set<TradingAccount> accounts = new HashSet<>();
+    private Set<CatAccount> accounts = new HashSet<>();
 }

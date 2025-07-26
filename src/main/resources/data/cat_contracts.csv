@@ -1,0 +1,45 @@
+//cat_contracts.csv
+//id,description
+1,E-mini Nasdaq
+2,Micro E-mini Nasdaq
+3,E-mini S&P 500
+4,Micro E-mini S&P
+5,Gold Futures
+6,Micro Gold
+7,Crude Oil
+8,Micro Crude Oil
+9,E-Mini Dow Jones Industrial Average
+10,E-Micro Dow Jones Industrial Average
+11,E-Mini S&P MidCap 400 Index
+12,E-MINI RUSSELL 2000
+13,Silver
+14,Micro Silver
+15,E-Mini Silver
+16,Mini-Silver
+17,Copper
+18,Micro Copper
+19,E-Mini Copper
+20,E-Mini Gold
+21,Mini Wheat
+22,Wheat
+23,Oats
+24,Mini Corn
+25,Corn
+26,Soybeans
+27,Soybean oil futures
+28,Soybean meal futures
+29,Mini Soybean
+30,Nano Bitcoin
+31,Nano Ether Futures
+32,Nano Bloomberg Large Cap
+33,Micro Bloomberg Large Cap
+34,Nano SuperTech
+35,Micro SuperTech
+36,Coinbase Futures Crude Oil
+37,Nano Ether
+38,E-Mini Crude Oil
+39,Brent Crude Oil Financial Futures
+40,RBOB Gasoline
+41,Platinum
+42,Palladium
+43,Rough Rice

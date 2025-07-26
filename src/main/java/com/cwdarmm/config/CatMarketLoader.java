@@ -1,7 +1,7 @@
 package com.cwdarmm.config;
 
-import com.cwdarmm.model.domain.OpenMarket;
-import com.cwdarmm.repository.MarketMasterRepository;
+import com.cwdarmm.model.domain.CatMarket;
+import com.cwdarmm.repository.CatMarketRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
@@ -14,16 +14,16 @@ import java.nio.charset.StandardCharsets;
 
 @Component
 @RequiredArgsConstructor
-public class MarketMasterDataLoader {
+public class CatMarketLoader {
 
-    private final MarketMasterRepository marketRepo;
+    private final CatMarketRepository marketRepo;
 
     @PostConstruct
     @Transactional
     public void loadMarkets() {
         if (marketRepo.count() > 0) return;
 
-        try (var is = new ClassPathResource("data/markets.csv").getInputStream();
+        try (var is = new ClassPathResource("data/cat_markets.csv").getInputStream();
              var reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
 
             reader.lines()
@@ -32,14 +32,14 @@ public class MarketMasterDataLoader {
                     .forEach(cols -> {
                         Long id   = Long.parseLong(cols[0].trim());
                         String name = cols[1].trim();
-                        marketRepo.save(OpenMarket.builder()
+                        marketRepo.save(CatMarket.builder()
                                 .id(id)
-                                .name(name)
+                                .description(name)
                                 .build());
                     });
 
         } catch (Exception e) {
-            throw new RuntimeException("Error cargando markets.csv", e);
+            throw new RuntimeException("Error cargando cat_markets.csv", e);
         }
     }
 }

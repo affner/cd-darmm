@@ -1,14 +1,14 @@
 package com.cwdarmm.service;
 
-import com.cwdarmm.model.domain.PriceFeed;
-import com.cwdarmm.model.domain.TradingAccount;
+import com.cwdarmm.model.domain.CatMarket;
+import com.cwdarmm.model.domain.CatMarketData;
+import com.cwdarmm.model.domain.CatAccount;
 import com.cwdarmm.model.dto.MarketDTO;
-import com.cwdarmm.model.domain.MarketEntity;
 import com.cwdarmm.model.domain.OpenMarket;
-import com.cwdarmm.repository.AccountDefinitionRepository;
-import com.cwdarmm.repository.MarketMasterRepository;
-import com.cwdarmm.repository.FeedDefinitionRepository;
-import com.cwdarmm.repository.MarketRepository;
+import com.cwdarmm.repository.CatAccountRepository;
+import com.cwdarmm.repository.CatMarketRepository;
+import com.cwdarmm.repository.CatMarketDataRepository;
+import com.cwdarmm.repository.OpenMarketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,10 +19,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class MarketDataService {
-    private final AccountDefinitionRepository accountRepo;
-    private final MarketMasterRepository marketMasterRepo;
-    private final FeedDefinitionRepository feedRepo;
-    private final MarketRepository marketRepo;
+    private final CatAccountRepository accountRepo;
+    private final CatMarketRepository marketMasterRepo;
+    private final CatMarketDataRepository feedRepo;
+    private final OpenMarketRepository marketRepo;
 
     /**
      * Persistir nueva configuración de mercado (o actualizar existente).
@@ -30,14 +30,14 @@ public class MarketDataService {
     @Transactional
     public MarketDTO save(MarketDTO dto) {
         // Resolver entidades
-        TradingAccount acc = accountRepo.findById(dto.getAccount().getId())
+        CatAccount acc = accountRepo.findById(dto.getAccount().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Cuenta no existe: " + dto.getAccount()));
-        OpenMarket mkt = marketMasterRepo.findById(dto.getMarket().getId())
+        CatMarket mkt = marketMasterRepo.findById(dto.getMarket().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Mercado no existe: " + dto.getMarket()));
-        PriceFeed fd = feedRepo.findById(dto.getMarketData().getId())
+        CatMarketData fd = feedRepo.findById(dto.getMarketData().getId())
                 .orElseThrow(() -> new IllegalArgumentException("Feed no existe: " + dto.getMarketData()));
 
-        MarketEntity entity = MarketEntity.builder()
+        OpenMarket entity = OpenMarket.builder()
                 .id(dto.getId())
                 .account(acc)
                 .market(mkt)
@@ -50,9 +50,9 @@ public class MarketDataService {
                 .build();
 
         entity = marketRepo.save(entity);
-        entity.getAccount().getName();
-        entity.getMarket().getName();
-        entity.getMarketData().getName();
+        entity.getAccount().getDescription();
+        entity.getMarket().getDescription();
+        entity.getMarketData().getDescription();
         return toDTO(entity);
     }
 
@@ -68,15 +68,15 @@ public class MarketDataService {
     /**
      * Catálogos para UI
      */
-    public List<TradingAccount> listAccounts() {
+    public List<CatAccount> listAccounts() {
         return accountRepo.findAll();
     }
 
-    public List<OpenMarket> listMarkets() {
+    public List<CatMarket> listMarkets() {
         return marketMasterRepo.findAll();
     }
 
-    public List<PriceFeed> listMarketData() {
+    public List<CatMarketData> listMarketData() {
         return feedRepo.findAll();
     }
 
@@ -84,7 +84,7 @@ public class MarketDataService {
     public void delete(Long id) {
         marketRepo.deleteById(id);
     }
-    private MarketDTO toDTO(MarketEntity e) {
+    private MarketDTO toDTO(OpenMarket e) {
         return MarketDTO.builder()
                 .id(e.getId())
                 .account(e.getAccount())

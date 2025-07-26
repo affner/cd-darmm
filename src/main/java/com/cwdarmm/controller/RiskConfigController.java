@@ -1,8 +1,8 @@
 package com.cwdarmm.controller;
 
-import com.cwdarmm.model.domain.OpenMarket;
-import com.cwdarmm.model.domain.TradingAccount;
-import com.cwdarmm.model.domain.PriceFeed;
+import com.cwdarmm.model.domain.CatAccount;
+import com.cwdarmm.model.domain.CatMarket;
+import com.cwdarmm.model.domain.CatMarketData;
 import com.cwdarmm.model.dto.MarketDTO;
 import com.cwdarmm.model.dto.OptimalContractRow;
 import com.cwdarmm.model.dto.RiskInputDTO;
@@ -40,9 +40,9 @@ public class RiskConfigController {
     private Runnable onCalculated;
     private MarketDTO marketContext;
 
-    @FXML private ComboBox<TradingAccount> cbRiskAccount;
-    @FXML private ComboBox<OpenMarket>    cbRiskMarket;
-    @FXML private ComboBox<PriceFeed>  cbRiskMarketData;
+    @FXML private ComboBox<CatAccount> cbRiskAccount;
+    @FXML private ComboBox<CatMarket>    cbRiskMarket;
+    @FXML private ComboBox<CatMarketData>  cbRiskMarketData;
     @FXML private TextField tfRiskAccountSize;
     @FXML private TextField tfRiskReward;
     @FXML private TextField tfTicksSl1;
@@ -57,23 +57,23 @@ public class RiskConfigController {
     @FXML
     public void initialize() {
         // 1) Cargamos cuentas
-        List<TradingAccount> accounts = referenceDataService.listAccounts();
+        List<CatAccount> accounts = referenceDataService.listAccounts();
         cbRiskAccount.setItems(FXCollections.observableArrayList(accounts));
-        setupCombo(cbRiskAccount, TradingAccount::getName);
+        setupCombo(cbRiskAccount, CatAccount::getDescription);
         // 2) Markets (static list)
-        List<OpenMarket> markets = referenceDataService.listMarkets();
+        List<CatMarket> markets = referenceDataService.listMarkets();
         cbRiskMarket.setItems(FXCollections.observableArrayList(markets));
 
         // Disable MarketData until account selectedﬁ
         cbRiskMarketData.setDisable(true);
-        setupCombo(cbRiskMarket, OpenMarket::getName);
+        setupCombo(cbRiskMarket, CatMarket::getDescription);
         // 3) Al cambiar Account → cargamos Markets asociados
         cbRiskAccount.getSelectionModel().selectedItemProperty().addListener((obs, oldAcc, newAcc) -> {
             if (newAcc != null) {
                 // find accountId
                 Long accId = newAcc.getId();
                 // load feeds for that account
-                List<PriceFeed> feeds = referenceDataService.listFeedsByAccount(accId);
+                List<CatMarketData> feeds = referenceDataService.listFeedsByAccount(accId);
                 cbRiskMarketData.setItems(FXCollections.observableArrayList(feeds));
                 cbRiskMarketData.setDisable(false);
             } else {
@@ -81,7 +81,7 @@ public class RiskConfigController {
                 cbRiskMarketData.setDisable(true);
             }
         });
-        setupCombo(cbRiskMarketData, PriceFeed::getName);
+        setupCombo(cbRiskMarketData, CatMarketData::getDescription);
 
         // Carga imagen
         imgCoins.setImage(new Image(getClass().getResourceAsStream("/img/coins.png")));
@@ -143,14 +143,14 @@ public class RiskConfigController {
         // 6) Export si el usuario lo pidió
         if (doXml) {
             Path xml = Path.of(System.getProperty("user.home"),
-                    marketContext.getMarket().getName() + ".xml");
+                    marketContext.getMarket().getDescription() + ".xml");
             exportService.exportStrategyToXml(marketContext, rows, xml);
             new Alert(Alert.AlertType.INFORMATION,
                     "XML generado en:\n" + xml).showAndWait();
         }
         if (doAhk) {
             Path ahk = Path.of(System.getProperty("user.home"),
-                    marketContext.getMarket().getName() + ".ahk");
+                    marketContext.getMarket().getDescription() + ".ahk");
             exportService.exportStrategyToAhk(marketContext, rows, ahk);
             new Alert(Alert.AlertType.INFORMATION,
                     "AHK generado en:\n" + ahk).showAndWait();
@@ -163,7 +163,7 @@ public class RiskConfigController {
 
         // 8) Mostrar ventana de Optimal Contracts
         List<OptimalContractRow> optimalRows = riskAnalysisService.generateOptimalContracts(req);
-        showOptimalContracts(optimalRows, req.getAccount().getName());
+        showOptimalContracts(optimalRows, req.getAccount().getDescription());
         dialogStage.close();
     }
 
