@@ -45,4 +45,16 @@ public class MarketDbService {
 
         return list;
     }
+
+    /**
+     * Busca el primer registro que coincide con future+account+feed.
+     */
+    public MarketDbRowDTO find(String future, String account, String feed) {
+        return listAll().stream()
+                .filter(r -> r.getFuture().get().equalsIgnoreCase(future))
+                .filter(r -> r.getAccount().get().equalsIgnoreCase(account))
+                .filter(r -> r.getMarketData().get().equalsIgnoreCase(feed))
+                .findFirst()
+                .orElse(null);
+    }
 }

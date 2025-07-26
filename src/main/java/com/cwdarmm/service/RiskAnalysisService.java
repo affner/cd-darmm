@@ -4,8 +4,11 @@ package com.cwdarmm.service;
 import com.cwdarmm.model.dto.OptimalContractRow;
 import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.RiskResultDTO;
+import com.cwdarmm.service.MarketDbService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import static java.math.RoundingMode.DOWN;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -14,6 +17,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class RiskAnalysisService {
+
+    private final MarketDbService marketDbService;
 
 
     /**
@@ -36,27 +41,33 @@ public class RiskAnalysisService {
             );
         }
 
-        // b) Cálculo de “Optimal Contracts”
+        // b) Cálculo de “Optimal Contracts” para la sesión seleccionada
         int tradeNum = 1;
+        int slTicks = in.isHouse() ? in.getTicksSl1() : in.getTicksSl2();
+        var row = marketDbService.find(
+                in.getMarket().getName(),
+                in.getAccount().getName(),
+                in.getMarketData().getName());
+        if (row != null) {
+            double riskPerContract = row.getTickValue().get() * slTicks
+                    + row.getCommission().get();
+            double currentRisk = in.getAccountSize().doubleValue() * 0.01; // 1% del capital
+            BigDecimal contracts = BigDecimal.valueOf(currentRisk / riskPerContract)
+                    .setScale(0, DOWN);
 
-        // aquí sólo devolvemos la fila OPTIMAL “genérica”
-        int tick = in.isHouse() ? in.getTicksSl1() : in.getTicksSl2();
-        BigDecimal contracts = in.getAccountSize().multiply(BigDecimal.valueOf(tick)).divideToIntegralValue(
-                BigDecimal.valueOf(in.getStopLossSize()));
-        // aquí recogemos WIN o LOSS según el checkbox
-        String wl = in.isWin() ? "WIN" : "LOSS";
+            String wl = in.isWin() ? "WIN" : "LOSS";
 
-        rows.add(RiskResultDTO.builder()
-                .tradeNumber(tradeNum)
-                .wl(wl)
-                .account(in.getAccount())
-                .marketData(in.getMarketData())
-                // Aquí mostramos #contratos en la columna AccountSize
-                .accountSize(contracts)
-                .riskKellyA(in.isHouse() ? in.getTicksSl1().doubleValue() : null)
-                .riskKellyB(in.isLunch() ? in.getTicksSl2().doubleValue() : null)
-                .build()
-        );
+            rows.add(RiskResultDTO.builder()
+                    .tradeNumber(tradeNum)
+                    .wl(wl)
+                    .account(in.getAccount())
+                    .marketData(in.getMarketData())
+                    .accountSize(contracts)
+                    .riskKellyA(in.isHouse() ? (double) slTicks : null)
+                    .riskKellyB(in.isLunch() ? (double) slTicks : null)
+                    .build()
+            );
+        }
 
         return rows;
     }
@@ -79,32 +90,40 @@ public class RiskAnalysisService {
     }
 
     private OptimalContractRow makeRow(RiskInputDTO in, int slTicks) {
-        // 1) Cálculo de contratos (sólo parte entera)
-        BigDecimal possible = in.getAccountSize()
-                .multiply(BigDecimal.valueOf(slTicks))
-                .divideToIntegralValue(BigDecimal.valueOf(in.getStopLossSize()));
+        var row = marketDbService.find(
+                in.getMarket().getName(),
+                in.getAccount().getName(),
+                in.getMarketData().getName());
+        if (row == null) {
+            return new OptimalContractRow(slTicks,
+                    "N/A",
+                    null,
+                    0);
+        }
 
-        // 2) Cálculo del target en ticks = SL * RiskReward
-        int target = (int) Math.round(in.getRiskReward() * slTicks);
+        double riskPerContract = row.getTickValue().get() * slTicks
+                + row.getCommission().get();
+        double currentRisk = in.getAccountSize().doubleValue() * 0.01; // 1% por trade
+        BigDecimal possible = BigDecimal.valueOf(currentRisk / riskPerContract)
+                .setScale(0, DOWN);
 
-        // 3) Ticker o mensaje
-        String ticker = in.getMarketData().getName(); // o getTicker()
+        int r = switch (in.getMarket().getName()) {
+            case "NASDAQ" -> 2;
+            default -> 1;
+        };
+        int target = (int) Math.round(slTicks * in.getRiskReward() + r);
 
         if (possible.compareTo(BigDecimal.ONE) < 0) {
-            // no alcanzas ni a 1 contrato → mensaje de “riesgo muy alto”
             return new OptimalContractRow(
                     slTicks,
-                    "The risk is too high",
-                    null,
-                    target
-            );
-        } else {
-            return new OptimalContractRow(
-                    slTicks,
-                    ticker,
-                    possible,
-                    target
-            );
+                    "The risk is too high for this stop-loss size", null, target);
         }
+
+        return new OptimalContractRow(
+                slTicks,
+                row.getSymbol().get(),
+                possible,
+                target
+        );
     }
 }
