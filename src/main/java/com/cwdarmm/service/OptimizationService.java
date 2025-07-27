@@ -168,12 +168,23 @@ public class OptimizationService {
             }
         }
 
-        // Marcar la fila con mayor beneficio potencial
-        double maxProfit = results.stream()
-                .mapToDouble(r -> r.getPotentialProfit().get())
-                .max().orElse(Double.NaN);
-        results.forEach(r -> r.getOptimalRow().set(
-                Double.compare(r.getPotentialProfit().get(), maxProfit) == 0));
+        // --- Resaltado de filas óptimas ---
+        // En el XLSM se marca la combinación con mayor beneficio
+        // para cada tamaño de stop-loss evaluado. Replicamos la
+        // lógica agrupando por slSize y seleccionando el máximo
+        // potentialProfit por grupo.
+
+        java.util.Map<Integer, Double> maxBySl = new java.util.HashMap<>();
+        for (ResultRowDTO r : results) {
+            int sl = r.getSlSize().get();
+            double profit = r.getPotentialProfit().get();
+            maxBySl.merge(sl, profit, Math::max);
+        }
+
+        results.forEach(r -> {
+            double groupMax = maxBySl.getOrDefault(r.getSlSize().get(), Double.NaN);
+            r.getOptimalRow().set(Double.compare(r.getPotentialProfit().get(), groupMax) == 0);
+        });
 
         return results;
     }
