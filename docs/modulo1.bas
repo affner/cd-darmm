@@ -1,4 +1,5 @@
-Attribute VB_Name = "M�dulo1"
+Modulo exportado del Excel original. Contiene macros empleadas en el modelo CW-DARMM para calcular contratos óptimos.
+Attribute VB_Name = "M—dulo1"
 Sub Bisel1()
     Dim w As Worksheet
     Dim wsOptimal As Worksheet

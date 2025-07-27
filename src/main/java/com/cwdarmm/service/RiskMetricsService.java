@@ -8,6 +8,12 @@ import java.util.List;
 
 /**
  * Servicio con cálculos estadísticos básicos para el manejo de riesgo.
+ *
+ * <p>Implementa funciones como expectativa y drawdown, conceptos
+ * explicados en el artículo "CW-DARMM: A Probabilistic,
+ * Confidence-Weighted Framework for Adaptive Capital Growth". Son
+ * utilidades independientes de la capa de presentación y se
+ * inspiran en las macros del libro XLSM.</p>
  */
 @Service
 public class RiskMetricsService {

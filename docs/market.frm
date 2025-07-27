@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+'Comentario: formulario exportado de Excel para documentar la interfaz original de CW-DARMM'
 Private Sub UserForm_Initialize()
     ' Cambiar el color del texto de un Label dentro del Frame al cargar el formulario
     Label1.ForeColor = RGB(255, 255, 255) ' Blanco
@@ -61,7 +62,7 @@ Private Sub ACOUNT_BOX_Change()
     MARKETDATA_BOX.Clear
     ACOUNT_BOX.BackColor = &H0&    ' Negro
     ACOUNT_BOX.ForeColor = &HFFFFFF ' Blanco
-    ' Cambiar las opciones segœn la selecci—n
+    ' Cambiar las opciones segÅ“n la selecciâ€”n
     Select Case ACOUNT_BOX.Value
         Case "TRADEIFY"
             MARKETDATA_BOX.AddItem "TRADOVATE"
@@ -347,7 +348,7 @@ Private Sub OPEN_MARKET_Click()
         Dim LCNS1 As Long, LCNS2 As Long, LCNS3 As Long, LCNS4 As Long, LCNS5 As Long, LCNS6 As Long
         
 'INICIALIZAR VARIABLES
-    ' Definir criterios segœn el mercado seleccionado, NS (Nombre Sheet)
+    ' Definir criterios segÅ“n el mercado seleccionado, NS (Nombre Sheet)
     Select Case MARKET_BOX.Value
         Case "NASDAQ": CRITERIA_MARKET = "NASDAQ"
         Case "S&P 500": CRITERIA_MARKET = "S&P 500"
@@ -370,7 +371,7 @@ Private Sub OPEN_MARKET_Click()
     End Select
 
     
-    ' Definir criterios segœn el account seleccionado
+    ' Definir criterios segÅ“n el account seleccionado
     Select Case ACOUNT_BOX.Value
         Case "TRADEIFY": CRITERIA_ACCOUNT = "TRADEIFY"
         Case "TOPSTEP": CRITERIA_ACCOUNT = "TOPSTEP"
@@ -388,7 +389,7 @@ Private Sub OPEN_MARKET_Click()
             Exit Sub
     End Select
         
-    ' Definir criterios segœn el activo seleccionado
+    ' Definir criterios segÅ“n el activo seleccionado
     Select Case MARKETDATA_BOX.Value
         Case "TRADOVATE": CRITERIA_MARKETDATA = "TRADOVATE"
         Case "RITHMIC": CRITERIA_MARKETDATA = "RITHMIC"
@@ -466,7 +467,7 @@ Private Sub OPEN_MARKET_Click()
     B1 = True
     
 ' FECHA
-    'Dice el d’a de la fecha y el DR (D’as Restantes)
+    'Dice el dâ€™a de la fecha y el DR (Dâ€™as Restantes)
     Select Case Weekday(Date)
         Case 2: DR = 6
         Case 3: DR = 5
@@ -480,7 +481,7 @@ Private Sub OPEN_MARKET_Click()
     End Select
     
     
-' LIMPIEZA COMPLETA DE LA HOJA MARKETS Y REVISIîN DE DêAS
+' LIMPIEZA COMPLETA DE LA HOJA MARKETS Y REVISIÃ®N DE DÃªAS
     If DR = 0 Then
         'Tabla de markets y acounts
         WSRM.Rows("7:" & WSRM.Rows.Count).Clear
@@ -489,12 +490,12 @@ Private Sub OPEN_MARKET_Click()
         
         'Elimina hojas de otra semana
         
-        ' Hojas que no se eliminar‡n
+        ' Hojas que no se eliminarâ€¡n
         HOJASBASE = Array("RESULTS", "BD_MARKET", "MARKETS", "PLANTILLA")
         ' Recorremos todas las hojas
-        Application.DisplayAlerts = False ' Desactivar alertas para evitar mensajes de confirmaci—n
+        Application.DisplayAlerts = False ' Desactivar alertas para evitar mensajes de confirmaciâ€”n
         For Each WS In ThisWorkbook.Worksheets
-            ' Comprobamos si la hoja no est‡ en la lista de hojas excluidas
+            ' Comprobamos si la hoja no estâ€¡ en la lista de hojas excluidas
             If IsError(Application.Match(WS.Name, HOJASBASE, 0)) Then
                 WS.Delete
             End If
@@ -502,7 +503,7 @@ Private Sub OPEN_MARKET_Click()
         Application.DisplayAlerts = True ' Restaurar alertas
     
         Else
-            'Cambia la fecha por d’a y solo pueden existir # fechas diferentes dependiendo el d’a que inicie
+            'Cambia la fecha por dâ€™a y solo pueden existir # fechas diferentes dependiendo el dâ€™a que inicie
             If Date <> WSRM.Cells(5, MCF) Then
                 WSRM.Cells(5, MCF) = Date
             End If
@@ -517,13 +518,13 @@ B3 = True
            WSRM.Cells(i, 2).Value = CRITERIA_ACCOUNT And _
            WSRM.Cells(i, 3).Value = CRITERIA_MARKETDATA Then
             ' Si se encuentran coincidencias, mostrar mensaje
-            RESPUESTA = MsgBox("Error, se repite la informaci—n. ÀDesea reemplazar los datos?", vbYesNo + vbExclamation, "Reemplazar datos")
+            RESPUESTA = MsgBox("Error, se repite la informaciâ€”n. Ã€Desea reemplazar los datos?", vbYesNo + vbExclamation, "Reemplazar datos")
             B3 = False
             If RESPUESTA = vbNo Then
                 ' Si el usuario elige NO, salir del Sub
                 Exit Sub
             Else
-                ' Si el usuario elige Sê, reemplazar los datos
+                ' Si el usuario elige SÃª, reemplazar los datos
                 WSRM.Cells(i, 4).Value = AccountSize.Value
                 WSRM.Cells(i, 5).Value = RiskPercentageA.Value
                 WSRM.Cells(i, 6).Value = RiskPercentageB.Value
@@ -564,13 +565,13 @@ B3 = True
         Worksheets(CRITERIA_MARKET).Cells.PasteSpecial Paste:=xlPasteValuesAndNumberFormats ' Pega los valores y formatos
         Worksheets(CRITERIA_MARKET).Cells.PasteSpecial Paste:=xlPasteFormats  ' Pega el formato de nuevo, si lo necesitas
         Worksheets(CRITERIA_MARKET).Cells(11, 2) = Date
-        ' Copiar controles (botones, im‡genes, etc.) de la hoja origen
-        ' Copiar las formas (botones, im‡genes, etc.) de la hoja origen
+        ' Copiar controles (botones, imâ€¡genes, etc.) de la hoja origen
+        ' Copiar las formas (botones, imâ€¡genes, etc.) de la hoja origen
         For Each shp In WSP.Shapes
             shp.Copy
             Worksheets(CRITERIA_MARKET).Paste
         Next shp
-        ' Limpiar el portapapeles para evitar el mensaje de "ÀDeseas mantener los datos copiados?"
+        ' Limpiar el portapapeles para evitar el mensaje de "Ã€Deseas mantener los datos copiados?"
         Application.CutCopyMode = False
 
     End If
@@ -603,7 +604,7 @@ B3 = True
                 ' Si el usuario elige NO, salir del Sub
                 Exit Sub
             Else
-                ' Si el usuario elige Sê, reemplazar los datos en la hoja CRITERIA_MARKET
+                ' Si el usuario elige SÃª, reemplazar los datos en la hoja CRITERIA_MARKET
                 Worksheets(CRITERIA_MARKET).Cells(4, i).Value = AccountSize.Value
                 Worksheets(CRITERIA_MARKET).Cells(5, i).Value = RiskPercentageA.Value
                 Worksheets(CRITERIA_MARKET).Cells(6, i).Value = RiskPercentageB.Value
@@ -626,7 +627,7 @@ B3 = True
                 ' Si el usuario elige NO, salir del Sub
                 Exit Sub
             Else
-                ' Si el usuario elige Sê, reemplazar los datos en la hoja CRITERIA_MARKET
+                ' Si el usuario elige SÃª, reemplazar los datos en la hoja CRITERIA_MARKET
                 Worksheets(CRITERIA_MARKET).Cells(i, 5).Value = AccountSize.Value
                 Worksheets(CRITERIA_MARKET).Cells(i, 6).Value = RiskPercentageA.Value
                 Worksheets(CRITERIA_MARKET).Cells(i, 7).Value = RiskPercentageB.Value

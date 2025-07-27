@@ -21,6 +21,18 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Controlador de la vista principal de mercados.
+ *
+ * <p>Permite abrir sesiones de mercado y editar la información
+ * almacenada. Está inspirado en el formulario <code>MARKET</code>
+ * del libro Excel original y desde aquí se invoca la pantalla de
+ * administración de riesgo (<code>RISK_MANAGER</code>). Esta capa
+ * Java traduce la lógica descrita en el artículo
+ * "CW-DARMM: A Probabilistic, Confidence-Weighted Framework for
+ * Adaptive Capital Growth".</p>
+ */
+
 @Component
 public class MarketManagerController {
     private final MarketDataService marketDataService;

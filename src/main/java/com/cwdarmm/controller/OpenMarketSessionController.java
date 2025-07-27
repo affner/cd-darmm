@@ -17,6 +17,17 @@ import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/**
+ * Controlador del formulario "Open Market".
+ *
+ * <p>Este diálogo permite registrar la apertura de un mercado y
+ * captura la misma información que el formulario VBA
+ * <code>MARKET</code> y sus validaciones. Almacena la selección de
+ * cuenta, mercado, fuente de datos y porcentajes de riesgo. Las
+ * reglas de validación siguen la lógica de <code>risk_market.frm</code>
+ * del Excel original.</p>
+ */
+
 import java.math.BigDecimal;
 
 @Component
