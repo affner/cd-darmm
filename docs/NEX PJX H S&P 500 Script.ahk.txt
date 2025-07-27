@@ -1,0 +1,32 @@
+#NoEnv
+#Warn
+#SingleInstance force
+SetTitleMatchMode, 2
+SetBatchLines, -1
+
+#include C:\xls\Lib\UIA_Interface.ahk
+; Presses the Buy button in any active window.
+^+0::
+UIA := UIA_Interface()
+chartWin := UIA.ElementFromHandle("A")
+chartWin.FindFirstByNameAndType("Buy", "Text").Click("Left")
+return
+
+; Presses the Sell button in any active window.
+^+1::
+UIA := UIA_Interface()
+chartWin := UIA.ElementFromHandle("A")
+chartWin.FindFirstByNameAndType("Sell", "Text").Click("Left")
+return
+
+; Presses the Strategy button then selects "NEX PJX H ES 2" in any active window
+^+a::
+UIA := UIA_Interface()
+resolveStrategy := UIA.ElementFromHandle("A")
+resolveStrategy.FindFirstBy("AutomationId=BasicEntryControlATMStrategySelector OR AutomationId=ChartTraderControlATMStrategySelector").Click("Left")
+AutomationId=ChartTraderControlATMStrategySelector").Click("Left")
+Sleep, 200
+resolveStrategy.FindFirstByNameAndType("NEX PJX H ES 2", "Text").Click("Left")
+return
+
+
