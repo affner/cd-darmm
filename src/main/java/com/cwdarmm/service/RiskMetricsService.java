@@ -26,10 +26,12 @@ public class RiskMetricsService {
      * trades: lista de PnL de cada trade (positivos y negativos)
      */
     public BigDecimal calculateExpectancy(List<BigDecimal> trades) {
+        // 1) Validamos la entrada
         if (trades == null || trades.isEmpty()) {
             return BigDecimal.ZERO.stripTrailingZeros();
         }
 
+        // 2) Calculamos proporción de ganancias y pérdidas
         int total = trades.size();
         long wins = trades.stream().filter(v -> v.compareTo(BigDecimal.ZERO) > 0).count();
         long losses = total - wins;
@@ -37,7 +39,7 @@ public class RiskMetricsService {
         BigDecimal bdTotal = BigDecimal.valueOf(total);
         BigDecimal pWin = BigDecimal.valueOf(wins).divide(bdTotal, MC);
 
-        // avgWin
+        // 3) Promedio de ganancias (avgWin)
         BigDecimal sumWin = trades.stream()
                 .filter(v -> v.compareTo(BigDecimal.ZERO) > 0)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -45,7 +47,7 @@ public class RiskMetricsService {
                 ? sumWin.divide(BigDecimal.valueOf(wins), MC)
                 : BigDecimal.ZERO;
 
-        // avgLoss (usamos valores absolutos)
+        // 4) Promedio de pérdidas (avgLoss)
         BigDecimal sumLoss = trades.stream()
                 .filter(v -> v.compareTo(BigDecimal.ZERO) < 0)
                 .map(BigDecimal::abs)
@@ -54,6 +56,7 @@ public class RiskMetricsService {
                 ? sumLoss.divide(BigDecimal.valueOf(losses), MC)
                 : BigDecimal.ZERO;
 
+        // 5) Fórmula E = (avgWin * pWin) - (avgLoss * (1 - pWin))
         BigDecimal termWin  = avgWin.multiply(pWin, MC);
         BigDecimal termLoss = avgLoss.multiply(
                 BigDecimal.ONE.subtract(pWin, MC), MC);
@@ -67,10 +70,12 @@ public class RiskMetricsService {
      * drawdown = máximo pico menos valle subsecuente
      */
     public BigDecimal calculateDrawdown(List<BigDecimal> equityCurve) {
+        // 1) Si la curva está vacía no hay drawdown
         if (equityCurve == null || equityCurve.isEmpty()) {
             return BigDecimal.ZERO.stripTrailingZeros();
         }
 
+        // 2) Recorremos la curva buscando la mayor diferencia pico-valle
         BigDecimal peak = equityCurve.get(0);
         BigDecimal maxDrawdown = BigDecimal.ZERO;
 
@@ -85,6 +90,7 @@ public class RiskMetricsService {
             }
         }
 
+        // 3) Resultado expresado en unidades monetarias
         return maxDrawdown.stripTrailingZeros();
     }
 
@@ -96,6 +102,7 @@ public class RiskMetricsService {
     public BigDecimal calculateRiskOfRuin(BigDecimal winRate,
                                           BigDecimal payoff,
                                           int trades) {
+        // 1) Validaciones básicas de parámetros
         if (winRate.compareTo(BigDecimal.ZERO) <= 0
                 || winRate.compareTo(BigDecimal.ONE)  >= 0
                 || payoff.compareTo(BigDecimal.ZERO) <= 0
@@ -103,11 +110,13 @@ public class RiskMetricsService {
             return BigDecimal.ONE;
         }
 
+        // 2) Factor (q/(p*payoff)) de la fórmula de riesgo de ruina
+        //    ver la sección "Risk of Ruin" en docs/GOOD ARTICLE.pdf
         BigDecimal q      = BigDecimal.ONE.subtract(winRate, MC);
         BigDecimal denom  = winRate.multiply(payoff, MC);
         BigDecimal factor = q.divide(denom, MC);
 
-        // pow(int) existe en BigDecimal
+        // 3) Elevamos a "trades" para obtener la probabilidad final
         BigDecimal result = factor.pow(trades, MC);
         return result.stripTrailingZeros();
     }
