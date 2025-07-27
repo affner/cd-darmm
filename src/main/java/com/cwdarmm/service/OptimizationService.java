@@ -156,10 +156,24 @@ public class OptimizationService {
                     row.getPotentialProfit().set(round(potentialProfit));
                     row.getPotentialLoss().set(round(potentialLoss));
                     row.getRiskPercentage().set(round(riskPctApplied));
+
+                    // Color a aplicar en columnas ticker/optimal contract
+                    String c1 = in.getMarket().getColor1();
+                    String c2 = in.getMarket().getColor2();
+                    String chosen = (symbol!=null && symbol.startsWith("M")) ? c1 : c2;
+                    row.getRowColor().set(chosen);
+
                     results.add(row);
                 }
             }
         }
+
+        // Marcar la fila con mayor beneficio potencial
+        double maxProfit = results.stream()
+                .mapToDouble(r -> r.getPotentialProfit().get())
+                .max().orElse(Double.NaN);
+        results.forEach(r -> r.getOptimalRow().set(
+                Double.compare(r.getPotentialProfit().get(), maxProfit) == 0));
 
         return results;
     }

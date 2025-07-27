@@ -31,6 +31,14 @@ public class CatAccount {
     @Column(name = "initial_size", nullable = false)
     private Double initialSize;
 
+    /** Color de fondo para resaltar la cuenta (formato HEX). */
+    @Column(name = "color")
+    private String color;
+
+    /** Color de fuente asociado, opcional (HEX). */
+    @Column(name = "font_color")
+    private String fontColor;
+
     @Builder.Default
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "account_marketdata",

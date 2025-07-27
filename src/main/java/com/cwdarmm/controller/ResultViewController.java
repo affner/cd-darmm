@@ -13,6 +13,7 @@ import com.cwdarmm.model.dto.MarketDTO;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.util.Callback;
 import javafx.stage.Stage;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
@@ -58,6 +59,63 @@ public class ResultViewController {
         colProfit             .setCellValueFactory(cd -> cd.getValue().getPotentialProfit().asObject());
         colLoss               .setCellValueFactory(cd -> cd.getValue().getPotentialLoss().asObject());
         colRiskPct            .setCellValueFactory(cd -> cd.getValue().getRiskPercentage().asObject());
+
+        // Estilos de columnas según colores del XLSM
+        colSlSize.setCellFactory(col -> new TableCell<>() {
+            @Override protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item==null) { setText(null); setStyle(""); }
+                else {
+                    setText(item.toString());
+                    setStyle("-fx-background-color:#FF0000; -fx-text-fill:white;");
+                }
+            }
+        });
+
+        colTarget.setCellFactory(col -> new TableCell<>() {
+            @Override protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item==null) { setText(null); setStyle(""); }
+                else {
+                    setText(item.toString());
+                    setStyle("-fx-background-color:#D3D3D3;");
+                }
+            }
+        });
+
+        var coloredFactory = new Callback<TableColumn<ResultRowDTO, ?>, TableCell<ResultRowDTO, ?>>() {
+            @Override
+            public TableCell<ResultRowDTO, ?> call(TableColumn<ResultRowDTO, ?> c) {
+                return new TableCell<>() {
+                    @Override protected void updateItem(Object item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || item==null) { setText(null); setStyle(""); }
+                        else {
+                            setText(item.toString());
+                            ResultRowDTO row = getTableView().getItems().get(getIndex());
+                            String color = row.getRowColor().get();
+                            if (color!=null && !color.isBlank()) {
+                                setStyle("-fx-background-color:" + color + ";");
+                            } else setStyle("");
+                        }
+                    }
+                };
+            }
+        };
+        colSymbol.setCellFactory(coloredFactory);
+        colOptimalContract.setCellFactory(coloredFactory);
+
+        tblResults.setRowFactory(tv -> new TableRow<>() {
+            @Override protected void updateItem(ResultRowDTO item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item==null) { setStyle(""); }
+                else if (item.getOptimalRow().get()) {
+                    setStyle("-fx-background-color:yellow;");
+                } else {
+                    setStyle("");
+                }
+            }
+        });
 
         // De momento cargamos vacío; al pulsar “Click” se rellenará
         tblResults.setItems(FXCollections.observableArrayList());

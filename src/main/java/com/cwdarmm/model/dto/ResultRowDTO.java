@@ -22,6 +22,12 @@ public class ResultRowDTO {
     private final DoubleProperty potentialLoss       = new SimpleDoubleProperty();
     private final DoubleProperty riskPercentage      = new SimpleDoubleProperty();
 
+    /** Color de fondo para las columnas Ticker/Optimal Contract. */
+    private final StringProperty rowColor = new SimpleStringProperty();
+
+    /** Marca la fila óptima para resaltado. */
+    private final BooleanProperty optimalRow = new SimpleBooleanProperty(false);
+
 
 
 }
