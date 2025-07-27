@@ -1,5 +1,10 @@
 package com.cwdarmm.controller;
 
+/**
+ * Ventana emergente que muestra los contratos óptimos
+ * calculados para un trade.
+ */
+
 import com.cwdarmm.model.dto.OptimalContractRow;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;

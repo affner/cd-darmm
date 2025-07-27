@@ -1,5 +1,9 @@
 package com.cwdarmm.repository;
 
+/**
+ * Repositorio JPA de contratos disponibles.
+ */
+
 import com.cwdarmm.model.domain.CatContract;
 import org.springframework.data.jpa.repository.JpaRepository;
 

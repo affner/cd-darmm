@@ -1,5 +1,10 @@
 package com.cwdarmm.controller;
 
+/**
+ * Controla la tabla de resultados optimizados de la pestaña
+ * "Results" y permite simular el cálculo.
+ */
+
 import com.cwdarmm.service.OptimizationService;
 import com.cwdarmm.model.dto.ResultRowDTO;
 import javafx.collections.FXCollections;

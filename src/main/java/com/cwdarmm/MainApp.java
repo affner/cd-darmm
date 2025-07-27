@@ -1,5 +1,10 @@
 package com.cwdarmm;
 
+/**
+ * Punto de entrada de la aplicación JavaFX integrada con Spring Boot.
+ * Inicia el contexto y carga la ventana principal.
+ */
+
 import com.cwdarmm.config.SpringFXMLLoader;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

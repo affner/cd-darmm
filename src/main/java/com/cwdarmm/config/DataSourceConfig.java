@@ -1,5 +1,9 @@
 package com.cwdarmm.config;
 
+/**
+ * Configuración básica del datasource (SQLite embebido).
+ */
+
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

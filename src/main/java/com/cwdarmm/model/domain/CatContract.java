@@ -1,5 +1,10 @@
 package com.cwdarmm.model.domain;
 
+/**
+ * Catálogo de contratos (futuros) configurables.
+ * Representa la descripción del instrumento (E-mini, Micro, etc.).
+ */
+
 import jakarta.persistence.*;
 import lombok.*;
 

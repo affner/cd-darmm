@@ -1,5 +1,10 @@
 package com.cwdarmm.config;
 
+/**
+ * Carga archivos FXML integrándolos con el contenedor Spring
+ * para que los controladores sean inyectados automáticamente.
+ */
+
 import javafx.fxml.FXMLLoader;
 
 import org.springframework.context.ApplicationContext;

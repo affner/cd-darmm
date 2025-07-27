@@ -1,5 +1,10 @@
 package com.cwdarmm.service;
 
+/**
+ * Servicio de lectura de catálogos (accounts, markets, feeds)
+ * utilizado por los formularios para poblar combos.
+ */
+
 import com.cwdarmm.model.domain.CatAccount;
 import com.cwdarmm.model.domain.CatMarketData;
 import com.cwdarmm.model.domain.CatMarket;

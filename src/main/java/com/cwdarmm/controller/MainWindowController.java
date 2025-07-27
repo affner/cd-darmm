@@ -1,5 +1,10 @@
 package com.cwdarmm.controller;
 
+/**
+ * Controlador de la ventana principal que contiene las pestañas
+ * "Markets" y "Results".
+ */
+
 import javafx.fxml.FXML;
 import javafx.scene.control.TabPane;
 import org.springframework.stereotype.Component;

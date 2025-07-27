@@ -1,5 +1,10 @@
 package com.cwdarmm.service;
 
+/**
+ * Utilidades de exportación de resultados a ficheros externos
+ * (XML para NinjaTrader o scripts AutoHotkey).
+ */
+
 import com.cwdarmm.model.dto.RiskResultDTO;
 import com.cwdarmm.model.dto.MarketDTO;
 import lombok.RequiredArgsConstructor;

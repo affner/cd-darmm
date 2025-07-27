@@ -1,5 +1,10 @@
 package com.cwdarmm.config;
 
+/**
+ * Inicializa proveedores de datos de mercado y sus
+ * asignaciones a cuentas a partir de ficheros CSV.
+ */
+
 import com.cwdarmm.model.domain.CatMarketData;
 import com.cwdarmm.repository.CatMarketDataRepository;
 import com.cwdarmm.repository.CatAccountRepository;

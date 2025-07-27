@@ -1,5 +1,10 @@
 package com.cwdarmm.controller;
 
+/**
+ * Muestra la evolución del riesgo trade a trade y
+ * permite abrir el formulario de configuración.
+ */
+
 import com.cwdarmm.config.SpringFXMLLoader;
 import com.cwdarmm.model.dto.MarketDTO;
 import com.cwdarmm.model.dto.RiskInputDTO;

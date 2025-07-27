@@ -1,5 +1,10 @@
 package com.cwdarmm.config;
 
+/**
+ * Pobla el catálogo de mercados a partir de
+ * <code>cat_markets.csv</code> en el arranque.
+ */
+
 import com.cwdarmm.model.domain.CatMarket;
 import com.cwdarmm.repository.CatMarketRepository;
 import jakarta.annotation.PostConstruct;

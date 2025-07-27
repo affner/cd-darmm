@@ -1,5 +1,10 @@
 package com.cwdarmm.model.domain;
 
+/**
+ * Símbolo del futuro (ticker) utilizado para la operativa.
+ * Corresponde a la tabla <code>cat_symbols</code>.
+ */
+
 import jakarta.persistence.*;
 import lombok.*;
 

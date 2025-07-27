@@ -1,5 +1,13 @@
 package com.cwdarmm.model.domain;
 
+/**
+ * Proveedor de datos de mercado (por ejemplo, IQFeed, Rithmic...).
+ *
+ * <p>Tabla <code>cat_market_data</code> que se relaciona de
+ * forma Many‑To‑Many con {@link CatAccount} a través de
+ * <code>account_marketdata</code>.</p>
+ */
+
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.HashSet;

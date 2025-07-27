@@ -1,5 +1,10 @@
 package com.cwdarmm.service;
 
+/**
+ * Acceso de solo lectura a la tabla <code>bd_markets</code>
+ * para poblar vistas con información completa de contratos.
+ */
+
 import com.cwdarmm.model.domain.BdMarket;
 import com.cwdarmm.model.dto.MarketDbRowDTO;
 import com.cwdarmm.repository.BdMarketRepository;
