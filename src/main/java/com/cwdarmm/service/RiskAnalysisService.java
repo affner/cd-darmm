@@ -48,9 +48,12 @@ public class RiskAnalysisService {
      * Ejecuta la simulación de trades y calcula métricas básicas.
      */
     public List<RiskResultDTO> calculate(RiskInputDTO in) {
+        // 1) Preparamos la lista donde se guardarán los resultados
+        //    (ver secciones iniciales de docs/GOOD ARTICLE.pdf para una
+        //     explicación del flujo de riesgo)
         List<RiskResultDTO> rows = new ArrayList<>();
 
-        // a) INITIAL (solo si el usuario dijo que sí es el primer trade)
+        // 2) Si es el primer trade, agregamos una fila "INITIAL"
         if (in.isFirstTrade()) {
             rows.add(RiskResultDTO.builder()
                     .tradeNumber(0)
@@ -64,10 +67,12 @@ public class RiskAnalysisService {
             );
         }
 
+        // 3) Según el resultado del trade ajustamos los porcentajes de riesgo
         BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
         BigDecimal newRiskA = in.isHouse() && in.getRiskPctA()!=null ? in.getRiskPctA().multiply(multiplier) : null;
         BigDecimal newRiskB = in.isLunch() && in.getRiskPctB()!=null ? in.getRiskPctB().multiply(multiplier) : null;
 
+        // 4) Registramos el trade actual, WIN o LOSS
         String wl = in.isWin() ? "WIN" : "LOSS";
 
         rows.add(RiskResultDTO.builder()
@@ -81,6 +86,7 @@ public class RiskAnalysisService {
                 .build()
         );
 
+        // 5) Devolvemos la lista para su visualización o exportación
         return rows;
     }
 
@@ -117,12 +123,16 @@ public class RiskAnalysisService {
         CatContract contract = chosen.getContract();
         CatSymbol symbol   = chosen.getSymbol();
 
+        // 3) Ajustamos el riesgo con un multiplicador, ver fórmula de
+        //    "risk adjustment" en docs/GOOD ARTICLE.pdf
         BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
         BigDecimal riskA = in.getRiskPctA()==null?null:in.getRiskPctA().multiply(multiplier);
         BigDecimal riskB = in.getRiskPctB()==null?null:in.getRiskPctB().multiply(multiplier);
 
+        // 4) Determinamos el offset para el cálculo de targets según el mercado
         int offset = offsetForMarket(in.getMarket());
 
+        // 5) Generamos una fila para cada "bote" (House/Lunch)
         return Stream.of(
                         in.isHouse() ? makeRowRange(in, chosen, riskA, contract, symbol, offset) : null,
                         in.isLunch() ? makeRowRange(in, chosen, riskB, contract, symbol, offset) : null
@@ -143,7 +153,8 @@ public class RiskAnalysisService {
                                             CatSymbol   symbol,
                                             int offset) {
         // --- Mapeo directo de las celdas de Excel al código Java ---
-        // 1) currentRisk = AccountSize * RiskPct / 100
+        // 1) Calcular el riesgo disponible para este trade
+        //    (sección "Risk per trade" en docs/GOOD ARTICLE.pdf)
         BigDecimal appliedPct = riskPct == null ? DEFAULT_RISK_PCT : riskPct;
         BigDecimal currentRisk = in.getAccountSize()
                 .multiply(appliedPct)
@@ -152,7 +163,8 @@ public class RiskAnalysisService {
         BigDecimal tickValue  = BigDecimal.valueOf(bd.getTickValue());
         BigDecimal commission = BigDecimal.valueOf(bd.getCommission());
 
-        // Rango de SL ticks: usamos los valores ingresados en el formulario
+        // 2) Establecemos el rango de SL ticks a evaluar
+        //    según lo introducido en la ventana de configuración
         int start = in.getTicksSl1();
         int end   = in.getTicksSl2() >= start ? in.getTicksSl2() : start;
 
@@ -160,21 +172,28 @@ public class RiskAnalysisService {
         BigDecimal bestContracts = null;
         int bestSl = start;
 
+        // 3) Recorremos cada posible SL buscando la mejor relación
         for (int sl = start; sl <= end; sl++) {
+            // 3.a) Riesgo por contrato = ticks SL * tickValue + comisión
             BigDecimal riskPerContract = tickValue
                     .multiply(BigDecimal.valueOf(sl))
                     .add(commission);
 
             if (riskPerContract.compareTo(BigDecimal.ZERO) <= 0) continue;
 
+            // 3.b) Número óptimo de contratos = floor(currentRisk / riskPerContract)
             BigDecimal optContracts = currentRisk
                     .divide(riskPerContract, 0, BigDecimal.ROUND_DOWN);
 
+            // 3.c) Ticks objetivo según relación riesgo/beneficio
             int targetTicks = (int) Math.round(in.getRiskReward() * sl + offset);
+
+            // 3.d) Beneficio potencial restando comisiones
             BigDecimal potentialProfit = optContracts
                     .multiply(tickValue.multiply(BigDecimal.valueOf(targetTicks)))
                     .subtract(commission.multiply(optContracts));
 
+            // 3.e) Guardamos el mejor SL encontrado
             if (bestProfit == null || potentialProfit.compareTo(bestProfit) > 0) {
                 bestProfit = potentialProfit;
                 bestContracts = optContracts;
@@ -186,12 +205,14 @@ public class RiskAnalysisService {
         String futuresTicker = symbol.getSymbol();
 
         if (bestContracts == null || bestContracts.compareTo(BigDecimal.ONE) < 0) {
+            // 4) Si ningún escenario es rentable indicamos riesgo excesivo
             return new OptimalContractRow(start,
                     "The risk is too high",
                     null,
                     (int)Math.round(in.getRiskReward() * start + offset));
         }
 
+        // 5) Devolvemos la fila que representa el escenario óptimo
         return new OptimalContractRow(bestSl, futuresTicker, bestContracts, targetTicks);
     }
 }
