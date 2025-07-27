@@ -245,19 +245,37 @@ public class RiskConfigController {
      * Devuelve un RiskInputDTO construido con los valores actuales del formulario
      */
     public RiskInputDTO buildRequest() {
+        BigDecimal size = new BigDecimal(tfRiskAccountSize.getText());
+        double rr = Double.parseDouble(tfRiskReward.getText());
+        int sl1 = Integer.parseInt(tfTicksSl1.getText());
+        int sl2 = Integer.parseInt(tfTicksSl2.getText());
+        int slSize = tfStopLossSize.getText().isEmpty() ? 0 : Integer.parseInt(tfStopLossSize.getText());
+
+        // Factor de incremento/disminución según WIN/LOSS
+        double factor = chkWin.isSelected() ? 1.05 : 0.98;
+
+        BigDecimal pctA = marketContext != null
+                ? BigDecimal.valueOf(marketContext.getRiskA()).multiply(BigDecimal.valueOf(factor))
+                : null;
+        BigDecimal pctB = marketContext != null
+                ? BigDecimal.valueOf(marketContext.getRiskB()).multiply(BigDecimal.valueOf(factor))
+                : null;
+
         return RiskInputDTO.builder()
                 .account(cbRiskAccount.getValue())
                 .market(cbRiskMarket.getValue())
                 .marketData(cbRiskMarketData.getValue())
-                .accountSize(new BigDecimal(tfRiskAccountSize.getText()))
-                .riskReward(Double.parseDouble(tfRiskReward.getText()))
-                .ticksSl1(Integer.parseInt(tfTicksSl1.getText()))
-                .ticksSl2(Integer.parseInt(tfTicksSl2.getText()))
-                .stopLossSize(tfStopLossSize.getText().isEmpty()?0:Integer.parseInt(tfStopLossSize.getText()))
+                .accountSize(size)
+                .riskReward(rr)
+                .ticksSl1(sl1)
+                .ticksSl2(sl2)
+                .stopLossSize(slSize)
                 .house(chkHouse.isSelected())
                 .lunch(chkLunch.isSelected())
                 .win(chkWin.isSelected())
                 .loss(chkLoss.isSelected())
+                .riskPctA(pctA)
+                .riskPctB(pctB)
                 .build();
     }
 }
