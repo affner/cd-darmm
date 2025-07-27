@@ -23,6 +23,9 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class RiskAnalysisService {
 
+    /** Valor por defecto si no se especifica el porcentaje de riesgo. */
+    private static final BigDecimal DEFAULT_RISK_PCT = new BigDecimal("2.5");
+
 
     private final BdMarketRepository bdMarketRepo;
 
@@ -123,8 +126,9 @@ public class RiskAnalysisService {
 
         // 1) currentRisk = AccountSize * RiskPct / 100
         //    en Excel era: =C13 * C5/100    (p.ej 5000 * 2.5% = 125)
+        BigDecimal appliedPct = riskPct == null ? DEFAULT_RISK_PCT : riskPct;
         BigDecimal currentRisk = in.getAccountSize()
-                .multiply(riskPct)
+                .multiply(appliedPct)
                 .divide(BigDecimal.valueOf(100), 8, BigDecimal.ROUND_HALF_UP);
 
         // 2) riskPerContract = tickValue * SL_ticks + commission
