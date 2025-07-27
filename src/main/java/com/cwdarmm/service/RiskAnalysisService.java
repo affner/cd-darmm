@@ -83,10 +83,10 @@ public class RiskAnalysisService {
         );
         if (rows.isEmpty()) {
             throw new IllegalArgumentException(
-                    "No existe configuración BD_MARKET para " +
-                            in.getMarket().getDescription() + " / " +
-                            in.getAccount().getDescription() + " / " +
-                            in.getMarketData().getDescription()
+                    "No existe configuración BD_MARKET para " + " market:"+
+                            in.getMarket().getId()+ " /  Account:" +
+                            in.getAccount().getId() + " /  marketData:" +
+                            in.getMarketData().getId()
             );
         }
 
