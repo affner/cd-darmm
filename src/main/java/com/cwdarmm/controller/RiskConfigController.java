@@ -172,14 +172,15 @@ public class RiskConfigController {
 
         // 8) Mostrar ventana de Optimal Contracts
         List<OptimalContractRow> optimalRows = riskAnalysisService.generateOptimalContracts(req);
-        showOptimalContracts(optimalRows, req.getAccount().getDescription());
+        showOptimalContracts(optimalRows, req.getAccount().getDescription(), req.getMarket());
         dialogStage.close();
     }
 
-    private void showOptimalContracts(List<OptimalContractRow> rows, String criteriaAccount) throws IOException {
+    private void showOptimalContracts(List<OptimalContractRow> rows, String criteriaAccount, CatMarket market) throws IOException {
         FXMLLoader loader = springFXMLLoader.load("/fxml/OptimalContractsView.fxml");
         OptimalContractsController ctrl = loader.getController();
         ctrl.setCriteriaAccount(criteriaAccount);
+        ctrl.setMarket(market);
         ctrl.setItems(rows);
 
         Stage popup = new Stage();
