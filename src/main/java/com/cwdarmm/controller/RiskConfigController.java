@@ -39,6 +39,8 @@ public class RiskConfigController {
     private Stage dialogStage;
     private Runnable onCalculated;
     private MarketDTO marketContext;
+    private java.math.BigDecimal pctHouse;
+    private java.math.BigDecimal pctLunch;
 
     @FXML private ComboBox<CatAccount> cbRiskAccount;
     @FXML private ComboBox<CatMarket>    cbRiskMarket;
@@ -96,6 +98,8 @@ public class RiskConfigController {
         cbRiskAccount.setValue(context.getAccount());
         cbRiskMarket.setValue(context.getMarket());
         cbRiskMarketData.setValue(context.getMarketData());
+        this.pctHouse = java.math.BigDecimal.valueOf(context.getRiskA());
+        this.pctLunch = java.math.BigDecimal.valueOf(context.getRiskB());
     }
 
     public void setOnCalculated(Runnable callback) {
@@ -258,6 +262,8 @@ public class RiskConfigController {
                 .lunch(chkLunch.isSelected())
                 .win(chkWin.isSelected())
                 .loss(chkLoss.isSelected())
+                .riskPctA(pctHouse)
+                .riskPctB(pctLunch)
                 .build();
     }
 }

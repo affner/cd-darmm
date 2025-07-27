@@ -4,6 +4,7 @@ package com.cwdarmm.service;
 import com.cwdarmm.model.domain.BdMarket;
 import com.cwdarmm.model.domain.CatContract;
 import com.cwdarmm.model.domain.CatSymbol;
+import com.cwdarmm.model.domain.CatMarket;
 import com.cwdarmm.model.dto.MarketDbRowDTO;
 import com.cwdarmm.model.dto.OptimalContractRow;
 import com.cwdarmm.model.dto.RiskInputDTO;
@@ -43,31 +44,26 @@ public class RiskAnalysisService {
                     .account(in.getAccount())
                     .marketData(in.getMarketData())
                     .accountSize(in.getAccountSize())
-                    .riskKellyA(in.getTicksSl1().doubleValue())
-                    .riskKellyB(in.getTicksSl2().doubleValue())
+                    .riskKellyA(in.getRiskPctA()==null?null:in.getRiskPctA().doubleValue())
+                    .riskKellyB(in.getRiskPctB()==null?null:in.getRiskPctB().doubleValue())
                     .build()
             );
         }
 
-        // b) Cálculo de “Optimal Contracts”
-        int tradeNum = 1;
+        BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
+        BigDecimal newRiskA = in.isHouse() && in.getRiskPctA()!=null ? in.getRiskPctA().multiply(multiplier) : null;
+        BigDecimal newRiskB = in.isLunch() && in.getRiskPctB()!=null ? in.getRiskPctB().multiply(multiplier) : null;
 
-        // aquí sólo devolvemos la fila OPTIMAL “genérica”
-        int tick = in.isHouse() ? in.getTicksSl1() : in.getTicksSl2();
-        BigDecimal contracts = in.getAccountSize().multiply(BigDecimal.valueOf(tick)).divideToIntegralValue(
-                BigDecimal.valueOf(in.getStopLossSize()));
-        // aquí recogemos WIN o LOSS según el checkbox
         String wl = in.isWin() ? "WIN" : "LOSS";
 
         rows.add(RiskResultDTO.builder()
-                .tradeNumber(tradeNum)
+                .tradeNumber(1)
                 .wl(wl)
                 .account(in.getAccount())
                 .marketData(in.getMarketData())
-                // Aquí mostramos #contratos en la columna AccountSize
-                .accountSize(contracts)
-                .riskKellyA(in.isHouse() ? in.getTicksSl1().doubleValue() : null)
-                .riskKellyB(in.isLunch() ? in.getTicksSl2().doubleValue() : null)
+                .accountSize(in.getAccountSize())
+                .riskKellyA(newRiskA==null?null:newRiskA.doubleValue())
+                .riskKellyB(newRiskB==null?null:newRiskB.doubleValue())
                 .build()
         );
 
@@ -107,13 +103,23 @@ public class RiskAnalysisService {
         CatContract contract = chosen.getContract();
         CatSymbol symbol   = chosen.getSymbol();
 
-        // 3) Para cada sesión HOUSE / LUNCH, construimos la fila con makeRow(...)
+        BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
+        BigDecimal riskA = in.getRiskPctA()==null?null:in.getRiskPctA().multiply(multiplier);
+        BigDecimal riskB = in.getRiskPctB()==null?null:in.getRiskPctB().multiply(multiplier);
+
+        int offset = offsetForMarket(in.getMarket());
+
         return Stream.of(
-                        in.isHouse() ? makeRow(in, chosen, in.getTicksSl1(), in.getRiskPctA(), contract, symbol) : null,
-                        in.isLunch() ? makeRow(in, chosen, in.getTicksSl2(), in.getRiskPctB(), contract, symbol) : null
+                        in.isHouse() ? makeRow(in, chosen, in.getTicksSl1(), riskA, contract, symbol, offset) : null,
+                        in.isLunch() ? makeRow(in, chosen, in.getTicksSl2(), riskB, contract, symbol, offset) : null
                 )
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+    private int offsetForMarket(CatMarket market) {
+        String name = market.getDescription();
+        return "NASDAQ".equalsIgnoreCase(name) ? 2 : 1;
     }
 
     private OptimalContractRow makeRow(RiskInputDTO in,
@@ -121,7 +127,8 @@ public class RiskAnalysisService {
                                        int   slTicks,
                                        BigDecimal riskPct,
                                        CatContract contract,
-                                       CatSymbol   symbol) {
+                                       CatSymbol   symbol,
+                                       int offset) {
         // --- Mapeo directo de las celdas de Excel al código Java ---
 
         // 1) currentRisk = AccountSize * RiskPct / 100
@@ -147,9 +154,8 @@ public class RiskAnalysisService {
                     .divide(riskPerContract, 0, BigDecimal.ROUND_DOWN);
         }
 
-        // 4) targetTicks = SL_ticks * RiskReward  (+ offset si existiera)
-        //    en Excel: =C15 * RiskReward   (por ejemplo 10 ticks * 2.0 = 20)
-        int targetTicks = (int) Math.round(in.getRiskReward() * slTicks);
+        // 4) targetTicks = SL_ticks * RiskReward + offset
+        int targetTicks = (int) Math.round(in.getRiskReward() * slTicks + offset);
 
         // 5) futuresTicker = symbol.getSymbol()
         //    en Excel ponías “ES” o “MES” directamente en la columna Symbol
