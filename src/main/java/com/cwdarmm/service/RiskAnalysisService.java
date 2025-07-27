@@ -185,12 +185,16 @@ public class RiskAnalysisService {
             BigDecimal optContracts = currentRisk
                     .divide(riskPerContract, 0, BigDecimal.ROUND_DOWN);
 
-            // 3.c) Ticks objetivo según relación riesgo/beneficio
-            int targetTicks = (int) Math.round(in.getRiskReward() * sl + offset);
+            // 3.c) Ticks objetivo en formato decimal.
+            //     En el XLSM el valor se utiliza sin redondear para calcular
+            //     el beneficio potencial y luego se trunca al mostrarlo.
+            BigDecimal decimalTarget = BigDecimal.valueOf(in.getRiskReward())
+                    .multiply(BigDecimal.valueOf(sl))
+                    .add(BigDecimal.valueOf(offset));
 
             // 3.d) Beneficio potencial restando comisiones
             BigDecimal potentialProfit = optContracts
-                    .multiply(tickValue.multiply(BigDecimal.valueOf(targetTicks)))
+                    .multiply(tickValue.multiply(decimalTarget))
                     .subtract(commission.multiply(optContracts));
 
             // 3.e) Guardamos el mejor SL encontrado
@@ -201,7 +205,10 @@ public class RiskAnalysisService {
             }
         }
 
-        int targetTicks = (int) Math.round(in.getRiskReward() * bestSl + offset);
+        BigDecimal bestDecimalTarget = BigDecimal.valueOf(in.getRiskReward())
+                .multiply(BigDecimal.valueOf(bestSl))
+                .add(BigDecimal.valueOf(offset));
+        int targetTicks = bestDecimalTarget.intValue();
         String futuresTicker = symbol.getSymbol();
 
         if (bestContracts == null || bestContracts.compareTo(BigDecimal.ONE) < 0) {
@@ -209,7 +216,10 @@ public class RiskAnalysisService {
             return new OptimalContractRow(start,
                     "The risk is too high",
                     null,
-                    (int)Math.round(in.getRiskReward() * start + offset));
+                    BigDecimal.valueOf(in.getRiskReward())
+                            .multiply(BigDecimal.valueOf(start))
+                            .add(BigDecimal.valueOf(offset))
+                            .intValue());
         }
 
         // 5) Devolvemos la fila que representa el escenario óptimo
