@@ -109,12 +109,76 @@ public class RiskAnalysisService {
 
         int offset = offsetForMarket(in.getMarket());
 
+        int startTick = Math.min(in.getTicksSl1(), in.getTicksSl2());
+        int endTick   = Math.max(in.getTicksSl1(), in.getTicksSl2());
+
         return Stream.of(
-                        in.isHouse() ? makeRow(in, chosen, in.getTicksSl1(), riskA, contract, symbol, offset) : null,
-                        in.isLunch() ? makeRow(in, chosen, in.getTicksSl2(), riskB, contract, symbol, offset) : null
+                        in.isHouse() ? bestRowForRange(in, chosen, startTick, endTick, riskA, contract, symbol, offset) : null,
+                        in.isLunch() ? bestRowForRange(in, chosen, startTick, endTick, riskB, contract, symbol, offset) : null
                 )
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+    private OptimalContractRow bestRowForRange(RiskInputDTO in,
+                                               BdMarket bd,
+                                               int start,
+                                               int end,
+                                               BigDecimal riskPct,
+                                               CatContract contract,
+                                               CatSymbol symbol,
+                                               int offset) {
+        OptimalContractRow best = null;
+        BigDecimal maxProfit = null;
+        for (int sl = start; sl <= end; sl++) {
+            RowProfit rp = computeRow(in, bd, sl, riskPct, symbol, offset);
+            if (maxProfit == null || rp.profit().compareTo(maxProfit) > 0) {
+                maxProfit = rp.profit();
+                best = rp.row();
+            }
+        }
+        return best;
+    }
+
+    private record RowProfit(OptimalContractRow row, BigDecimal profit) {}
+
+    private RowProfit computeRow(RiskInputDTO in,
+                                 BdMarket bd,
+                                 int slTicks,
+                                 BigDecimal riskPct,
+                                 CatSymbol symbol,
+                                 int offset) {
+        BigDecimal appliedPct = riskPct == null ? DEFAULT_RISK_PCT : riskPct;
+        BigDecimal currentRisk = in.getAccountSize()
+                .multiply(appliedPct)
+                .divide(BigDecimal.valueOf(100), 8, BigDecimal.ROUND_HALF_UP);
+
+        BigDecimal tickValue = BigDecimal.valueOf(bd.getTickValue());
+        BigDecimal commission = BigDecimal.valueOf(bd.getCommission());
+        BigDecimal riskPerContract = tickValue
+                .multiply(BigDecimal.valueOf(slTicks))
+                .add(commission);
+
+        BigDecimal optimalContracts = BigDecimal.ZERO;
+        if (riskPerContract.compareTo(BigDecimal.ZERO) > 0) {
+            optimalContracts = currentRisk
+                    .divide(riskPerContract, 0, BigDecimal.ROUND_DOWN);
+        }
+
+        int targetTicks = (int) Math.round(in.getRiskReward() * slTicks + offset);
+        String futuresTicker = symbol.getSymbol();
+
+        BigDecimal profit = optimalContracts.multiply(tickValue)
+                .multiply(BigDecimal.valueOf(targetTicks))
+                .subtract(commission.multiply(optimalContracts));
+
+        if (optimalContracts.compareTo(BigDecimal.ONE) < 0) {
+            return new RowProfit(new OptimalContractRow(slTicks,
+                    "The risk is too high", null, targetTicks), profit);
+        }
+
+        return new RowProfit(new OptimalContractRow(slTicks,
+                futuresTicker, optimalContracts, targetTicks), profit);
     }
 
     private int offsetForMarket(CatMarket market) {
@@ -122,64 +186,6 @@ public class RiskAnalysisService {
         return "NASDAQ".equalsIgnoreCase(name) ? 2 : 1;
     }
 
-    private OptimalContractRow makeRow(RiskInputDTO in,
-                                       BdMarket bd,
-                                       int   slTicks,
-                                       BigDecimal riskPct,
-                                       CatContract contract,
-                                       CatSymbol   symbol,
-                                       int offset) {
-        // --- Mapeo directo de las celdas de Excel al código Java ---
-
-        // 1) currentRisk = AccountSize * RiskPct / 100
-        //    en Excel era: =C13 * C5/100    (p.ej 5000 * 2.5% = 125)
-        BigDecimal appliedPct = riskPct == null ? DEFAULT_RISK_PCT : riskPct;
-        BigDecimal currentRisk = in.getAccountSize()
-                .multiply(appliedPct)
-                .divide(BigDecimal.valueOf(100), 8, BigDecimal.ROUND_HALF_UP);
-
-        // 2) riskPerContract = tickValue * SL_ticks + commission
-        //    en Excel: =G14 * C15 + C16    (tickValue * SL_size + comisión)
-        BigDecimal tickValue  = BigDecimal.valueOf(bd.getTickValue());
-        BigDecimal commission = BigDecimal.valueOf(bd.getCommission());
-        BigDecimal riskPerContract = tickValue
-                .multiply(BigDecimal.valueOf(slTicks))
-                .add(commission);
-
-        // 3) optimalContracts = FLOOR(currentRisk / riskPerContract)
-        //    en Excel: =TRUNC( currentRisk / riskPerContract , 0 )
-        BigDecimal optimalContracts = BigDecimal.ZERO;
-        if (riskPerContract.compareTo(BigDecimal.ZERO) > 0) {
-            optimalContracts = currentRisk
-                    .divide(riskPerContract, 0, BigDecimal.ROUND_DOWN);
-        }
-
-        // 4) targetTicks = SL_ticks * RiskReward + offset
-        int targetTicks = (int) Math.round(in.getRiskReward() * slTicks + offset);
-
-        // 5) futuresTicker = symbol.getSymbol()
-        //    en Excel ponías “ES” o “MES” directamente en la columna Symbol
-        String futuresTicker = symbol.getSymbol();
-
-        // 6) Si no alcanza para 1 contrato, mostramos mensaje de “too high risk”
-        if (optimalContracts.compareTo(BigDecimal.ONE) < 0) {
-            return new OptimalContractRow(
-                    slTicks,
-                    "The risk is too high",
-                    null,
-                    targetTicks
-            );
-        }
-
-        // 7) Devolvemos la fila idéntica a la del XLSM:
-        //    (SL_ticks, Symbol, #Contracts, TargetTicks)
-        return new OptimalContractRow(
-                slTicks,
-                futuresTicker,
-                optimalContracts,
-                targetTicks
-        );
-    }
 }
 
 
