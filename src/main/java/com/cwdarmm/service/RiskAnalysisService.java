@@ -13,6 +13,20 @@ import com.cwdarmm.repository.BdMarketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * Servicio que reproduce la lógica de cálculo de riesgo y
+ * contratos óptimos descrita en el documento
+ * "CW-DARMM: A Probabilistic, Confidence-Weighted Framework for
+ * Adaptive Capital Growth".
+ *
+ * <p>La implementación toma como referencia el módulo VBA
+ * <code>risk_market.frm</code> del libro Excel, donde se calculan
+ * los tamaños de contrato y se actualizan los porcentajes de
+ * riesgo según el resultado del trade. Todas las validaciones y
+ * fórmulas se han trasladado a Java para integrarse con la
+ * aplicación de escritorio.</p>
+ */
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;

@@ -13,6 +13,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Servicio de acceso y manipulación de los catálogos de mercado.
+ *
+ * <p>Persiste la información de la sesión abierta y se alimenta
+ * de los catálogos equivalentes a las hojas <code>BD_MARKET</code>
+ * y <code>RESULTS</code> en el libro de Excel. Desde aquí se
+ * realizan las mismas validaciones básicas que estaban en VBA
+ * antes de almacenar la información.</p>
+ */
+
 import java.util.List;
 import java.util.stream.Collectors;
 

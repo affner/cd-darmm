@@ -15,7 +15,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 'Autor: Jassive Jazareth Ramon Rosas
 'Fecha: 04-03-2025
-
+'Nota: este formulario se exportÃ³ para documentar la lÃ³gica de riesgo del Excel y se usa como referencia para la implementaciÃ³n en Java'
 Private Sub UserForm_Initialize()
     
     Dim WS As Worksheet
@@ -93,7 +93,7 @@ Private Sub StopTickIni_Change()
     If Not IsNumeric(StopTickIni.Value) Then
         StopTickIni.BackColor = RGB(255, 182, 193)
     Else
-        ' Convertir el valor a nœmero
+        ' Convertir el valor a nÅ“mero
         valor = CDbl(StopTickIni.Value)
         If valor = Int(valor) Then
             StopTickIni.BackColor = &HFFFFFF
@@ -109,7 +109,7 @@ Private Sub StopTickFin_Change()
     If Not IsNumeric(StopTickFin.Value) Then
         StopTickFin.BackColor = RGB(255, 182, 193)
     Else
-        ' Convertir el valor a nœmero
+        ' Convertir el valor a nÅ“mero
         valor = CDbl(StopTickFin.Value)
         If valor = Int(valor) Then
             StopTickFin.BackColor = &HFFFFFF
@@ -124,7 +124,7 @@ Private Sub StopTickStep_Change()
     If Not IsNumeric(StopTickStep.Value) Then
         StopTickStep.BackColor = RGB(255, 182, 193)
     Else
-        ' Convertir el valor a nœmero
+        ' Convertir el valor a nÅ“mero
         valor = CDbl(StopTickStep.Value)
         If valor = Int(valor) Then
             StopTickStep.BackColor = &HFFFFFF
@@ -192,7 +192,7 @@ Private Sub ACOUNT_BOX_Change()
     MARKETDATA_BOX.Clear
     ACOUNT_BOX.BackColor = &H0&    ' Negro
     ACOUNT_BOX.ForeColor = &HFFFFFF ' Blanco
-    ' Cambiar las opciones segœn la selecci—n
+    ' Cambiar las opciones segÅ“n la selecciâ€”n
     Select Case ACOUNT_BOX.Value
         Case "TRADEIFY"
             MARKETDATA_BOX.AddItem "TRADOVATE"
@@ -374,7 +374,7 @@ Private Sub OptimalContracts_Click()
     Dim WS As Worksheet, WSR As Worksheet, WSA As Worksheet
 
 
-     ' Asignaci—n de hojas de trabajo
+     ' Asignaciâ€”n de hojas de trabajo
     Set WS = Worksheets("BD_MARKET")
     Set WSR = Worksheets("RESULTS")
     Set WSA = ActiveSheet
@@ -383,7 +383,7 @@ Private Sub OptimalContracts_Click()
     WSR.Rows("2:" & WSR.Rows.Count).Clear
 
 'INICIALIZAR VARIABLES
-    ' Definir criterios segœn el mercado seleccionado, NS (Nombre Sheet)
+    ' Definir criterios segÅ“n el mercado seleccionado, NS (Nombre Sheet)
     Select Case MARKET_BOX.Value
         Case "NASDAQ": CRITERIA_MARKET = "NASDAQ": r = 2: BEI = "NQ"
         Case "S&P 500": CRITERIA_MARKET = "S&P 500": r = 1: BEI = "ES"
@@ -406,7 +406,7 @@ Private Sub OptimalContracts_Click()
     End Select
 
     
-    ' Definir criterios segœn el account seleccionado
+    ' Definir criterios segÅ“n el account seleccionado
     Select Case ACOUNT_BOX.Value
         Case "TRADEIFY": CRITERIA_ACCOUNT = "TRADEIFY": Ini = "TRA"
         Case "TOPSTEP": CRITERIA_ACCOUNT = "TOPSTEP": Ini = "TOP"
@@ -424,7 +424,7 @@ Private Sub OptimalContracts_Click()
             Exit Sub
     End Select
             
-    ' Definir criterios segœn el activo seleccionado
+    ' Definir criterios segÅ“n el activo seleccionado
     Select Case MARKETDATA_BOX.Value
         Case "TRADOVATE": CRITERIA_MARKETDATA = "TRADOVATE": MDT = "TVT"
         Case "RITHMIC": CRITERIA_MARKETDATA = "RITHMIC": MDT = "RT"
@@ -462,7 +462,7 @@ Private Sub OptimalContracts_Click()
         RISKTOREWARD.BackColor = &HFFFFFF
     End If
 
-    ' Configuraci—n de rango de ticks segœn el activo
+    ' Configuraciâ€”n de rango de ticks segÅ“n el activo
     If StopTickIni.Value = "" And StopTickFin.Value = "" And StopTickStep.Value = "" Then
         Select Case MARKET_BOX.Value
             Case "NASDAQ": STOP_TICKS_VALUES = Array(10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250)
@@ -484,7 +484,7 @@ Private Sub OptimalContracts_Click()
         MsgBox "The stop tick step has to be numeric.", vbCritical + vbOKOnly, "ERROR"
         Exit Sub
     Else
-        ' Convierte los valores a numŽricos antes de hacer la comparaci—n
+        ' Convierte los valores a numÅ½ricos antes de hacer la comparaciâ€”n
         Dim stopIni As Long
         Dim stopFin As Long
         stopIni = CLng(StopTickIni.Value)
@@ -516,7 +516,7 @@ Private Sub OptimalContracts_Click()
                 ListaValor.Add i
             Next i
             
-            ' Convertir la colecci—n en un array
+            ' Convertir la colecciâ€”n en un array
             ReDim STOP_TICKS_VALUES(1 To ListaValor.Count)
             For i = 1 To ListaValor.Count
                 STOP_TICKS_VALUES(i) = ListaValor(i)
@@ -549,7 +549,7 @@ Private Sub OptimalContracts_Click()
     LCNS12 = WSA.Cells(12, Columns.Count).End(xlToLeft).Column
     
     
-    ' Configuraci—n de calculo si es House o Lunch
+    ' Configuraciâ€”n de calculo si es House o Lunch
     If HOUSE = True Then
         Q = "H"
         U = LRNSF
@@ -583,14 +583,14 @@ B1 = True
                 End If
             End If
             
-            Exit For ' Una vez que encuentre la œltima coincidencia, salimos del bucle
+            Exit For ' Una vez que encuentre la Å“ltima coincidencia, salimos del bucle
         End If
     Next i
     
 'LLENADO DE BD
     'SI B1=TRUE ENTONCES NO ES EL TRADE 0
     If B1 = True Then
-        ' Configuraci—n de Win o Loss
+        ' Configuraciâ€”n de Win o Loss
         If WIN = True Then
             WSA.Cells(LRNSB + 1, 2).Value = "WIN"
             WSA.Cells(LRNSB + 1, 2).Interior.Color = RGB(146, 208, 80)
@@ -618,36 +618,36 @@ B1 = True
                WSA.Cells(i, 4).Value = CRITERIA_MARKETDATA Then
         
                 If HOUSE = True Then
-                    ' Comprobar que la celda (i,6) no estŽ vac’a
+                    ' Comprobar que la celda (i,6) no estÅ½ vacâ€™a
                     Do While IsEmpty(WSA.Cells(i, 6).Value) And i > 1
                         i = i - 1 ' Avanzar al siguiente valor
                     Loop
         
                     If Not IsEmpty(WSA.Cells(i, 6).Value) Then
                         riskpercentageanterior = WSA.Cells(i, 6).Value
-                        ' Configuraci—n de RiskPercentageA
+                        ' Configuraciâ€”n de RiskPercentageA
                         RiskPercentage = riskpercentageanterior * risk
                         WSA.Cells(LRNSA + 1, 6).Value = RiskPercentage
                     End If
         
                 ElseIf LUNCH = True Then
-                    ' Comprobar que la celda (i,7) no estŽ vac’a
+                    ' Comprobar que la celda (i,7) no estÅ½ vacâ€™a
                     Do While IsEmpty(WSA.Cells(i, 7).Value) And i > 1
                         i = i - 1 ' Avanzar al siguiente valor
                     Loop
         
                     If Not IsEmpty(WSA.Cells(i, 7).Value) Then
                         riskpercentageanterior = WSA.Cells(i, 7).Value
-                        ' Configuraci—n de RiskPercentageB
+                        ' Configuraciâ€”n de RiskPercentageB
                         RiskPercentage = riskpercentageanterior * risk
                         WSA.Cells(LRNSA + 1, 7).Value = RiskPercentage
                     End If
                 End If
         
-                ' Configuraci—n de #Trade
+                ' Configuraciâ€”n de #Trade
                 WSA.Cells(LRNSA + 1, 1).Value = WSA.Cells(i, 1).Value + 1
         
-                Exit For ' Una vez que encuentre la œltima coincidencia, salimos del bucle
+                Exit For ' Una vez que encuentre la Å“ltima coincidencia, salimos del bucle
             End If
         Next i
     
@@ -666,17 +666,17 @@ B1 = True
     WS.Range("A1").AutoFilter Field:=2, Criteria1:=CRITERIA_ACCOUNT
     WS.Range("A1").AutoFilter Field:=3, Criteria1:=CRITERIA_MARKETDATA, VisibleDropDown:=True
 
-    ' Obtener la œltima fila
+    ' Obtener la Å“ltima fila
     LastRow = WS.Cells(WS.Rows.Count, "A").End(xlUp).ROW
-    ' Inicializaci—n de variables
+    ' Inicializaciâ€”n de variables
     J = 2
-    ' Inicializar la colecci—n para almacenar los valores
+    ' Inicializar la colecciâ€”n para almacenar los valores
     Set ListaValores = New Collection
     
     ' Recorrer las celdas visibles de la columna E para saber los simbolos
-    On Error Resume Next ' Si no hay celdas visibles, evitar‡ un error
+    On Error Resume Next ' Si no hay celdas visibles, evitarâ€¡ un error
     For Each Celda In WS.Range("E2:E" & WS.Cells(WS.Rows.Count, "E").End(xlUp).ROW).SpecialCells(xlCellTypeVisible)
-        ' Asegurarse de que la celda no estŽ vac’a
+        ' Asegurarse de que la celda no estÅ½ vacâ€™a
         If Celda.Value <> "" Then
             ' Agregar el valor de la columna E a la lista
             ListaValores.Add Celda.Value
@@ -761,7 +761,7 @@ B1 = True
 
 'Desactivar las alertas
 Application.DisplayAlerts = False
-' Ordenar resultados y resaltar m‡xima ganancia
+' Ordenar resultados y resaltar mâ€¡xima ganancia
     WSR.Sort.SortFields.Clear
     WSR.Range("A1:K" & J - 1).Sort Key1:=WSR.Range("E1"), Header:=xlYes
   
@@ -773,22 +773,22 @@ Application.DisplayAlerts = False
 
     ' Recorrer las filas de la hoja de datos
     For ROW = 2 To J - 1
-        ' Verificamos si el grupo en la columna E cambia o estamos en la œltima fila
+        ' Verificamos si el grupo en la columna E cambia o estamos en la Å“ltima fila
         If WSR.Cells(ROW, 5).Value <> WSR.Cells(ROW + 1, 5).Value Or ROW = J Then
             groupValue = WSR.Cells(ROW, 5).Value ' Valor del grupo actual en la columna E
-            maxProfit = -1 ' Inicializamos el m‡ximo beneficio
+            maxProfit = -1 ' Inicializamos el mâ€¡ximo beneficio
             
-            ' Buscar el valor m‡ximo en la columna J para el grupo actual
+            ' Buscar el valor mâ€¡ximo en la columna J para el grupo actual
             For i = currentStopTickGroupStart To ROW
                 If WSR.Cells(i, 5).Value = groupValue Then ' Asegurarse de que estamos en el grupo correcto
                     If WSR.Cells(i, 10).Value > maxProfit Then
                         maxProfit = WSR.Cells(i, 10).Value
-                        maxProfitRow = i ' Guardamos la fila con el m‡ximo profit
+                        maxProfitRow = i ' Guardamos la fila con el mâ€¡ximo profit
                     End If
                 End If
             Next i
             
-            ' Resaltar la fila con el valor m‡ximo de profit en la columna J
+            ' Resaltar la fila con el valor mâ€¡ximo de profit en la columna J
             If maxProfitRow > 0 Then
                 WSR.Range(WSR.Cells(maxProfitRow, 1), WSR.Cells(maxProfitRow, 12)).Interior.Color = RGB(255, 255, 0)
                 
@@ -805,14 +805,14 @@ Application.DisplayAlerts = False
                         If combineStartRow = 0 Then
                             combineStartRow = p ' Establece la fila inicial para combinar
                         End If
-                        combineEndRow = p ' Continœa estableciendo la fila final para combinar
+                        combineEndRow = p ' ContinÅ“a estableciendo la fila final para combinar
                     Else
                         ' Si ya hay filas para combinar, las combinamos
                         If combineStartRow > 0 And combineEndRow > 0 Then
                             .Range(.Cells(combineStartRow, LCNS12 + 4), .Cells(combineEndRow, LCNS12 + 5)).Merge
                             .Cells(combineStartRow, LCNS12 + 4).Value = "The risk is too high for this stop-loss size on this account."
                         End If
-                        ' Restablece las variables para la siguiente secci—n
+                        ' Restablece las variables para la siguiente secciâ€”n
                         combineStartRow = 0
                         combineEndRow = 0
                     End If
@@ -825,7 +825,7 @@ Application.DisplayAlerts = False
     Next ROW
     
 
-' Combina cualquier grupo restante despuŽs de que termine el ciclo
+' Combina cualquier grupo restante despuÅ½s de que termine el ciclo
 If combineStartRow > 0 And combineEndRow > 0 Then
     WSA.Range(WSA.Cells(combineStartRow, LCNS12 + 4), WSA.Cells(combineEndRow, LCNS12 + 5)).Merge
     WSA.Cells(combineStartRow, LCNS12 + 4).Value = "The risk is too high for this stop-loss size on this account."
@@ -939,7 +939,7 @@ If IsEmpty(WSA.Cells(11, 12)) Then
             ' Obtener la ruta de la carpeta seleccionada
             Set items = fd.SelectedItems
             If items.Count = 0 Then
-                MsgBox "The user don«t select the folder."
+                MsgBox "The user donÂ«t select the folder."
                 Exit Sub
             
             Else
@@ -950,7 +950,7 @@ If IsEmpty(WSA.Cells(11, 12)) Then
             fechaHoy = Date ' Fecha actual (solo la parte de la fecha, sin la hora)
         
             ' Recorrer todos los archivos en la carpeta
-            On Error Resume Next ' Para ignorar errores en caso de que algœn archivo no sea accesible
+            On Error Resume Next ' Para ignorar errores en caso de que algÅ“n archivo no sea accesible
             For Each archivo In fso.GetFolder(rutaCarpeta).Files
                 archivoXML = archivo.Name
         
@@ -959,7 +959,7 @@ If IsEmpty(WSA.Cells(11, 12)) Then
                     fechaCreacion = archivo.DateCreated
                     ' Comparar solo las fechas (ignorando las horas)
                     If Int(fechaCreacion) <> fechaHoy Then
-                        ' Si la fecha de creaci—n es distinta a la de hoy eliminar el archivo
+                        ' Si la fecha de creaciâ€”n es distinta a la de hoy eliminar el archivo
                         archivo.Delete
                         ' MsgBox "Delete XML files: " & archivoXML
                     Else
@@ -1069,7 +1069,7 @@ If IsEmpty(WSA.Cells(11, 12)) Then
                     stopLossNode.Text = WSA.Cells(rowIndex, LCNS12 + 3).Value
                     bracket.appendChild stopLossNode
                     
-                    ' Agregar Target (ajustar columna segœn corresponda)
+                    ' Agregar Target (ajustar columna segÅ“n corresponda)
                     Set targetNode = xmlDoc.createElement("Target")
                     targetNode.Text = WSA.Cells(rowIndex, LCNS12 + 6).Value
                     bracket.appendChild targetNode
@@ -1078,7 +1078,7 @@ If IsEmpty(WSA.Cells(11, 12)) Then
                     fileName = Ini & " " & MDT & " " & Q & " " & WSA.Cells(rowIndex, LCNS12 + 4).Value & " " & WSA.Cells(rowIndex, LCNS12 + 3).Value & ".xml"
                     atmStrategy.appendChild brackets
                     
-                    'Si existe un archivo que sea del mismo d’a de creaci—n con el mismo nombre entonces lo elimina
+                    'Si existe un archivo que sea del mismo dâ€™a de creaciâ€”n con el mismo nombre entonces lo elimina
                     If archivoXML = fileName Then
                         archivo.Delete
                     End If
@@ -1120,7 +1120,7 @@ If IsEmpty(WSA.Cells(11, 12)) Then
                 fechaHoy = Date ' Fecha actual (solo la parte de la fecha, sin la hora)
                 
                 ' Recorrer todos los archivos en la carpeta
-                On Error Resume Next ' Para ignorar errores en caso de que algœn archivo no sea accesible
+                On Error Resume Next ' Para ignorar errores en caso de que algÅ“n archivo no sea accesible
                 For Each archivo In fso.GetFolder(rutaCarpeta).Files
                     archivoNombre = archivo.Name
                     
@@ -1130,7 +1130,7 @@ If IsEmpty(WSA.Cells(11, 12)) Then
                         
                         ' Comparar solo las fechas (ignorando las horas)
                         If Int(fechaCreacion) <> fechaHoy Then
-                            ' Si la fecha de creaci—n es distinta a la de hoy, eliminar el archivo
+                            ' Si la fecha de creaciâ€”n es distinta a la de hoy, eliminar el archivo
                             archivo.Delete
                         End If
                             ' Mostrar los valores guardados (opcional)
@@ -1201,7 +1201,7 @@ If IsEmpty(WSA.Cells(11, 12)) Then
                 Print #archivoAHK, script
                 Close archivoAHK
         
-                'Si existe un archivo que sea del mismo d’a de creaci—n con el mismo nombre entonces lo elimina
+                'Si existe un archivo que sea del mismo dâ€™a de creaciâ€”n con el mismo nombre entonces lo elimina
                 If archivoAHK = fileName Then
                     archivo.Delete
                 End If
@@ -1239,7 +1239,7 @@ End If
    
         pregunta2 = MsgBox("Do you need to calculate another account?", vbYesNo + vbQuestion)
             
-            'Comprobaci—n si se eligi— calcular m‡s de una cuenta o si desea calcular otra cuenta
+            'Comprobaciâ€”n si se eligiâ€” calcular mâ€¡s de una cuenta o si desea calcular otra cuenta
             If pregunta2 = vbYes Then
                 MARKET_BOX.Value = CRITERIA_MARKET
                 AccountSize.Value = ""
@@ -1274,7 +1274,7 @@ If PREGUNTA3 = vbYes Then
             fechaHoy = Date ' Fecha actual (solo la parte de la fecha, sin la hora)
             
             ' Recorrer todos los archivos en la carpeta
-            On Error Resume Next ' Para ignorar errores en caso de que algœn archivo no sea accesible
+            On Error Resume Next ' Para ignorar errores en caso de que algÅ“n archivo no sea accesible
             For Each archivo In fso.GetFolder(rutaCarpeta).Files
                 archivoXML = archivo.Name
                 
@@ -1284,7 +1284,7 @@ If PREGUNTA3 = vbYes Then
                     
                     ' Comparar solo las fechas (ignorando las horas)
                     If Int(fechaCreacion) <> fechaHoy Then
-                        ' Si la fecha de creaci—n es distinta a la de hoy eliminar el archivo
+                        ' Si la fecha de creaciâ€”n es distinta a la de hoy eliminar el archivo
                         archivo.Delete
                         ' MsgBox "Delete XML files: " & archivoXML
                     Else
@@ -1475,7 +1475,7 @@ For ROW = 13 To p
 
     ' Guardar el contenido del XML en el archivo
     Dim fileNumber As Integer
-    fileNumber = FreeFile ' Obtener un nœmero de archivo libre
+    fileNumber = FreeFile ' Obtener un nÅ“mero de archivo libre
     Open archivoXML For Output As #fileNumber
     Print #fileNumber, xmlContent ' Escribir el contenido del XML en el archivo
     Close #fileNumber ' Cerrar el archivo
@@ -1486,7 +1486,7 @@ MsgBox "XML files generated successfully."
     Else
         PREGUNTA1 = MsgBox("Do you need to calculate more than one account?", vbYesNo + vbQuestion)
         
-            'Si desea calcular m‡s de una cuenta :
+            'Si desea calcular mâ€¡s de una cuenta :
             If PREGUNTA1 = vbYes Then
             
                 'Crea encabezado
@@ -1496,7 +1496,7 @@ MsgBox "XML files generated successfully."
                 WSA.Cells(11, LCNS12 + 5).PasteSpecial Paste:=xlPasteFormats
                 Application.CutCopyMode = False ' Limpiar el modo de copia
 
-                'Comprobaci—n si se eligi— calcular m‡s de una cuenta o si desea calcular otra cuenta
+                'Comprobaciâ€”n si se eligiâ€” calcular mâ€¡s de una cuenta o si desea calcular otra cuenta
                 MARKET_BOX.Value = CRITERIA_MARKET
                 AccountSize.Value = ""
                 
