@@ -36,6 +36,5 @@ public class CatMarketData {
 
     @Builder.Default
     @ManyToMany(mappedBy = "marketDataList", fetch = FetchType.LAZY)
-    @EqualsAndHashCode.Exclude
     private Set<CatAccount> accounts = new HashSet<>();
 }

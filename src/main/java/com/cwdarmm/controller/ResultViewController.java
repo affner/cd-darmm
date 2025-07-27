@@ -72,44 +72,33 @@ public class ResultViewController {
             }
         });
 
-        colTarget.setCellFactory(col -> new TableCell<>() {
-            @Override protected void updateItem(Integer item, boolean empty) {
+        colTarget.setCellFactory(col -> new TableCell<ResultRowDTO, Integer>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item==null) { setText(null); setStyle(""); }
-                else {
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
                     setText(item.toString());
                     setStyle("-fx-background-color:#D3D3D3;");
                 }
             }
         });
 
-        var coloredFactory = new Callback<TableColumn<ResultRowDTO, ?>, TableCell<ResultRowDTO, ?>>() {
-            @Override
-            public TableCell<ResultRowDTO, ?> call(TableColumn<ResultRowDTO, ?> c) {
-                return new TableCell<>() {
-                    @Override protected void updateItem(Object item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (empty || item==null) { setText(null); setStyle(""); }
-                        else {
-                            setText(item.toString());
-                            ResultRowDTO row = getTableView().getItems().get(getIndex());
-                            String color = row.getRowColor().get();
-                            if (color!=null && !color.isBlank()) {
-                                setStyle("-fx-background-color:" + color + ";");
-                            } else setStyle("");
-                        }
-                    }
-                };
-            }
-        };
-        colSymbol.setCellFactory(coloredFactory);
-        colOptimalContract.setCellFactory(coloredFactory);
 
-        tblResults.setRowFactory(tv -> new TableRow<>() {
-            @Override protected void updateItem(ResultRowDTO item, boolean empty) {
+        // 3) Usamos el factory genérico para Symbol y OptimalContract
+        colSymbol          .setCellFactory(coloredFactory());
+        colOptimalContract .setCellFactory(coloredFactory());
+
+        // 4) RowFactory para filas óptimas
+        tblResults.setRowFactory(tv -> new TableRow<ResultRowDTO>() {
+            @Override
+            protected void updateItem(ResultRowDTO item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item==null) { setStyle(""); }
-                else if (item.getOptimalRow().get()) {
+                if (empty || item == null) {
+                    setStyle("");
+                } else if (item.getOptimalRow().get()) {
                     setStyle("-fx-background-color:yellow;");
                 } else {
                     setStyle("");
@@ -117,12 +106,33 @@ public class ResultViewController {
             }
         });
 
-        // De momento cargamos vacío; al pulsar “Click” se rellenará
+        // 5) Inicialmente vacío
         tblResults.setItems(FXCollections.observableArrayList());
     }
-
-    public void setDialogStage(Stage stage) {
-        this.dialogStage = stage;
+    /**
+     * Método genérico para crear un cellFactory que colorea según row.getRowColor()
+     */
+    @SuppressWarnings("unchecked")
+    private <T> Callback<TableColumn<ResultRowDTO, T>, TableCell<ResultRowDTO, T>> coloredFactory() {
+        return column -> new TableCell<ResultRowDTO, T>() {
+            @Override
+            protected void updateItem(T item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item.toString());
+                    ResultRowDTO row = getTableView().getItems().get(getIndex());
+                    String color = row.getRowColor().get();
+                    if (color != null && !color.isBlank()) {
+                        setStyle("-fx-background-color:" + color + ";");
+                    } else {
+                        setStyle("");
+                    }
+                }
+            }
+        };
     }
 
     /**
