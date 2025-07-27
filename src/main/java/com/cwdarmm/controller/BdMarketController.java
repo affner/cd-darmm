@@ -1,7 +1,9 @@
 package com.cwdarmm.controller;
 
+import com.cwdarmm.model.domain.*;
 import com.cwdarmm.model.dto.MarketDbRowDTO;
 import com.cwdarmm.service.MarketDbService;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -13,7 +15,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class MarketDbViewController {
+public class BdMarketController {
 
     @FXML private TableView<MarketDbRowDTO> tblMarketDb;
     @FXML private TableColumn<MarketDbRowDTO, String>  colFuture;
@@ -33,11 +35,37 @@ public class MarketDbViewController {
     @FXML
     public void initialize() {
         // binding columnas ↔ propiedades DTO
-        colFuture     .setCellValueFactory(cd -> cd.getValue().getFuture());
-        colAccount    .setCellValueFactory(cd -> cd.getValue().getAccount());
-        colMarketData .setCellValueFactory(cd -> cd.getValue().getMarketData());
-        colName       .setCellValueFactory(cd -> cd.getValue().getName());
-        colSymbol     .setCellValueFactory(cd -> cd.getValue().getSymbol());
+        // Future → mostramos sólo description
+        colFuture.setCellValueFactory(cd -> {
+            CatMarket m = cd.getValue().getFuture().get();
+            return new ReadOnlyStringWrapper(m.getDescription());
+        });
+
+        // Account
+        colAccount.setCellValueFactory(cd -> {
+            CatAccount a = cd.getValue().getAccount().get();
+            return new ReadOnlyStringWrapper(a.getDescription());
+        });
+
+        // Market Data
+        colMarketData.setCellValueFactory(cd -> {
+            CatMarketData md = cd.getValue().getMarketData().get();
+            return new ReadOnlyStringWrapper(md.getDescription());
+        });
+
+        // Contract name
+        colName.setCellValueFactory(cd -> {
+            CatContract c = cd.getValue().getName().get();
+            return new ReadOnlyStringWrapper(c.getDescription());
+        });
+
+        // Symbol code
+        colSymbol.setCellValueFactory(cd -> {
+            CatSymbol s = cd.getValue().getSymbol().get();
+            return new ReadOnlyStringWrapper(s.getSymbol());
+        });
+
+        // numéricas
         colMultiplier .setCellValueFactory(cd -> cd.getValue().getMultiplier().asObject());
         colTickSize   .setCellValueFactory(cd -> cd.getValue().getTickSize().asObject());
         colTickValue  .setCellValueFactory(cd -> cd.getValue().getTickValue().asObject());

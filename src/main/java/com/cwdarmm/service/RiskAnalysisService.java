@@ -1,24 +1,30 @@
 // RiskAnalysisService.java
 package com.cwdarmm.service;
 
+import com.cwdarmm.model.domain.BdMarket;
+import com.cwdarmm.model.domain.CatContract;
+import com.cwdarmm.model.domain.CatSymbol;
 import com.cwdarmm.model.dto.MarketDbRowDTO;
 import com.cwdarmm.model.dto.OptimalContractRow;
 import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.RiskResultDTO;
+import com.cwdarmm.repository.BdMarketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class RiskAnalysisService {
 
-    private final MarketDbService marketDbService;
 
+    private final BdMarketRepository bdMarketRepo;
 
     /**
      * Ejecuta la simulación de trades y calcula métricas básicas.
@@ -65,75 +71,87 @@ public class RiskAnalysisService {
         return rows;
     }
 
-
     /**
      * Genera la tabla de Optimal Contracts para la ventana emergente,
-     * ahora usando tickValue y commission desde MarketDbRowDTO.
+     * imitando las fórmulas del XLSM original.
      */
     public List<OptimalContractRow> generateOptimalContracts(RiskInputDTO in) {
-        // 1) Traemos todos los mercados de BD y buscamos el que coincide
-        List<MarketDbRowDTO> dbRows = marketDbService.listAll();
-        // 2) Localizamos la fila que coincide con:
-        //    FUTURE = in.market.name  (ej. "S&P 500")
-        //    MARKETDATA = in.marketData.name (ej. "TRADOVATE")
-        MarketDbRowDTO db = dbRows.stream()
-                .filter(r ->
-                        r.getFuture().equals(in.getMarket().getDescription()) &&
-                                r.getMarketData().equals(in.getMarketData().getDescription())
-                )
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "No encontré BD_MARKET para " +
-                                in.getMarket().getDescription() + " / " +
-                                in.getMarketData().getDescription()
-                ));
+        // 1) Traemos todas las filas de bd_markets para esta tupla (market, account, marketData)
+        List<BdMarket> rows = bdMarketRepo.findOneByMktAccMdata(
+                in.getMarket().getId(),
+                in.getAccount().getId(),
+                in.getMarketData().getId()
+        );
+        if (rows.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No existe configuración BD_MARKET para " +
+                            in.getMarket().getDescription() + " / " +
+                            in.getAccount().getDescription() + " / " +
+                            in.getMarketData().getDescription()
+            );
+        }
 
-        // 3) Creamos una fila por cada sesión (HOUSE / LUNCH)
-        return List.of(
-                        in.isHouse() ? makeRow(in, db, in.getTicksSl1(), in.getRiskPctA()) : null,
-                        in.isLunch() ? makeRow(in, db, in.getTicksSl2(), in.getRiskPctB()) : null
-                ).stream()
-                .filter(row -> row != null)
+        // 2) Selección del contrato “principal”
+        //    En el XLSM no pedías al usuario elegir “ES” vs “MES”,
+        //    así que usamos la fila cuyo multiplier == 1 (si existiera),
+        //    o, de lo contrario, la primera de la lista (equivalente al .get(0) previo).
+        BdMarket chosen = rows.stream()
+                .filter(b -> b.getMultiplier() == 1)
+                .findFirst()
+                .orElse(rows.get(0));
+
+        // Extraemos aquí los objetos contract y symbol para pasarlos a makeRow:
+        CatContract contract = chosen.getContract();
+        CatSymbol symbol   = chosen.getSymbol();
+
+        // 3) Para cada sesión HOUSE / LUNCH, construimos la fila con makeRow(...)
+        return Stream.of(
+                        in.isHouse() ? makeRow(in, chosen, in.getTicksSl1(), in.getRiskPctA(), contract, symbol) : null,
+                        in.isLunch() ? makeRow(in, chosen, in.getTicksSl2(), in.getRiskPctB(), contract, symbol) : null
+                )
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
     private OptimalContractRow makeRow(RiskInputDTO in,
-                                       MarketDbRowDTO db,
-                                       int slTicks,
-                                       BigDecimal riskPct) {
-        // 1) currentRisk = accountSize * riskPct / 100
+                                       BdMarket bd,
+                                       int   slTicks,
+                                       BigDecimal riskPct,
+                                       CatContract contract,
+                                       CatSymbol   symbol) {
+        // --- Mapeo directo de las celdas de Excel al código Java ---
+
+        // 1) currentRisk = AccountSize * RiskPct / 100
+        //    en Excel era: =C13 * C5/100    (p.ej 5000 * 2.5% = 125)
         BigDecimal currentRisk = in.getAccountSize()
                 .multiply(riskPct)
-                .divide(BigDecimal.valueOf(100),
-                        8,
-                        BigDecimal.ROUND_HALF_UP);
+                .divide(BigDecimal.valueOf(100), 8, BigDecimal.ROUND_HALF_UP);
 
-        // 2) riskPerContract = tickValue * SL + commission
-        BigDecimal tickValue  = BigDecimal.valueOf(db.getTickValue().doubleValue());
-        BigDecimal commission = BigDecimal.valueOf(db.getCommission().doubleValue());
+        // 2) riskPerContract = tickValue * SL_ticks + commission
+        //    en Excel: =G14 * C15 + C16    (tickValue * SL_size + comisión)
+        BigDecimal tickValue  = BigDecimal.valueOf(bd.getTickValue());
+        BigDecimal commission = BigDecimal.valueOf(bd.getCommission());
         BigDecimal riskPerContract = tickValue
                 .multiply(BigDecimal.valueOf(slTicks))
                 .add(commission);
 
-        // 3) optimalContracts = floor(currentRisk / riskPerContract)
+        // 3) optimalContracts = FLOOR(currentRisk / riskPerContract)
+        //    en Excel: =TRUNC( currentRisk / riskPerContract , 0 )
         BigDecimal optimalContracts = BigDecimal.ZERO;
         if (riskPerContract.compareTo(BigDecimal.ZERO) > 0) {
             optimalContracts = currentRisk
-                    .divide(riskPerContract,
-                            0,
-                            BigDecimal.ROUND_DOWN);
+                    .divide(riskPerContract, 0, BigDecimal.ROUND_DOWN);
         }
 
-        // 4) targetTicks = SL * riskReward + offset
-        int offset = 0; // si más adelante traes un campo getOffset() lo usas aquí
-        int targetTicks = (int) Math.round(
-                in.getRiskReward() * slTicks + offset
-        );
+        // 4) targetTicks = SL_ticks * RiskReward  (+ offset si existiera)
+        //    en Excel: =C15 * RiskReward   (por ejemplo 10 ticks * 2.0 = 20)
+        int targetTicks = (int) Math.round(in.getRiskReward() * slTicks);
 
-        // 5) LEEMOS EL SÍMBOLO directo del DTO: ES o MES
-        String futuresTicker = "MES";
+        // 5) futuresTicker = symbol.getSymbol()
+        //    en Excel ponías “ES” o “MES” directamente en la columna Symbol
+        String futuresTicker = symbol.getSymbol();
 
-        // 6) Devolvemos la fila final
+        // 6) Si no alcanza para 1 contrato, mostramos mensaje de “too high risk”
         if (optimalContracts.compareTo(BigDecimal.ONE) < 0) {
             return new OptimalContractRow(
                     slTicks,
@@ -142,6 +160,9 @@ public class RiskAnalysisService {
                     targetTicks
             );
         }
+
+        // 7) Devolvemos la fila idéntica a la del XLSM:
+        //    (SL_ticks, Symbol, #Contracts, TargetTicks)
         return new OptimalContractRow(
                 slTicks,
                 futuresTicker,
@@ -150,3 +171,5 @@ public class RiskAnalysisService {
         );
     }
 }
+
+
