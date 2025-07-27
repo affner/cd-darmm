@@ -33,13 +33,17 @@ public class CatMarketLoader {
 
             reader.lines()
                     .filter(l -> !l.isBlank() && !l.startsWith("//") && !l.toLowerCase().startsWith("id,"))
-                    .map(l -> l.split(",", 2))
+                    .map(l -> l.split(","))
                     .forEach(cols -> {
                         Long id   = Long.parseLong(cols[0].trim());
                         String name = cols[1].trim();
+                        String c1 = cols.length>2 ? cols[2].trim() : null;
+                        String c2 = cols.length>3 ? cols[3].trim() : null;
                         marketRepo.save(CatMarket.builder()
                                 .id(id)
                                 .description(name)
+                                .color1(c1)
+                                .color2(c2)
                                 .build());
                     });
 

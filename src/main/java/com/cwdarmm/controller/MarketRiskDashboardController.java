@@ -18,6 +18,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.util.Callback;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -69,6 +70,22 @@ public class MarketRiskDashboardController {
     public void initialize() {
         colTrade.setCellValueFactory(new PropertyValueFactory<>("tradeNumber"));
         colWl   .setCellValueFactory(new PropertyValueFactory<>("wl"));
+        colWl.setCellFactory(col -> new TableCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item==null) { setText(null); setStyle(""); }
+                else {
+                    setText(item);
+                    if ("WIN".equalsIgnoreCase(item)) {
+                        setStyle("-fx-background-color:#92D050;");
+                    } else if ("LOSS".equalsIgnoreCase(item)) {
+                        setStyle("-fx-background-color:#FF0000; -fx-text-fill:white;");
+                    } else {
+                        setStyle("");
+                    }
+                }
+            }
+        });
 
         // <<— Aquí sacamos el name manualmente en vez de "account.name" —>>
         colAccount.setCellValueFactory(feat -> {

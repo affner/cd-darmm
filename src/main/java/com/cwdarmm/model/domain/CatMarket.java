@@ -22,4 +22,13 @@ public class CatMarket {
 
     @Column(name = "description", nullable = false, unique = true)
     private String description;
+
+    /** Color principal utilizado para resaltar el mercado en la tabla
+     *  de resultados (formato HEX, por ejemplo "#FFC0CB"). */
+    @Column(name = "color1")
+    private String color1;
+
+    /** Segundo color para resaltar micros o variaciones del mercado. */
+    @Column(name = "color2")
+    private String color2;
 }

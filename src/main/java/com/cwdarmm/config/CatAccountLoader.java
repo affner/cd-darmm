@@ -40,10 +40,14 @@ public class CatAccountLoader {
                         Long id = Long.parseLong(parts[0].trim());
                         String name = parts[1].trim();
                         Double initialSize = Double.parseDouble(parts[2].trim());
+                        String color = parts.length>3 ? parts[3].trim() : null;
+                        String fontColor = parts.length>4 ? parts[4].trim() : null;
                         CatAccount account = CatAccount.builder()
                                 .id(id)
                                 .description(name)
                                 .initialSize(initialSize)
+                                .color(color)
+                                .fontColor(fontColor)
                                 .build();
                         accountRepo.save(account);
                     });
