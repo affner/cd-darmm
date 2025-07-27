@@ -1,5 +1,10 @@
 package com.cwdarmm.controller;
 
+/**
+ * Ventana de consulta de la configuración BD_MARKETS
+ * que permite visualizar todos los contratos cargados.
+ */
+
 import com.cwdarmm.model.domain.*;
 import com.cwdarmm.model.dto.MarketDbRowDTO;
 import com.cwdarmm.service.MarketDbService;

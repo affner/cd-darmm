@@ -1,5 +1,13 @@
 package com.cwdarmm.model.domain;
 
+/**
+ * Sesión de mercado abierta por el usuario.
+ *
+ * <p>Almacena la combinación de cuenta, mercado y feed
+ * seleccionados, además de los porcentajes de riesgo
+ * configurados para la sesión.</p>
+ */
+
 import jakarta.persistence.*;
 import lombok.*;
 

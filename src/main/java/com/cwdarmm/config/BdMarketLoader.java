@@ -1,5 +1,10 @@
 package com.cwdarmm.config;
 
+/**
+ * Carga la tabla <code>bd_markets</code> con la configuración
+ * completa de mercados, contratos y símbolos.
+ */
+
 import com.cwdarmm.model.domain.*;
 import com.cwdarmm.repository.*;
 import jakarta.annotation.PostConstruct;

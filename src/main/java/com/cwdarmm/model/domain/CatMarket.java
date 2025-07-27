@@ -1,5 +1,11 @@
 package com.cwdarmm.model.domain;
 
+/**
+ * Catálogo de mercados disponibles (e.g. S&P 500, NASDAQ...).
+ *
+ * <p>Entidad mapeada a la tabla <code>cat_markets</code>.</p>
+ */
+
 import jakarta.persistence.*;
 import lombok.*;
 

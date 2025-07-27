@@ -1,5 +1,9 @@
 package com.cwdarmm.repository;
 
+/**
+ * Repositorio de sesiones de mercado abiertas por el usuario.
+ */
+
 
 
 import com.cwdarmm.model.domain.OpenMarket;

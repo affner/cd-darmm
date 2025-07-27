@@ -1,5 +1,9 @@
 package com.cwdarmm.config;
 
+/**
+ * Carga los símbolos disponibles desde <code>cat_symbols.csv</code>.
+ */
+
 import com.cwdarmm.model.domain.CatSymbol;
 import com.cwdarmm.repository.CatSymbolRepository;
 import jakarta.annotation.PostConstruct;

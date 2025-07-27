@@ -1,5 +1,10 @@
 package com.cwdarmm.config;
 
+/**
+ * Carga inicial de cuentas desde <code>cat_accounts.csv</code>
+ * cuando la base de datos está vacía.
+ */
+
 import com.cwdarmm.model.domain.CatAccount;
 import com.cwdarmm.repository.CatAccountRepository;
 import jakarta.annotation.PostConstruct;

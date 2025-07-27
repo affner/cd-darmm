@@ -1,5 +1,9 @@
 package com.cwdarmm.repository;
 
+/**
+ * Repositorio para la tabla de configuración detallada <code>bd_markets</code>.
+ */
+
 import com.cwdarmm.model.domain.BdMarket;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

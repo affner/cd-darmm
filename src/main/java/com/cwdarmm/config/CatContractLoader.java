@@ -1,5 +1,10 @@
 package com.cwdarmm.config;
 
+/**
+ * Lee <code>cat_contracts.csv</code> y llena la tabla de contratos
+ * si aún no existen registros.
+ */
+
 import com.cwdarmm.model.domain.CatContract;
 import com.cwdarmm.repository.CatContractRepository;
 import jakarta.annotation.PostConstruct;

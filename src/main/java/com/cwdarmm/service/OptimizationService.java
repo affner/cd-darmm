@@ -1,5 +1,10 @@
 package com.cwdarmm.service;
 
+/**
+ * Generador ficticio de resultados optimizados para la
+ * pestaña RESULTS mientras se implementa la lógica real.
+ */
+
 import com.cwdarmm.model.dto.ResultRowDTO;
 import org.springframework.stereotype.Service;
 

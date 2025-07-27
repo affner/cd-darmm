@@ -1,5 +1,10 @@
 package com.cwdarmm.service;
 
+/**
+ * Genera ficheros CSV con los resultados de riesgo para su
+ * posterior análisis.
+ */
+
 
 import com.cwdarmm.model.dto.RiskResultDTO;
 import lombok.RequiredArgsConstructor;

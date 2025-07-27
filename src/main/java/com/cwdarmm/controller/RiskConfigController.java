@@ -1,5 +1,10 @@
 package com.cwdarmm.controller;
 
+/**
+ * Diálogo para configurar los parámetros de riesgo de un trade
+ * y lanzar los cálculos correspondientes.
+ */
+
 import com.cwdarmm.model.domain.CatAccount;
 import com.cwdarmm.model.domain.CatMarket;
 import com.cwdarmm.model.domain.CatMarketData;

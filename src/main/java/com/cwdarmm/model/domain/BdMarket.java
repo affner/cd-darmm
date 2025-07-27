@@ -1,5 +1,12 @@
 package com.cwdarmm.model.domain;
 
+/**
+ * Configuración detallada de mercado (tabla <code>bd_markets</code>).
+ *
+ * <p>Relaciona cuenta, mercado, feed de datos y parámetros
+ * específicos como tamaño de tick, margen y comisión.</p>
+ */
+
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,5 +1,13 @@
 package com.cwdarmm.model.domain;
 
+/**
+ * Entidad JPA que representa una cuenta de trading.
+ *
+ * <p>Se corresponde con la tabla <code>cat_accounts</code> y
+ * almacena la descripción de la cuenta, su capital inicial y las
+ * relaciones con los feeds de mercado permitidos.</p>
+ */
+
 import jakarta.persistence.*;
 import lombok.*;
 
