@@ -258,6 +258,8 @@ public class RiskConfigController {
                 .lunch(chkLunch.isSelected())
                 .win(chkWin.isSelected())
                 .loss(chkLoss.isSelected())
+                .riskPctA(marketContext != null ? BigDecimal.valueOf(marketContext.getRiskA()) : null)
+                .riskPctB(marketContext != null ? BigDecimal.valueOf(marketContext.getRiskB()) : null)
                 .build();
     }
 }

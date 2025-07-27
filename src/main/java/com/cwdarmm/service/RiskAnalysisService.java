@@ -102,8 +102,9 @@ public class RiskAnalysisService {
                                        int slTicks,
                                        BigDecimal riskPct) {
         // 1) currentRisk = accountSize * riskPct / 100
+        BigDecimal pct = riskPct == null ? BigDecimal.ONE : riskPct;
         BigDecimal currentRisk = in.getAccountSize()
-                .multiply(riskPct)
+                .multiply(pct)
                 .divide(BigDecimal.valueOf(100),
                         8,
                         BigDecimal.ROUND_HALF_UP);
@@ -130,8 +131,8 @@ public class RiskAnalysisService {
                 in.getRiskReward() * slTicks + offset
         );
 
-        // 5) LEEMOS EL SÍMBOLO directo del DTO: ES o MES
-        String futuresTicker = "MES";
+        // 5) Ticker del contrato desde BD_MARKET
+        String futuresTicker = db.getSymbol().get();
 
         // 6) Devolvemos la fila final
         if (optimalContracts.compareTo(BigDecimal.ONE) < 0) {
