@@ -110,8 +110,8 @@ public class RiskAnalysisService {
         int offset = offsetForMarket(in.getMarket());
 
         return Stream.of(
-                        in.isHouse() ? makeRow(in, chosen, in.getTicksSl1(), riskA, contract, symbol, offset) : null,
-                        in.isLunch() ? makeRow(in, chosen, in.getTicksSl2(), riskB, contract, symbol, offset) : null
+                        in.isHouse() ? makeRowRange(in, chosen, riskA, contract, symbol, offset) : null,
+                        in.isLunch() ? makeRowRange(in, chosen, riskB, contract, symbol, offset) : null
                 )
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -122,63 +122,63 @@ public class RiskAnalysisService {
         return "NASDAQ".equalsIgnoreCase(name) ? 2 : 1;
     }
 
-    private OptimalContractRow makeRow(RiskInputDTO in,
-                                       BdMarket bd,
-                                       int   slTicks,
-                                       BigDecimal riskPct,
-                                       CatContract contract,
-                                       CatSymbol   symbol,
-                                       int offset) {
+    private OptimalContractRow makeRowRange(RiskInputDTO in,
+                                            BdMarket bd,
+                                            BigDecimal riskPct,
+                                            CatContract contract,
+                                            CatSymbol   symbol,
+                                            int offset) {
         // --- Mapeo directo de las celdas de Excel al código Java ---
-
         // 1) currentRisk = AccountSize * RiskPct / 100
-        //    en Excel era: =C13 * C5/100    (p.ej 5000 * 2.5% = 125)
         BigDecimal appliedPct = riskPct == null ? DEFAULT_RISK_PCT : riskPct;
         BigDecimal currentRisk = in.getAccountSize()
                 .multiply(appliedPct)
                 .divide(BigDecimal.valueOf(100), 8, BigDecimal.ROUND_HALF_UP);
 
-        // 2) riskPerContract = tickValue * SL_ticks + commission
-        //    en Excel: =G14 * C15 + C16    (tickValue * SL_size + comisión)
         BigDecimal tickValue  = BigDecimal.valueOf(bd.getTickValue());
         BigDecimal commission = BigDecimal.valueOf(bd.getCommission());
-        BigDecimal riskPerContract = tickValue
-                .multiply(BigDecimal.valueOf(slTicks))
-                .add(commission);
 
-        // 3) optimalContracts = FLOOR(currentRisk / riskPerContract)
-        //    en Excel: =TRUNC( currentRisk / riskPerContract , 0 )
-        BigDecimal optimalContracts = BigDecimal.ZERO;
-        if (riskPerContract.compareTo(BigDecimal.ZERO) > 0) {
-            optimalContracts = currentRisk
+        // Rango de SL ticks: usamos los valores ingresados en el formulario
+        int start = in.getTicksSl1();
+        int end   = in.getTicksSl2() >= start ? in.getTicksSl2() : start;
+
+        BigDecimal bestProfit = null;
+        BigDecimal bestContracts = null;
+        int bestSl = start;
+
+        for (int sl = start; sl <= end; sl++) {
+            BigDecimal riskPerContract = tickValue
+                    .multiply(BigDecimal.valueOf(sl))
+                    .add(commission);
+
+            if (riskPerContract.compareTo(BigDecimal.ZERO) <= 0) continue;
+
+            BigDecimal optContracts = currentRisk
                     .divide(riskPerContract, 0, BigDecimal.ROUND_DOWN);
+
+            int targetTicks = (int) Math.round(in.getRiskReward() * sl + offset);
+            BigDecimal potentialProfit = optContracts
+                    .multiply(tickValue.multiply(BigDecimal.valueOf(targetTicks)))
+                    .subtract(commission.multiply(optContracts));
+
+            if (bestProfit == null || potentialProfit.compareTo(bestProfit) > 0) {
+                bestProfit = potentialProfit;
+                bestContracts = optContracts;
+                bestSl = sl;
+            }
         }
 
-        // 4) targetTicks = SL_ticks * RiskReward + offset
-        int targetTicks = (int) Math.round(in.getRiskReward() * slTicks + offset);
-
-        // 5) futuresTicker = symbol.getSymbol()
-        //    en Excel ponías “ES” o “MES” directamente en la columna Symbol
+        int targetTicks = (int) Math.round(in.getRiskReward() * bestSl + offset);
         String futuresTicker = symbol.getSymbol();
 
-        // 6) Si no alcanza para 1 contrato, mostramos mensaje de “too high risk”
-        if (optimalContracts.compareTo(BigDecimal.ONE) < 0) {
-            return new OptimalContractRow(
-                    slTicks,
+        if (bestContracts == null || bestContracts.compareTo(BigDecimal.ONE) < 0) {
+            return new OptimalContractRow(start,
                     "The risk is too high",
                     null,
-                    targetTicks
-            );
+                    (int)Math.round(in.getRiskReward() * start + offset));
         }
 
-        // 7) Devolvemos la fila idéntica a la del XLSM:
-        //    (SL_ticks, Symbol, #Contracts, TargetTicks)
-        return new OptimalContractRow(
-                slTicks,
-                futuresTicker,
-                optimalContracts,
-                targetTicks
-        );
+        return new OptimalContractRow(bestSl, futuresTicker, bestContracts, targetTicks);
     }
 }
 
