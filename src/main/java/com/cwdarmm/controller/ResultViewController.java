@@ -6,7 +6,10 @@ package com.cwdarmm.controller;
  */
 
 import com.cwdarmm.service.OptimizationService;
+import com.cwdarmm.service.MarketDataService;
 import com.cwdarmm.model.dto.ResultRowDTO;
+import com.cwdarmm.model.dto.RiskInputDTO;
+import com.cwdarmm.model.dto.MarketDTO;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -34,8 +37,9 @@ public class ResultViewController {
     @FXML private TableColumn<ResultRowDTO, Double> colLoss;
     @FXML private TableColumn<ResultRowDTO, Double> colRiskPct;
 
-    // Servicio que encapsulará la lógica del “Results” del XLSM
+    // Servicios que encapsulan la lógica de cálculo y el acceso a markets
     private final OptimizationService optimizationService;
+    private final MarketDataService marketDataService;
 
     private Stage dialogStage;
 
@@ -63,11 +67,33 @@ public class ResultViewController {
         this.dialogStage = stage;
     }
 
-    /** Simula el botón CLICK de la hoja RESULTS y pinta filas “óptimas” según lógica. */
+    /**
+     * Ejecuta el cálculo real de la pestaña Results utilizando la primera
+     * configuración guardada en la tabla OpenMarket como ejemplo.
+     */
     @FXML
     private void onClick() {
-        // TODO: reemplazar con: List<ResultRowDTO> rows = optimizationService.calculate(...);
-        List<ResultRowDTO> rows = optimizationService.dummyCalculate();
+        List<MarketDTO> markets = marketDataService.findAll();
+        if (markets.isEmpty()) {
+            new Alert(Alert.AlertType.INFORMATION, "No market sessions configured").showAndWait();
+            return;
+        }
+
+        MarketDTO m = markets.get(0);
+        RiskInputDTO req = RiskInputDTO.builder()
+                .account(m.getAccount())
+                .market(m.getMarket())
+                .marketData(m.getMarketData())
+                .accountSize(m.getAccountSize())
+                .riskReward(2.0)
+                .ticksSl1(10)
+                .ticksSl2(15)
+                .house(true)
+                .firstTrade(true)
+                .riskPctA(java.math.BigDecimal.valueOf(m.getRiskA()))
+                .build();
+
+        List<ResultRowDTO> rows = optimizationService.calculate(req);
         tblResults.setItems(FXCollections.observableArrayList(rows));
     }
 
