@@ -117,29 +117,29 @@ public class RiskConfigController {
 
         // 1) ¿Es este el primer trade?
         Alert firstAlert = new Alert(Alert.AlertType.CONFIRMATION,
-                "¿Es este el primer trade?");
+                "¿Es este el primer trade?", ButtonType.YES, ButtonType.NO);
         firstAlert.initOwner(dialogStage);
         boolean first = firstAlert
                 .showAndWait()
-                .filter(ButtonType.OK::equals)
+                .filter(ButtonType.YES::equals)
                 .isPresent();
 
         // 2) ¿Generar XML?
         Alert xmlAlert = new Alert(Alert.AlertType.CONFIRMATION,
-                "¿Deseas generar el XML de estrategia?");
+                "¿Deseas generar el XML de estrategia?", ButtonType.YES, ButtonType.NO);
         xmlAlert.initOwner(dialogStage);
         boolean doXml = xmlAlert
                 .showAndWait()
-                .filter(ButtonType.OK::equals)
+                .filter(ButtonType.YES::equals)
                 .isPresent();
 
         // 3) ¿Generar AHK?
         Alert ahkAlert = new Alert(Alert.AlertType.CONFIRMATION,
-                "¿Deseas generar el script AutoHotkey?");
+                "¿Deseas generar el script AutoHotkey?", ButtonType.YES, ButtonType.NO);
         ahkAlert.initOwner(dialogStage);
         boolean doAhk = ahkAlert
                 .showAndWait()
-                .filter(ButtonType.OK::equals)
+                .filter(ButtonType.YES::equals)
                 .isPresent();
 
         // 4) Construimos el DTO con el flag
