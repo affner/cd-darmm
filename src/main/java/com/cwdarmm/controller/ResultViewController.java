@@ -13,7 +13,6 @@ import com.cwdarmm.model.dto.MarketDTO;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.util.Callback;
 import javafx.stage.Stage;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
@@ -60,36 +59,7 @@ public class ResultViewController {
         colLoss               .setCellValueFactory(cd -> cd.getValue().getPotentialLoss().asObject());
         colRiskPct            .setCellValueFactory(cd -> cd.getValue().getRiskPercentage().asObject());
 
-        // Estilos de columnas según colores del XLSM
-        colSlSize.setCellFactory(col -> new TableCell<>() {
-            @Override protected void updateItem(Integer item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item==null) { setText(null); setStyle(""); }
-                else {
-                    setText(item.toString());
-                    setStyle("-fx-background-color:#FF0000; -fx-text-fill:white;");
-                }
-            }
-        });
-
-        colTarget.setCellFactory(col -> new TableCell<ResultRowDTO, Integer>() {
-            @Override
-            protected void updateItem(Integer item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                    setStyle("");
-                } else {
-                    setText(item.toString());
-                    setStyle("-fx-background-color:#D3D3D3;");
-                }
-            }
-        });
-
-
-        // 3) Usamos el factory genérico para Symbol y OptimalContract
-        colSymbol          .setCellFactory(coloredFactory());
-        colOptimalContract .setCellFactory(coloredFactory());
+        // Estilos de filas resaltadas
 
         // 4) RowFactory para filas óptimas
         tblResults.setRowFactory(tv -> new TableRow<ResultRowDTO>() {
@@ -109,32 +79,6 @@ public class ResultViewController {
         // 5) Inicialmente vacío
         tblResults.setItems(FXCollections.observableArrayList());
     }
-    /**
-     * Método genérico para crear un cellFactory que colorea según row.getRowColor()
-     */
-    @SuppressWarnings("unchecked")
-    private <T> Callback<TableColumn<ResultRowDTO, T>, TableCell<ResultRowDTO, T>> coloredFactory() {
-        return column -> new TableCell<ResultRowDTO, T>() {
-            @Override
-            protected void updateItem(T item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                    setStyle("");
-                } else {
-                    setText(item.toString());
-                    ResultRowDTO row = getTableView().getItems().get(getIndex());
-                    String color = row.getRowColor().get();
-                    if (color != null && !color.isBlank()) {
-                        setStyle("-fx-background-color:" + color + ";");
-                    } else {
-                        setStyle("");
-                    }
-                }
-            }
-        };
-    }
-
     /**
      * Ejecuta el cálculo real de la pestaña Results utilizando la primera
      * configuración guardada en la tabla OpenMarket como ejemplo.
