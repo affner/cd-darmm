@@ -132,22 +132,19 @@ public class MarketRiskDashboardController {
         Stage dialog = new Stage();
         formCtrl.setDialogStage(dialog);
         formCtrl.setMarketContext(context);
-        formCtrl.setOnCalculated(() -> {
-            RiskInputDTO req = formCtrl.buildRequest();
+        formCtrl.setOnCalculated(req -> {
             List<RiskResultDTO> rows = riskAnalysisService.calculate(req);
-
             var items = tableResults.getItems();
+
             if (req.isFirstTrade()) {
-                // primer trade → borramos todo (o podrías cargar INITIAL por separado)
+                // primer trade: limpiamos y mostramos sólo INITIAL
                 items.clear();
+                items.addAll(rows);
+            } else {
+                // trade posterior: añadimos sólo la fila WIN/LOSS
+                items.addAll(rows);
             }
-            // calculate() devuelve:
-            //  - [INITIAL, OPTIMAL] si isFirstTrade
-            //  - [OPTIMAL] si !isFirstTrade
-            items.addAll(rows);
         });
-
-
         dialog.initOwner(tableResults.getScene().getWindow());
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle(context.getMarket().getDescription() + " – Risk Manager");

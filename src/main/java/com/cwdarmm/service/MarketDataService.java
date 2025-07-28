@@ -75,22 +75,6 @@ public class MarketDataService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Catálogos para UI
-     */
-    public List<CatAccount> listAccounts() {
-        return accountRepo.findAll();
-    }
-
-    public List<CatMarket> listMarkets() {
-        return marketMasterRepo.findAll();
-    }
-
-    public List<CatMarketData> listMarketData() {
-        return feedRepo.findAll();
-    }
-
-
     public void delete(Long id) {
         marketRepo.deleteById(id);
     }

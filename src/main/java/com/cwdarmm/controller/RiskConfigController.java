@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Component
 @RequiredArgsConstructor
@@ -42,24 +43,37 @@ public class RiskConfigController {
     private final ExportService exportService;
     private final SpringFXMLLoader springFXMLLoader;
     private Stage dialogStage;
-    private Runnable onCalculated;
+    private Consumer<RiskInputDTO> onCalculated;
     private MarketDTO marketContext;
     private java.math.BigDecimal pctHouse;
     private java.math.BigDecimal pctLunch;
 
-    @FXML private ComboBox<CatAccount> cbRiskAccount;
-    @FXML private ComboBox<CatMarket>    cbRiskMarket;
-    @FXML private ComboBox<CatMarketData>  cbRiskMarketData;
-    @FXML private TextField tfRiskAccountSize;
-    @FXML private TextField tfRiskReward;
-    @FXML private TextField tfTicksSl1;
-    @FXML private TextField tfTicksSl2;
-    @FXML private TextField tfStopLossSize;
-    @FXML private CheckBox chkHouse;
-    @FXML private CheckBox chkLunch;
-    @FXML private CheckBox chkWin;
-    @FXML private CheckBox chkLoss;
-    @FXML private ImageView imgCoins;
+    @FXML
+    private ComboBox<CatAccount> cbRiskAccount;
+    @FXML
+    private ComboBox<CatMarket> cbRiskMarket;
+    @FXML
+    private ComboBox<CatMarketData> cbRiskMarketData;
+    @FXML
+    private TextField tfRiskAccountSize;
+    @FXML
+    private TextField tfRiskReward;
+    @FXML
+    private TextField tfTicksSl1;
+    @FXML
+    private TextField tfTicksSl2;
+    @FXML
+    private TextField tfStopLossSize;
+    @FXML
+    private CheckBox chkHouse;
+    @FXML
+    private CheckBox chkLunch;
+    @FXML
+    private CheckBox chkWin;
+    @FXML
+    private CheckBox chkLoss;
+    @FXML
+    private ImageView imgCoins;
 
     @FXML
     public void initialize() {
@@ -107,7 +121,14 @@ public class RiskConfigController {
         this.pctLunch = java.math.BigDecimal.valueOf(context.getRiskB());
     }
 
+
+    /** Para compatibilidad con viejos callers que usaban Runnable */
     public void setOnCalculated(Runnable callback) {
+        this.onCalculated = dto -> callback.run();
+    }
+
+    /** La nueva sobrecarga que infiere bien el tipo de req */
+    public void setOnCalculated(Consumer<RiskInputDTO> callback) {
         this.onCalculated = callback;
     }
 
@@ -143,8 +164,11 @@ public class RiskConfigController {
                 .isPresent();
 
         // 4) Construimos el DTO con el flag
-        RiskInputDTO req = buildRequest();
-        req.setFirstTrade(first);
+        // construimos el DTO e incluimos el flag de primer trade
+             RiskInputDTO req = buildRequest()
+                             .toBuilder()
+                             .firstTrade(first)
+                            .build();
 
         // 5) Llamamos al servicio que **YA NO** simula nada, solo construye INITIAL + OPTIMAL
         List<RiskResultDTO> rows = riskAnalysisService.calculate(req);
@@ -167,8 +191,8 @@ public class RiskConfigController {
 
         // 7) Refrescar tabla (tu callback monta estas filas en la TableView)
         if (onCalculated != null){
-            onCalculated.run();
-        }
+                     onCalculated.accept(req);   // ahora le paso el req completo
+                 }
 
         // 8) Mostrar ventana de Optimal Contracts
         List<OptimalContractRow> optimalRows = riskAnalysisService.generateOptimalContracts(req);
@@ -200,44 +224,55 @@ public class RiskConfigController {
 
     // ————— Helpers —————
 
-    private <T> void setupCombo(ComboBox<T> combo, java.util.function.Function<T,String> toString) {
+    private <T> void setupCombo(ComboBox<T> combo, java.util.function.Function<T, String> toString) {
         combo.setCellFactory(lv -> new ListCell<>() {
-            @Override protected void updateItem(T item, boolean empty) {
+            @Override
+            protected void updateItem(T item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty || item==null ? null : toString.apply(item));
+                setText(empty || item == null ? null : toString.apply(item));
             }
         });
         combo.setButtonCell(new ListCell<>() {
-            @Override protected void updateItem(T item, boolean empty) {
+            @Override
+            protected void updateItem(T item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty || item==null ? null : toString.apply(item));
+                setText(empty || item == null ? null : toString.apply(item));
             }
         });
         combo.setConverter(new StringConverter<>() {
-            @Override public String toString(T obj) {
-                return obj==null ? "" : toString.apply(obj);
+            @Override
+            public String toString(T obj) {
+                return obj == null ? "" : toString.apply(obj);
             }
-            @Override public T fromString(String s) { return null; }
+
+            @Override
+            public T fromString(String s) {
+                return null;
+            }
         });
     }
 
     private boolean validate() {
-        if (cbRiskAccount.getValue()==null || cbRiskMarket.getValue()==null || cbRiskMarketData.getValue()==null) {
-            alert("Selecciona Account, Market y Market Data."); return false;
+        if (cbRiskAccount.getValue() == null || cbRiskMarket.getValue() == null || cbRiskMarketData.getValue() == null) {
+            alert("Selecciona Account, Market y Market Data.");
+            return false;
         }
         if (!chkHouse.isSelected() && !chkLunch.isSelected()) {
-            alert("Selecciona al menos HOUSE o LUNCH."); return false;
+            alert("Selecciona al menos HOUSE o LUNCH.");
+            return false;
         }
         if (!chkWin.isSelected() && !chkLoss.isSelected()) {
-            alert("Selecciona al menos WIN o LOSS."); return false;
+            alert("Selecciona al menos WIN o LOSS.");
+            return false;
         }
         try {
-            if (Double.parseDouble(tfRiskAccountSize.getText())<=0 ||
-                    Double.parseDouble(tfRiskReward.getText())<=0 ||
-                    Integer.parseInt(tfTicksSl1.getText())<=0 ||
-                    Integer.parseInt(tfTicksSl2.getText())<=0 ) throw new Exception();
+            if (Double.parseDouble(tfRiskAccountSize.getText()) <= 0 ||
+                    Double.parseDouble(tfRiskReward.getText()) <= 0 ||
+                    Integer.parseInt(tfTicksSl1.getText()) <= 0 ||
+                    Integer.parseInt(tfTicksSl2.getText()) <= 0) throw new Exception();
         } catch (Exception e) {
-            alert("Revisa los valores numéricos."); return false;
+            alert("Revisa los valores numéricos.");
+            return false;
         }
         return true;
     }
@@ -263,7 +298,7 @@ public class RiskConfigController {
                 .riskReward(Double.parseDouble(tfRiskReward.getText()))
                 .ticksSl1(Integer.parseInt(tfTicksSl1.getText()))
                 .ticksSl2(Integer.parseInt(tfTicksSl2.getText()))
-                .stopLossSize(tfStopLossSize.getText().isEmpty()?0:Integer.parseInt(tfStopLossSize.getText()))
+                .stopLossSize(tfStopLossSize.getText().isEmpty() ? 0 : Integer.parseInt(tfStopLossSize.getText()))
                 .house(chkHouse.isSelected())
                 .lunch(chkLunch.isSelected())
                 .win(chkWin.isSelected())
