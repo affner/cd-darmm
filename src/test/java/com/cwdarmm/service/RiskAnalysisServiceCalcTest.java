@@ -59,8 +59,8 @@ public class RiskAnalysisServiceCalcTest {
         RiskResultDTO r = rows.get(0);
         assertEquals(1, r.getTradeNumber());
         assertEquals("WIN", r.getWl());
-        assertEquals(2.0 * 1.05, r.getRiskKellyA());
-        assertEquals(1.5 * 1.05, r.getRiskKellyB());
+        assertEquals(2.0 * 1.05, r.getRiskKellyA(), 1e-9);
+        assertEquals(1.5 * 1.05, r.getRiskKellyB(), 1e-9);
     }
 
     @Test
@@ -79,7 +79,7 @@ public class RiskAnalysisServiceCalcTest {
         RiskResultDTO r = rows.get(0);
         assertEquals(1, r.getTradeNumber());
         assertEquals("LOSS", r.getWl());
-        assertEquals(3.0 * 0.98, r.getRiskKellyA());
-        assertEquals(2.0 * 0.98, r.getRiskKellyB());
+        assertEquals(3.0 * 0.98, r.getRiskKellyA(), 1e-9);
+        assertEquals(2.0 * 0.98, r.getRiskKellyB(), 1e-9);
     }
 }
