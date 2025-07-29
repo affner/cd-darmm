@@ -52,16 +52,16 @@ public class BdMarketLoader {
                             && !l.toLowerCase().startsWith("market_id,"))
                     .map(line -> line.split(",", -1))
                     .forEach(cols -> {
-                        Long marketId      = Long.parseLong(cols[0].trim());
-                        Long accountId     = Long.parseLong(cols[1].trim());
-                        Long marketDataId  = Long.parseLong(cols[2].trim());
-                        Long contractId    = Long.parseLong(cols[3].trim());
-                        Long symbolId      = Long.parseLong(cols[4].trim());
-                        Integer mult       = Integer.parseInt(cols[5].trim());
-                        Double tickSize    = Double.parseDouble(cols[6].trim());
-                        Double tickValue   = Double.parseDouble(cols[7].trim());
-                        Double margin      = Double.parseDouble(cols[8].trim());
-                        Double commission  = Double.parseDouble(cols[9].trim());
+                        Long marketId      = parseLong(cols[0].trim());
+                        Long accountId     = parseLong(cols[1].trim());
+                        Long marketDataId  = parseLong(cols[2].trim());
+                        Long contractId    = parseLong(cols[3].trim());
+                        Long symbolId      = parseLong(cols[4].trim());
+                        Double mult        = parseDoubleOrNull(cols[5].trim());
+                        Double tickSize    = parseDoubleOrNull(cols[6].trim());
+                        Double tickValue   = parseDoubleOrNull(cols[7].trim());
+                        Double margin      = parseDoubleOrNull(cols[8].trim());
+                        Double commission  = parseDoubleOrNull(cols[9].trim());
 
                         var account    = accountRepo.findById(accountId)
                                 .orElseThrow(() -> new IllegalArgumentException("Cuenta no encontrada: " + accountId));
@@ -93,5 +93,13 @@ public class BdMarketLoader {
         } catch (Exception e) {
             throw new RuntimeException("Error cargando bd_markets.csv", e);
         }
+    }
+
+    // helpers
+    private Long parseLong(String s) {
+        return s.isBlank() ? null : Long.parseLong(s.trim());
+    }
+    private Double parseDoubleOrNull(String s) {
+        return s.isBlank() ? null : Double.parseDouble(s.trim());
     }
 }

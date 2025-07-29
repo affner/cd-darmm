@@ -30,7 +30,7 @@ public class MarketDbService {
 
     private MarketDbRowDTO toDto(BdMarket bd) {
         // ——————————————————————————————————————————————————
-        // F O R Z A M O   L A   C A R G A   D E   L O S   A S O C I A D O S
+        // F O R Z A M O S   L A   C A R G A   D E   L O S   A S O C I A D O S
         // para que, una vez que esta tx termine, los proxies ya tengan
         // los campos en memoria y no lancen LazyInitializationException
         bd.getMarket().getDescription();
@@ -41,17 +41,24 @@ public class MarketDbService {
         // ——————————————————————————————————————————————————
 
         // construimos el DTO que contiene los ObjectProperty intactos
+        // valores null → 0.0
+        double multiplier = bd.getMultiplier() != null ? bd.getMultiplier() : 0.0;
+        double tickSize   = bd.getTickSize()   != null ? bd.getTickSize()   : 0.0;
+        double tickValue  = bd.getTickValue()  != null ? bd.getTickValue()  : 0.0;
+        double margin     = bd.getMargin()     != null ? bd.getMargin()     : 0.0;
+        double commission = bd.getCommission() != null ? bd.getCommission() : 0.0;
+
         return MarketDbRowDTO.builder()
                 .future     (bd.getMarket())
                 .account    (bd.getAccount())
                 .marketData (bd.getMarketData())
                 .name       (bd.getContract())
                 .symbol     (bd.getSymbol())
-                .multiplier (bd.getMultiplier())
-                .tickSize   (bd.getTickSize())
-                .tickValue  (bd.getTickValue())
-                .margin     (bd.getMargin())
-                .commission (bd.getCommission())
+                .multiplier (multiplier)
+                .tickSize   (tickSize)
+                .tickValue  (tickValue)
+                .margin     (margin)
+                .commission (commission)
                 .build();
     }
 }

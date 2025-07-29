@@ -38,18 +38,18 @@ public class BdMarket {
     @JoinColumn(name = "cat_symbol_id")
     private CatSymbol symbol;
 
-    @Column(name = "multiplier",    nullable = false)
-    private Integer multiplier;
+    @Column(name = "multiplier")
+    private Double multiplier;
 
-    @Column(name = "tick_size",     nullable = false)
+    @Column(name = "tick_size")
     private Double tickSize;
 
-    @Column(name = "tick_value",    nullable = false)
+    @Column(name = "tick_value")
     private Double tickValue;
 
-    @Column(name = "margin",        nullable = false)
+    @Column(name = "margin")
     private Double margin;
 
-    @Column(name = "commission",    nullable = false)
+    @Column(name = "commission")
     private Double commission;
 }
