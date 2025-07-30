@@ -140,7 +140,12 @@ public class RiskAnalysisService {
 
         // 3) Ajustamos el riesgo con un multiplicador, ver fórmula de
         //    "risk adjustment" en docs/GOOD ARTICLE.pdf
-        BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
+        BigDecimal multiplier;
+        if (in.isFirstTrade()) {
+            multiplier = BigDecimal.ONE; // No se ajusta el riesgo en el primer trade
+        } else {
+            multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
+        }
         BigDecimal riskA = in.getRiskPctA() == null ? null : in.getRiskPctA().multiply(multiplier);
         BigDecimal riskB = in.getRiskPctB() == null ? null : in.getRiskPctB().multiply(multiplier);
 

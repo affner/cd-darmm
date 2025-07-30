@@ -81,4 +81,75 @@ public class RiskAnalysisServiceOptimalTest {
         assertEquals(new BigDecimal("1"), row.getOptimalContract()); // Con $200 y stop pequeño, puedes meter 1 contrato
         assertEquals(3, row.getTargetTicks()); // Si riesgo=1 tick y reward=2, objetivo = 1 + 2 = 3 ticks
     }
+
+    /**
+     * 🔹 Escenario: Primer trade usando el contrato grande (ES).
+     *   Account Size: 200
+     *   Risk %: 2.5
+     *   SL Size: 1 tick
+     *   Target: 3 ticks
+     * Se espera ticker ES y 5 contratos óptimos.
+     */
+    @Test
+    void firstTradeShouldReturnEsWithFiveContracts() {
+        // Configuración ficticia para ES (contrato grande)
+        BdMarket es = BdMarket.builder()
+                .id(2L)
+                .account(CatAccount.builder().id(1L).description("NEXGEN").build())
+                .market(CatMarket.builder().id(2L).description("S&P 500").build())
+                .marketData(CatMarketData.builder().id(3L).description("PROJECTX").build())
+                .contract(CatContract.builder().id(3L).description("E-mini S&P 500").build())
+                .symbol(CatSymbol.builder().id(3L).symbol("ES").build())
+                .multiplier(50.0)
+                .tickSize(0.25)
+                .tickValue(1.0) // Valor simplificado para el test
+                .margin(15400.0)
+                .commission(0.0)
+                .build();
+
+        // También existe el micro, pero el primer trade debe elegir ES
+        BdMarket mes = BdMarket.builder()
+                .id(3L)
+                .account(es.getAccount())
+                .market(es.getMarket())
+                .marketData(es.getMarketData())
+                .contract(CatContract.builder().id(4L).description("Micro").build())
+                .symbol(CatSymbol.builder().id(4L).symbol("MES").build())
+                .multiplier(5.0)
+                .tickSize(0.25)
+                .tickValue(1.0)
+                .margin(1540.0)
+                .commission(0.0)
+                .build();
+
+        BdMarketRepository repo = Mockito.mock(BdMarketRepository.class);
+        Mockito.when(repo.findOneByMktAccMdata(2L,1L,3L))
+                .thenReturn(List.of(es, mes));
+
+        RiskAnalysisService service = new RiskAnalysisService(repo);
+
+        RiskInputDTO req = RiskInputDTO.builder()
+                .account(es.getAccount())
+                .market(es.getMarket())
+                .marketData(es.getMarketData())
+                .accountSize(new BigDecimal("200"))
+                .riskReward(2)
+                .ticksSl1(1)
+                .ticksSl2(1)
+                .house(true)
+                .lunch(false)
+                .win(false)
+                .firstTrade(true)
+                .riskPctA(new BigDecimal("2.5"))
+                .riskPctB(null)
+                .build();
+
+        List<OptimalContractRow> rows = service.generateOptimalContracts(req);
+
+        assertEquals(1, rows.size());
+        OptimalContractRow row = rows.get(0);
+        assertEquals("ES", row.getFuturesTicker());
+        assertEquals(new BigDecimal("5"), row.getOptimalContract());
+        assertEquals(3, row.getTargetTicks());
+    }
 }
