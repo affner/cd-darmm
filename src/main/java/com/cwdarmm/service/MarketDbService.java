@@ -11,6 +11,7 @@ import com.cwdarmm.repository.BdMarketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.cwdarmm.model.dto.RiskInputDTO;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,9 +22,27 @@ import java.util.stream.Collectors;
 public class MarketDbService {
 
     private final BdMarketRepository bdMarketRepo;
+    private RiskInputDTO currentCriteria;
 
     public List<MarketDbRowDTO> listAll() {
         return bdMarketRepo.findAll().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    public void setCurrentCriteria(RiskInputDTO req) {
+        this.currentCriteria = req;
+    }
+
+    public List<MarketDbRowDTO> listByCriteria() {
+        if (currentCriteria == null) {
+            return listAll();
+        }
+        return bdMarketRepo.findOneByMktAccMdata(
+                currentCriteria.getMarket().getId(),
+                currentCriteria.getAccount().getId(),
+                currentCriteria.getMarketData().getId()
+        ).stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }

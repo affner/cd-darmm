@@ -82,7 +82,7 @@ public class BdMarketController {
     }
 
     private void refreshTable() {
-        List<MarketDbRowDTO> rows = marketDbService.listAll();
+        List<MarketDbRowDTO> rows = marketDbService.listByCriteria();
         tblMarketDb.setItems(FXCollections.observableArrayList(rows));
     }
 

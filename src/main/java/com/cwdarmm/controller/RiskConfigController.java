@@ -15,6 +15,7 @@ import com.cwdarmm.model.dto.RiskResultDTO;
 import com.cwdarmm.service.ReferenceDataService;
 import com.cwdarmm.service.ExportService;
 import com.cwdarmm.service.RiskAnalysisService;
+import com.cwdarmm.service.MarketDbService;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -41,6 +42,7 @@ public class RiskConfigController {
     private final RiskAnalysisService riskAnalysisService;
     private final ReferenceDataService referenceDataService;
     private final ExportService exportService;
+    private final MarketDbService marketDbService;
     private final SpringFXMLLoader springFXMLLoader;
     private Stage dialogStage;
     private Consumer<RiskInputDTO> onCalculated;
@@ -169,6 +171,8 @@ public class RiskConfigController {
                              .toBuilder()
                              .firstTrade(first)
                             .build();
+        // Guardamos este criterio para filtrar BD_MARKET
+        marketDbService.setCurrentCriteria(req);
 
         // 5) Llamamos al servicio que **YA NO** simula nada, solo construye INITIAL + OPTIMAL
         List<RiskResultDTO> rows = riskAnalysisService.calculate(req);
