@@ -195,14 +195,14 @@ public class RiskAnalysisService {
 
         // 3) Recorremos cada posible SL buscando la mejor relación
         for (int sl = start; sl <= end; sl++) {
-            // 3.a) Riesgo por contrato = ticks SL * tickValue.
-            //     En trades posteriores sumamos la comisión, pero para el
-            //     primer trade se utiliza la fórmula "pura" del artículo.
+            // 3.a) Riesgo por contrato = ticks SL * tickValue + comisión.
+            //     El VBA original siempre incorpora la comisión al cálculo,
+            //     por lo que la agregamos sin importar si es el primer trade
+            //     o no. Esto evita sobreestimar el número de contratos en los
+            //     escenarios iniciales.
             BigDecimal riskPerContract = tickValue
-                    .multiply(BigDecimal.valueOf(sl));
-            if (!firstTrade) {
-                riskPerContract = riskPerContract.add(commission);
-            }
+                    .multiply(BigDecimal.valueOf(sl))
+                    .add(commission);
 
             if (riskPerContract.compareTo(BigDecimal.ZERO) <= 0) continue;
 
