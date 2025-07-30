@@ -7,7 +7,9 @@ package com.cwdarmm.controller;
 
 import com.cwdarmm.model.domain.*;
 import com.cwdarmm.model.dto.MarketDbRowDTO;
+import com.cwdarmm.model.dto.MarketDTO;
 import com.cwdarmm.service.MarketDbService;
+import com.cwdarmm.service.MarketDataService;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -35,6 +37,7 @@ public class BdMarketController {
     @FXML private TableColumn<MarketDbRowDTO, Double>  colCommission;
 
     private final MarketDbService marketDbService;
+    private final MarketDataService marketDataService;
     private Stage dialogStage;
 
     @FXML
@@ -82,7 +85,24 @@ public class BdMarketController {
     }
 
     private void refreshTable() {
-        List<MarketDbRowDTO> rows = marketDbService.listAll();
+        List<MarketDTO> sessions = marketDataService.findAll();
+        List<MarketDbRowDTO> rows;
+
+        if (sessions.isEmpty()) {
+            rows = marketDbService.listAll();
+        } else {
+            rows = new java.util.ArrayList<>();
+            for (MarketDTO s : sessions) {
+                rows.addAll(
+                        marketDbService.listBy(
+                                s.getMarket().getId(),
+                                s.getAccount().getId(),
+                                s.getMarketData().getId()
+                        )
+                );
+            }
+        }
+
         tblMarketDb.setItems(FXCollections.observableArrayList(rows));
     }
 

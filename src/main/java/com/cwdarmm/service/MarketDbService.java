@@ -28,6 +28,17 @@ public class MarketDbService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Lista las configuraciones de {@code bd_markets} filtrando por
+     * mercado, cuenta y feed de datos.
+     */
+    public List<MarketDbRowDTO> listBy(Long marketId, Long accountId, Long marketDataId) {
+        return bdMarketRepo.findOneByMktAccMdata(marketId, accountId, marketDataId)
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
     private MarketDbRowDTO toDto(BdMarket bd) {
         // ——————————————————————————————————————————————————
         // F O R Z A M O S   L A   C A R G A   D E   L O S   A S O C I A D O S
