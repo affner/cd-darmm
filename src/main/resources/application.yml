@@ -13,3 +13,10 @@ spring:
 
     # Aquí solamente el FQCN, sin citas ni espacios adicionales:
     database-platform: org.hibernate.community.dialect.SQLiteDialect
+
+logging:
+  level:
+    root: INFO            # todo el sistema
+    com.cwdarmm: DEBUG     # tu código en DEBUG
+    org.hibernate.SQL: INFO           # ver SQL ejecutado
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO  # ver parámetros binded
