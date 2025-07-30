@@ -138,19 +138,24 @@ public class RiskAnalysisService {
         CatContract contract = chosen.getContract();
         CatSymbol symbol = chosen.getSymbol();
 
-        // 3) Ajustamos el riesgo con un multiplicador, ver fórmula de
-        //    "risk adjustment" en docs/GOOD ARTICLE.pdf
-        BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
-        BigDecimal riskA = in.getRiskPctA() == null ? null : in.getRiskPctA().multiply(multiplier);
-        BigDecimal riskB = in.getRiskPctB() == null ? null : in.getRiskPctB().multiply(multiplier);
+        // 3) Ajustamos el riesgo con un multiplicador (compounding/drawdown)
+        //    salvo en el primer trade, donde se usa el valor "en crudo" tal
+        //    como se indicó en el formulario.
+        BigDecimal riskA = in.getRiskPctA();
+        BigDecimal riskB = in.getRiskPctB();
+        if (!in.isFirstTrade()) {
+            BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
+            riskA = riskA == null ? null : riskA.multiply(multiplier);
+            riskB = riskB == null ? null : riskB.multiply(multiplier);
+        }
 
         // 4) Determinamos el offset para el cálculo de targets según el mercado
         int offset = offsetForMarket(in.getMarket());
 
         // 5) Generamos una fila para cada "bote" (House/Lunch)
         return Stream.of(
-                        in.isHouse() ? makeRowRange(in, chosen, riskA, contract, symbol, offset) : null,
-                        in.isLunch() ? makeRowRange(in, chosen, riskB, contract, symbol, offset) : null
+                        in.isHouse() ? makeRowRange(in, chosen, riskA, contract, symbol, offset, in.isFirstTrade()) : null,
+                        in.isLunch() ? makeRowRange(in, chosen, riskB, contract, symbol, offset, in.isFirstTrade()) : null
                 )
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -166,7 +171,8 @@ public class RiskAnalysisService {
                                             BigDecimal riskPct,
                                             CatContract contract,
                                             CatSymbol symbol,
-                                            int offset) {
+                                            int offset,
+                                            boolean firstTrade) {
         // --- Mapeo directo de las celdas de Excel al código Java ---
         // 1) Calcular el riesgo disponible para este trade
         //    (sección "Risk per trade" en docs/GOOD ARTICLE.pdf)
@@ -189,10 +195,14 @@ public class RiskAnalysisService {
 
         // 3) Recorremos cada posible SL buscando la mejor relación
         for (int sl = start; sl <= end; sl++) {
-            // 3.a) Riesgo por contrato = ticks SL * tickValue + comisión
+            // 3.a) Riesgo por contrato = ticks SL * tickValue.
+            //     En trades posteriores sumamos la comisión, pero para el
+            //     primer trade se utiliza la fórmula "pura" del artículo.
             BigDecimal riskPerContract = tickValue
-                    .multiply(BigDecimal.valueOf(sl))
-                    .add(commission);
+                    .multiply(BigDecimal.valueOf(sl));
+            if (!firstTrade) {
+                riskPerContract = riskPerContract.add(commission);
+            }
 
             if (riskPerContract.compareTo(BigDecimal.ZERO) <= 0) continue;
 
