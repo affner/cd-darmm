@@ -154,8 +154,8 @@ public class RiskAnalysisService {
 
         // 5) Generamos una fila para cada "bote" (House/Lunch)
         return Stream.of(
-                        in.isHouse() ? makeRowRange(in, chosen, riskA, contract, symbol, offset, in.isFirstTrade()) : null,
-                        in.isLunch() ? makeRowRange(in, chosen, riskB, contract, symbol, offset, in.isFirstTrade()) : null
+                        in.isHouse() ? makeRowRange(in, chosen, riskA, contract, symbol, offset) : null,
+                        in.isLunch() ? makeRowRange(in, chosen, riskB, contract, symbol, offset) : null
                 )
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -171,8 +171,7 @@ public class RiskAnalysisService {
                                             BigDecimal riskPct,
                                             CatContract contract,
                                             CatSymbol symbol,
-                                            int offset,
-                                            boolean firstTrade) {
+                                            int offset) {
         // --- Mapeo directo de las celdas de Excel al código Java ---
         // 1) Calcular el riesgo disponible para este trade
         //    (sección "Risk per trade" en docs/GOOD ARTICLE.pdf)
@@ -195,14 +194,13 @@ public class RiskAnalysisService {
 
         // 3) Recorremos cada posible SL buscando la mejor relación
         for (int sl = start; sl <= end; sl++) {
-            // 3.a) Riesgo por contrato = ticks SL * tickValue.
-            //     En trades posteriores sumamos la comisión, pero para el
-            //     primer trade se utiliza la fórmula "pura" del artículo.
+            // 3.a) Riesgo por contrato = ticks SL * tickValue + comisión.
+            //     En el código original de VBA la comisión siempre se suma,
+            //     por lo que al mantenerla aquí evitamos subestimar el
+            //     capital necesario para el primer trade.
             BigDecimal riskPerContract = tickValue
-                    .multiply(BigDecimal.valueOf(sl));
-            if (!firstTrade) {
-                riskPerContract = riskPerContract.add(commission);
-            }
+                    .multiply(BigDecimal.valueOf(sl))
+                    .add(commission);
 
             if (riskPerContract.compareTo(BigDecimal.ZERO) <= 0) continue;
 
