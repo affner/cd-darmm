@@ -84,7 +84,7 @@ public class BdMarketController {
         refreshTable();
     }
 
-    private void refreshTable() {
+    public void refreshTable() {
         List<MarketDTO> sessions = marketDataService.findAll();
         List<MarketDbRowDTO> rows;
 

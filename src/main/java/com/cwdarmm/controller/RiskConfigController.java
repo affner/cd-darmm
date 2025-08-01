@@ -15,6 +15,7 @@ import com.cwdarmm.model.dto.RiskResultDTO;
 import com.cwdarmm.service.ReferenceDataService;
 import com.cwdarmm.service.ExportService;
 import com.cwdarmm.service.RiskAnalysisService;
+import com.cwdarmm.controller.BdMarketController;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -42,6 +43,7 @@ public class RiskConfigController {
     private final ReferenceDataService referenceDataService;
     private final ExportService exportService;
     private final SpringFXMLLoader springFXMLLoader;
+    private final BdMarketController bdMarketController;
     private Stage dialogStage;
     private Consumer<RiskInputDTO> onCalculated;
     private MarketDTO marketContext;
@@ -197,6 +199,7 @@ public class RiskConfigController {
         // 8) Mostrar ventana de Optimal Contracts
         List<OptimalContractRow> optimalRows = riskAnalysisService.generateOptimalContracts(req);
         showOptimalContracts(optimalRows, req.getAccount().getDescription(), req.getMarket());
+        bdMarketController.refreshTable();
         dialogStage.close();
     }
 
