@@ -7,8 +7,9 @@ package com.cwdarmm.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.TabPane;
-import org.springframework.stereotype.Component;
+import javafx.scene.control.Tab;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
@@ -18,11 +19,21 @@ public class MainWindowController {
     @FXML private javafx.scene.control.Tab tabMarkets;
 
     @FXML private javafx.scene.control.Tab tabResults;
+    @FXML private javafx.scene.control.Tab tabMarketDb;
+
+    private final BdMarketController bdMarketController;
 
     @FXML
     public void initialize() {
         // Seleccionamos la pestaña Markets por defecto al arrancar
         tabPane.getSelectionModel().select(tabMarkets);
+
+        // Al cambiar a la pestaña BD Market recargamos su tabla
+        tabMarketDb.setOnSelectionChanged(ev -> {
+            if (tabMarketDb.isSelected()) {
+                bdMarketController.refreshTable();
+            }
+        });
     }
 
     // Métodos para cambiar de pestaña desde código si los necesitas:
