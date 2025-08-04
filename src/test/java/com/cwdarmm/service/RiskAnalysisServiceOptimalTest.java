@@ -131,4 +131,51 @@ public class RiskAnalysisServiceOptimalTest {
         assertEquals("ES", row.getFuturesTicker());
         assertEquals(new BigDecimal("5"), row.getOptimalContract());
     }
+
+    /**
+     * 🔹 Escenario: en el primer trade sí se suma la comisión al riesgo por contrato.
+     *  Con una cuenta más grande, el cálculo debe devolver 3 contratos óptimos
+     *  cuando el riesgo disponible es $50 y cada contrato arriesga 14.58.
+     */
+    @Test
+    void commissionIncludedOnFirstTrade() {
+        BdMarket es = BdMarket.builder()
+                .id(2L)
+                .account(CatAccount.builder().id(1L).description("NEXGEN").build())
+                .market(CatMarket.builder().id(2L).description("S&P 500").build())
+                .marketData(CatMarketData.builder().id(3L).description("PROJECTX").build())
+                .contract(CatContract.builder().id(3L).description("E-mini S&P 500").build())
+                .symbol(CatSymbol.builder().id(3L).symbol("ES").build())
+                .multiplier(50.0)
+                .tickSize(0.25)
+                .tickValue(12.5)
+                .margin(15400.0)
+                .commission(2.08)
+                .build();
+
+        BdMarketRepository repo = Mockito.mock(BdMarketRepository.class);
+        Mockito.when(repo.findOneByMktAccMdata(2L,1L,3L))
+                .thenReturn(List.of(es));
+
+        RiskAnalysisService service = new RiskAnalysisService(repo);
+
+        RiskInputDTO req = RiskInputDTO.builder()
+                .account(es.getAccount())
+                .market(es.getMarket())
+                .marketData(es.getMarketData())
+                .accountSize(new BigDecimal("2000"))
+                .riskReward(3)
+                .ticksSl1(1)
+                .ticksSl2(1)
+                .house(true)
+                .firstTrade(true)
+                .riskPctA(new BigDecimal("2.5"))
+                .build();
+
+        List<OptimalContractRow> rows = service.generateOptimalContracts(req);
+        assertEquals(1, rows.size());
+
+        OptimalContractRow row = rows.get(0);
+        assertEquals(new BigDecimal("3"), row.getOptimalContract());
+    }
 }
