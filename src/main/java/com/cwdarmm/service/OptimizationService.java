@@ -137,6 +137,13 @@ public class OptimizationService {
                     if (riskPerContract <= 0) continue;
 
                     int optimal = (int) Math.floor(currentRisk / riskPerContract);
+                    if (optimal < 1 && in.isFirstTrade()) {
+                        // En el primer trade el Excel permite operar 5 contratos
+                        // a modo de "bote" inicial aunque el riesgo disponible
+                        // no alcance.
+                        optimal = 5;
+                    }
+
                     double capitalUsed = optimal * riskPerContract;
                     double realRisk = capitalUsed * 100.0 / in.getAccountSize().doubleValue();
                     int target = (int) Math.round(in.getRiskReward() * sl + offset);

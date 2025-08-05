@@ -43,6 +43,14 @@ public class ResultViewController {
 
     private Stage dialogStage;
 
+    /**
+     * Request de entrada con los parámetros que el usuario capturó
+     * en la ventana de configuración de riesgo. Si se establece desde
+     * otro controlador, la pestaña Results utilizará exactamente esos
+     * valores en lugar de los ejemplos fijos que se usaban antes.
+     */
+    private RiskInputDTO request;
+
     @FXML
     public void initialize() {
         // Configuramos cada columna para que lea la propiedad correspondiente de ResultRowDTO
@@ -79,31 +87,45 @@ public class ResultViewController {
         // 5) Inicialmente vacío
         tblResults.setItems(FXCollections.observableArrayList());
     }
+
     /**
-     * Ejecuta el cálculo real de la pestaña Results utilizando la primera
-     * configuración guardada en la tabla OpenMarket como ejemplo.
+     * Permite inyectar desde fuera la configuración con la que
+     * se desea ejecutar la optimización.
+     */
+    public void setRequest(RiskInputDTO request) {
+        this.request = request;
+    }
+    /**
+     * Ejecuta el cálculo real de la pestaña Results.
+     *
+     * <p>Si otro controlador proporcionó un {@link RiskInputDTO} mediante
+     * {@link #setRequest(RiskInputDTO)}, se utilizará esa configuración
+     * exactamente. En caso contrario se intentará usar la primera sesión
+     * almacenada en la base de datos como ejemplo sencillo.</p>
      */
     @FXML
     private void onClick() {
-        List<MarketDTO> markets = marketDataService.findAll();
-        if (markets.isEmpty()) {
-            new Alert(Alert.AlertType.INFORMATION, "No market sessions configured").showAndWait();
-            return;
+        RiskInputDTO req = this.request;
+        if (req == null) {
+            List<MarketDTO> markets = marketDataService.findAll();
+            if (markets.isEmpty()) {
+                new Alert(Alert.AlertType.INFORMATION, "No market sessions configured").showAndWait();
+                return;
+            }
+            MarketDTO m = markets.get(0);
+            req = RiskInputDTO.builder()
+                    .account(m.getAccount())
+                    .market(m.getMarket())
+                    .marketData(m.getMarketData())
+                    .accountSize(m.getAccountSize())
+                    .riskReward(1.0)
+                    .ticksSl1(1)
+                    .ticksSl2(1)
+                    .house(true)
+                    .firstTrade(true)
+                    .riskPctA(java.math.BigDecimal.valueOf(m.getRiskA()))
+                    .build();
         }
-
-        MarketDTO m = markets.get(0);
-        RiskInputDTO req = RiskInputDTO.builder()
-                .account(m.getAccount())
-                .market(m.getMarket())
-                .marketData(m.getMarketData())
-                .accountSize(m.getAccountSize())
-                .riskReward(2.0)
-                .ticksSl1(10)
-                .ticksSl2(15)
-                .house(true)
-                .firstTrade(true)
-                .riskPctA(java.math.BigDecimal.valueOf(m.getRiskA()))
-                .build();
 
         List<ResultRowDTO> rows = optimizationService.calculate(req);
         tblResults.setItems(FXCollections.observableArrayList(rows));
