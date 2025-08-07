@@ -252,11 +252,8 @@ public class RiskAnalysisService {
         int targetTicks = Math.round(bestDecimalTarget.floatValue());
         String futuresTicker = symbol.getSymbol();
         if (bestContracts == null || bestContracts.compareTo(BigDecimal.ONE) < 0) {
-            if (firstTrade) {
-                log.debug("First trade with insufficient risk, using fallback of 5 contracts");
-                return new OptimalContractRow(bestSl, futuresTicker, BigDecimal.valueOf(5), targetTicks);
-            }
-            // riesgo excesivo → mensaje
+            // riesgo excesivo → mensaje (mismo comportamiento que en el XLSM)
+            log.debug("Risk too high at first trade? {}", firstTrade);
             return new OptimalContractRow(
                     start,
                     "The risk is too high",

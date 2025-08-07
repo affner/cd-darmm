@@ -128,7 +128,7 @@ public class RiskAnalysisServiceOptimalTest {
         assertEquals(1, rows.size());
 
         OptimalContractRow row = rows.get(0);
-        assertEquals("ES", row.getFuturesTicker());
-        assertEquals(new BigDecimal("5"), row.getOptimalContract());
+        assertEquals("The risk is too high", row.getFuturesTicker());
+        assertNull(row.getOptimalContract());
     }
 }
