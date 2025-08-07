@@ -89,9 +89,15 @@ public class OptimizationService {
         return rows;
     }
 
+    /** Redondea a un número arbitrario de decimales */
+    private double round(double v, int scale) {
+        double factor = Math.pow(10, scale);
+        return Math.round(v * factor) / factor;
+    }
+
     /** Redondea a 2 decimales */
     private double round(double v) {
-        return Math.round(v * 100.0) / 100.0;
+        return round(v, 2);
     }
 
     /**
@@ -179,7 +185,8 @@ public class OptimizationService {
                         row.getRealRisk().set(round(realRisk));
                         row.getPotentialProfit().set(round(potentialProfit));
                         row.getPotentialLoss().set(round(potentialLoss));
-                        row.getRiskPercentage().set(round(riskPctApplied));
+                        // El formulario original maneja el porcentaje de riesgo con 3 decimales
+                        row.getRiskPercentage().set(round(riskPctApplied, 3));
 
                         // Color a aplicar en columnas ticker/optimal contract
                         String c1 = in.getMarket().getColor1();

@@ -218,6 +218,10 @@ public class RiskAnalysisService {
             // 3.b) Número óptimo de contratos = floor(currentRisk / riskPerContract)
             BigDecimal optContracts = currentRisk
                     .divide(riskPerContract, 0, BigDecimal.ROUND_DOWN);
+            // En el primer trade el VBA permite operar 5 contratos como arranque
+            if (firstTrade && optContracts.compareTo(BigDecimal.ONE) < 0) {
+                optContracts = BigDecimal.valueOf(5);
+            }
             log.debug("optContracts for sl {} = {}", sl, optContracts);
 
             // 3.c) Ticks objetivo en formato decimal.
