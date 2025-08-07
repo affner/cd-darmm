@@ -109,68 +109,86 @@ public class OptimizationService {
 
         List<ResultRowDTO> results = new ArrayList<>();
 
-        // Riesgo inicial ajustado por resultado WIN/LOSS
-        java.math.BigDecimal riskPct = in.isHouse() ? in.getRiskPctA() : in.getRiskPctB();
-        if (riskPct == null) riskPct = java.math.BigDecimal.ZERO;
-        if (!in.isFirstTrade()) {
-            java.math.BigDecimal mult = in.isWin() ? new java.math.BigDecimal("1.05") : new java.math.BigDecimal("0.98");
-            riskPct = riskPct.multiply(mult);
-        }
-        double pctBase = riskPct.doubleValue();
-        double x = pctBase < 1.0 ? 0.03 : 0.1;
-
         int start = in.getTicksSl1();
         int end   = in.getTicksSl2() >= start ? in.getTicksSl2() : start;
 
         int offset = "NASDAQ".equalsIgnoreCase(in.getMarket().getDescription()) ? 2 : 1;
 
-        for (BdMarket bd : rows) {
-            double tickValue = bd.getTickValue();
-            double commission = bd.getCommission();
-            String symbol = bd.getSymbol().getSymbol();
+        // En el Excel original se calculan los escenarios para cada "bote"
+        // (House y Lunch). En la versión previa sólo se tomaba uno de los
+        // porcentajes de riesgo, lo que provocaba que los resultados
+        // correspondieran siempre a Kelly A. Aquí construimos una lista con
+        // los porcentajes base activos y calculamos para cada uno.
+        List<java.math.BigDecimal> baseRiskPcts = new ArrayList<>();
+        if (in.isHouse() && in.getRiskPctA() != null) {
+            baseRiskPcts.add(in.getRiskPctA());
+        }
+        if (in.isLunch() && in.getRiskPctB() != null) {
+            baseRiskPcts.add(in.getRiskPctB());
+        }
+        if (baseRiskPcts.isEmpty()) {
+            baseRiskPcts.add(java.math.BigDecimal.ZERO);
+        }
 
-            for (int sl = start; sl <= end; sl++) {
-                for (int k = 0; k < 2; k++) {
-                    double riskPctApplied = pctBase + (x * k);
-                    double currentRisk = in.getAccountSize().doubleValue() * riskPctApplied / 100.0;
-                    double riskPerContract = tickValue * sl + commission;
-                    if (riskPerContract <= 0) continue;
+        for (java.math.BigDecimal basePct : baseRiskPcts) {
+            // Ajuste por compounding según resultado del trade
+            if (!in.isFirstTrade()) {
+                java.math.BigDecimal mult = in.isWin()
+                        ? new java.math.BigDecimal("1.05")
+                        : new java.math.BigDecimal("0.98");
+                basePct = basePct.multiply(mult);
+            }
+            double pctBase = basePct.doubleValue();
+            double x = pctBase < 1.0 ? 0.03 : 0.1;
 
-                    int optimal = (int) Math.floor(currentRisk / riskPerContract);
-                    if (optimal < 1 && in.isFirstTrade()) {
-                        // En el primer trade el Excel permite operar 5 contratos
-                        // a modo de "bote" inicial aunque el riesgo disponible
-                        // no alcance.
-                        optimal = 5;
+            for (BdMarket bd : rows) {
+                double tickValue = bd.getTickValue();
+                double commission = bd.getCommission();
+                String symbol = bd.getSymbol().getSymbol();
+
+                for (int sl = start; sl <= end; sl++) {
+                    for (int k = 0; k < 2; k++) {
+                        double riskPctApplied = pctBase + (x * k);
+                        double currentRisk = in.getAccountSize().doubleValue() * riskPctApplied / 100.0;
+                        double riskPerContract = tickValue * sl + commission;
+                        if (riskPerContract <= 0) continue;
+
+                        int optimal = (int) Math.floor(currentRisk / riskPerContract);
+                        if (optimal < 1 && in.isFirstTrade()) {
+                            // En el primer trade el Excel permite operar 5 contratos
+                            // a modo de "bote" inicial aunque el riesgo disponible
+                            // no alcance.
+                            optimal = 5;
+                        }
+
+                        double capitalUsed = optimal * riskPerContract;
+                        double realRisk = capitalUsed * 100.0 / in.getAccountSize().doubleValue();
+                        int target = (int) Math.round(in.getRiskReward() * sl + offset);
+                        double potentialProfit = (optimal * tickValue * target) - (commission * optimal);
+                        double potentialLoss  = optimal * riskPerContract;
+
+                        ResultRowDTO row = new ResultRowDTO();
+                        row.getAsset().set(in.getMarket().getDescription());
+                        row.getBroker().set(in.getAccount().getDescription());
+                        row.getSymbol().set(symbol);
+                        row.getTarget().set(target);
+                        row.getSlSize().set(sl);
+                        row.getRiskPerContract().set(round(riskPerContract));
+                        row.getOptimalContract().set(optimal);
+                        row.getCapitalUsed().set(round(capitalUsed));
+                        row.getRealRisk().set(round(realRisk));
+                        row.getPotentialProfit().set(round(potentialProfit));
+                        row.getPotentialLoss().set(round(potentialLoss));
+                        row.getRiskPercentage().set(round(riskPctApplied));
+
+                        // Color a aplicar en columnas ticker/optimal contract
+                        String c1 = in.getMarket().getColor1();
+                        String c2 = in.getMarket().getColor2();
+                        String chosen = (symbol!=null && symbol.startsWith("M")) ? c1 : c2;
+                        row.getRowColor().set(chosen);
+
+                        results.add(row);
                     }
-
-                    double capitalUsed = optimal * riskPerContract;
-                    double realRisk = capitalUsed * 100.0 / in.getAccountSize().doubleValue();
-                    int target = (int) Math.round(in.getRiskReward() * sl + offset);
-                    double potentialProfit = (optimal * tickValue * target) - (commission * optimal);
-                    double potentialLoss  = optimal * riskPerContract;
-
-                    ResultRowDTO row = new ResultRowDTO();
-                    row.getAsset().set(in.getMarket().getDescription());
-                    row.getBroker().set(in.getAccount().getDescription());
-                    row.getSymbol().set(symbol);
-                    row.getTarget().set(target);
-                    row.getSlSize().set(sl);
-                    row.getRiskPerContract().set(round(riskPerContract));
-                    row.getOptimalContract().set(optimal);
-                    row.getCapitalUsed().set(round(capitalUsed));
-                    row.getRealRisk().set(round(realRisk));
-                    row.getPotentialProfit().set(round(potentialProfit));
-                    row.getPotentialLoss().set(round(potentialLoss));
-                    row.getRiskPercentage().set(round(riskPctApplied));
-
-                    // Color a aplicar en columnas ticker/optimal contract
-                    String c1 = in.getMarket().getColor1();
-                    String c2 = in.getMarket().getColor2();
-                    String chosen = (symbol!=null && symbol.startsWith("M")) ? c1 : c2;
-                    row.getRowColor().set(chosen);
-
-                    results.add(row);
                 }
             }
         }
