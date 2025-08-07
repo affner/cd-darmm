@@ -172,8 +172,24 @@ public class RiskConfigController {
                              .firstTrade(first)
                             .build();
 
-        // 5) Llamamos al servicio que **YA NO** simula nada, solo construye INITIAL + OPTIMAL
+        // 5) Llamamos al servicio que calcula el nuevo riesgo y registra el trade
         List<RiskResultDTO> rows = riskAnalysisService.calculate(req);
+
+        // 5.a) Actualizamos los porcentajes de riesgo con los valores devueltos
+        if (!rows.isEmpty()) {
+            RiskResultDTO last = rows.get(rows.size() - 1);
+            if (last.getRiskKellyA() != null) {
+                this.pctHouse = java.math.BigDecimal.valueOf(last.getRiskKellyA());
+            }
+            if (last.getRiskKellyB() != null) {
+                this.pctLunch = java.math.BigDecimal.valueOf(last.getRiskKellyB());
+            }
+            // reconstruimos el request con los porcentajes ajustados
+            req = req.toBuilder()
+                    .riskPctA(pctHouse)
+                    .riskPctB(pctLunch)
+                    .build();
+        }
 
         // 6) Export si el usuario lo pidió
         if (doXml) {
@@ -192,9 +208,9 @@ public class RiskConfigController {
         }
 
         // 7) Refrescar tabla (tu callback monta estas filas en la TableView)
-        if (onCalculated != null){
-                     onCalculated.accept(req);   // ahora le paso el req completo
-                 }
+        if (onCalculated != null) {
+            onCalculated.accept(req);   // ahora le paso el req con riesgo actualizado
+        }
 
         // 8) Mostrar ventana de Optimal Contracts
         List<OptimalContractRow> optimalRows = riskAnalysisService.generateOptimalContracts(req);
