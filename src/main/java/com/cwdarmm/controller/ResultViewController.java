@@ -6,10 +6,8 @@ package com.cwdarmm.controller;
  */
 
 import com.cwdarmm.service.OptimizationService;
-import com.cwdarmm.service.MarketDataService;
 import com.cwdarmm.model.dto.ResultRowDTO;
 import com.cwdarmm.model.dto.RiskInputDTO;
-import com.cwdarmm.model.dto.MarketDTO;
 import com.cwdarmm.service.RiskContext;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -18,7 +16,6 @@ import javafx.stage.Stage;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Component
@@ -41,7 +38,6 @@ public class ResultViewController {
 
     // Servicios que encapsulan la lógica de cálculo y el acceso a markets
     private final OptimizationService optimizationService;
-    private final MarketDataService marketDataService;
     private final RiskContext riskContext;
     private Stage dialogStage;
 
@@ -97,22 +93,19 @@ public class ResultViewController {
      * almacenada en la base de datos como ejemplo sencillo.</p>
      */
     @FXML
-    private void onClick() {
+    public void onClick() {
         // 1) Preferimos el request inyectado
         RiskInputDTO req = this.request;
 
         // 2) Si no llegó, usamos el último guardado por Risk Manager
         if (req == null) req = riskContext.get();
 
-        // 3) Fallback opcional (coherente con tus capturas Excel)
+        // 3) Si seguimos sin configuración, avisamos y salimos para evitar NPE
         if (req == null) {
-            List<MarketDTO> markets = marketDataService.findAll();
-            if (markets.isEmpty()) {
-                new Alert(Alert.AlertType.INFORMATION, "No market sessions configured").showAndWait();
-                return;
-            }
-            MarketDTO m = markets.get(0);
+            new Alert(Alert.AlertType.INFORMATION, "No market sessions configured").showAndWait();
+            return;
         }
+
         List<ResultRowDTO> rows = optimizationService.calculate(req);
         tblResults.setItems(FXCollections.observableArrayList(rows));
     }
