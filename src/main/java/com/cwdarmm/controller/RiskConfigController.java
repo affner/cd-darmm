@@ -15,6 +15,7 @@ import com.cwdarmm.model.dto.RiskResultDTO;
 import com.cwdarmm.service.ReferenceDataService;
 import com.cwdarmm.service.ExportService;
 import com.cwdarmm.service.RiskAnalysisService;
+import com.cwdarmm.service.RiskContext;
 import com.cwdarmm.controller.BdMarketController;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -44,6 +45,7 @@ public class RiskConfigController {
     private final ExportService exportService;
     private final SpringFXMLLoader springFXMLLoader;
     private final BdMarketController bdMarketController;
+    private final RiskContext riskContext;
     private Stage dialogStage;
     private Consumer<RiskInputDTO> onCalculated;
     private MarketDTO marketContext;
@@ -190,6 +192,9 @@ public class RiskConfigController {
                     .riskPctB(pctLunch)
                     .build();
         }
+
+        // Guardamos la configuración para reutilizarla en otras vistas (Results)
+        riskContext.set(req);
 
         // 6) Export si el usuario lo pidió
         if (doXml) {
