@@ -196,8 +196,10 @@ public class RiskAnalysisService {
 
         // 2) Establecemos el rango de SL ticks a evaluar
         //    según lo introducido en la ventana de configuración
+// Sustitúyelo por:
         int start = in.getTicksSl1();
-        int end = Math.max(in.getTicksSl2(), start);
+// El Excel evalúa un único tamaño de stop‑loss; no un rango
+        int end = start;
 
         BigDecimal bestProfit = null;
         BigDecimal bestContracts = null;
