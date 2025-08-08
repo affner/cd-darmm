@@ -1,21 +1,15 @@
 package com.cwdarmm.service;
 
-/**
- * Generador ficticio de resultados optimizados para la
- * pestaña RESULTS mientras se implementa la lógica real.
- */
-
 import com.cwdarmm.model.domain.BdMarket;
 import com.cwdarmm.model.dto.ResultRowDTO;
 import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.repository.BdMarketRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -23,128 +17,113 @@ public class OptimizationService {
 
     private final BdMarketRepository bdMarketRepo;
 
+    /* ===== Utilidades de redondeo idénticas al Excel ===== */
+    private static double r2(double v) {
+        return new BigDecimal(v).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+    }
+    private static double r3(double v) {
+        return new BigDecimal(v).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+    }
 
-    /**
-     * Redondea a un número arbitrario de decimales
-     */
-    private double round(double v, int scale) {
-        double factor = Math.pow(10, scale);
-        return Math.round(v * factor) / factor;
+    private static int offsetFor(String marketDescription) {
+        return "NASDAQ".equalsIgnoreCase(marketDescription) ? 2 : 1; // S&P500 → 1
     }
 
     /**
-     * Redondea a 2 decimales
-     */
-    private double round(double v) {
-        return round(v, 2);
-    }
-
-
-    /**
-     * Calcula la tabla de resultados replicando la lógica del
-     * formulario VBA risk_market.frm.
+     * Calcula la tabla Results replicando las fórmulas del Excel.
+     * - Usa SOLO ticksSl1 (como el libro).
+     * - Target se calcula igual que en Optimal Contracts.
+     * - Resta comisiones en el profit exactamente como en el libro.
      */
     public List<ResultRowDTO> calculate(RiskInputDTO in) {
+        // Traer configuraciones de mercado (tickValue, commission, symbol)
         List<BdMarket> rows = bdMarketRepo.findOneByMktAccMdata(
                 in.getMarket().getId(),
                 in.getAccount().getId(),
-                in.getMarketData().getId());
+                in.getMarketData().getId()
+        );
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("No BD_MARKET rows for selection");
         }
 
         List<ResultRowDTO> results = new ArrayList<>();
 
-        // Excel usa SOLO el primer SL (ticksSl1)
-        // Tomar sólo el primer SL introducido por el usuario
+        // Excel usa solo el primer SL:
         final int sl = in.getTicksSl1();
 
-        // Offset idéntico a Optimal Contracts
-        // Establecer el offset: 1 para S&P 500, 2 para NASDAQ
-        final int offset = "NASDAQ".equalsIgnoreCase(in.getMarket().getDescription()) ? 2 : 1;
+        // Offset por mercado (S&P=1, NASDAQ=2)
+        final int offset = offsetFor(in.getMarket().getDescription());
 
-        // Blindaje por si riskReward llega 0/null → usa 2
-// Leer el Risk to Reward de la interfaz; si es <=0 o menor que 2, usar 2
+        // Risk-to-Reward (si viniera inválido, usar 2 como en tus capturas)
         double rr = in.getRiskReward();
-        if (Double.isNaN(rr) || rr <= 0 || rr < 2) {
-            rr = 2.0;
-        }
+        if (Double.isNaN(rr) || rr <= 0) rr = 2.0;
 
-
-        // Target consistente con Optimal Contracts (ej.: rr=2, sl=1, offset=1 → 3)
+        // Target consistente con la ventana de Optimal Contracts
         final int targetTicks = (int) Math.round(rr * sl + offset);
 
-        // En el Excel original se calculan escenarios para Kelly A/B (+bono x)
-        // Aquí replicamos: base y base+x (x depende del % base)
-        List<java.math.BigDecimal> baseRiskPcts = new ArrayList<>();
+        // Lista de porcentajes base activos (Kelly A/B) + variación "x"
+        List<BigDecimal> baseRiskPcts = new ArrayList<>();
         if (in.isHouse() && in.getRiskPctA() != null) baseRiskPcts.add(in.getRiskPctA());
         if (in.isLunch() && in.getRiskPctB() != null) baseRiskPcts.add(in.getRiskPctB());
-        if (baseRiskPcts.isEmpty()) baseRiskPcts.add(java.math.BigDecimal.ZERO);
+        if (baseRiskPcts.isEmpty()) baseRiskPcts.add(BigDecimal.ZERO);
 
-        for (java.math.BigDecimal basePctOrig : baseRiskPcts) {
-            java.math.BigDecimal basePct = basePctOrig;
+        for (BigDecimal basePctOrig : baseRiskPcts) {
+            BigDecimal basePct = basePctOrig;
 
-            // Ajuste compounding según resultado (igual que en tu RiskAnalysisService)
+            // Compounding/drawdown si NO es primer trade (igual que en Risk Manager)
             if (!in.isFirstTrade()) {
-                java.math.BigDecimal mult = in.isWin()
-                        ? new java.math.BigDecimal("1.05")
-                        : new java.math.BigDecimal("0.98");
+                BigDecimal mult = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
                 basePct = basePct.multiply(mult);
             }
+
             double pctBase = basePct.doubleValue();
-            double x = pctBase < 1.0 ? 0.03 : 0.1; // mismo criterio que ya usabas
+            double x = pctBase < 1.0 ? 0.03 : 0.10; // en tus capturas: 1.500% → 1.575% y 1.675%
 
             for (BdMarket bd : rows) {
-                double tickValue = bd.getTickValue();
-                double commission = bd.getCommission();
-                String symbol = bd.getSymbol().getSymbol();
+                final double tickValue   = bd.getTickValue();
+                final double commission  = bd.getCommission();
+                final String symbol      = bd.getSymbol().getSymbol();
 
-                // k=0 → base, k=1 → base + x
+                // k=0 -> base, k=1 -> base + x
                 for (int k = 0; k < 2; k++) {
-                    double riskPctApplied = pctBase + (x * k);
+                    final double riskPctApplied = pctBase + (x * k);   // 1.575 / 1.675, etc.
+                    final double accountSize    = in.getAccountSize().doubleValue();
+                    final double currentRiskUSD = accountSize * (riskPctApplied / 100.0);
 
-                    // Risk disponible en $
-                    double currentRisk = in.getAccountSize().doubleValue() * (riskPctApplied / 100.0);
+                    // Riesgo por contrato = SL * tickValue + commission
+                    final double riskPerContract = sl * tickValue + commission;
 
-                    // Riesgo por contrato = sl*tickValue + comisión (como en VBA)
-                    double riskPerContract = sl * tickValue + commission;
-                    if (riskPerContract <= 0) continue;
-
-                    // Contratos óptimos = floor(currentRisk / rpc)
-                    int optimal = (int) Math.floor(currentRisk / riskPerContract);
-
-                    // Regla del primer trade (si la usas): arranque con 5
-                    if (optimal < 1 && in.isFirstTrade()) {
-                        optimal = 5;
+                    // Contratos óptimos = floor(currentRiskUSD / riskPerContract)
+                    int optimal = 0;
+                    if (riskPerContract > 0) {
+                        optimal = (int) Math.floor(currentRiskUSD / riskPerContract);
                     }
 
-                    double capitalUsed = optimal * riskPerContract;
-                    double realRiskPct = (in.getAccountSize().doubleValue() == 0) ? 0
-                            : (capitalUsed * 100.0 / in.getAccountSize().doubleValue());
+                    // Capital usado y métricas derivadas
+                    final double capitalUsed   = optimal * riskPerContract;
+                    final double realRiskPct   = accountSize == 0 ? 0.0 : (capitalUsed * 100.0 / accountSize);
+                    final double potentialLoss = capitalUsed;  // = optimal * riskPerContract
+                    final double potentialProfit = (optimal * (tickValue * targetTicks)) - (commission * optimal);
 
-                    //Usa SIEMPRE el targetTicks ya calculado (coincide con Optimal Contracts)
-                    double potentialProfit = (optimal * tickValue * targetTicks) - (commission * optimal);
-                    double potentialLoss = optimal * riskPerContract;
-
+                    // Armar fila de Results
                     ResultRowDTO row = new ResultRowDTO();
                     row.getAsset().set(in.getMarket().getDescription());
                     row.getBroker().set(in.getAccount().getDescription());
                     row.getSymbol().set(symbol);
 
-                    // Aquí es donde antes te salía 2: ahora queda 3
+                    // *** Aquí estaba el problema del "2": ahora forzamos el mismo cálculo que Optimal Contracts ***
                     row.getTarget().set(targetTicks);
 
                     row.getSlSize().set(sl);
-                    row.getRiskPerContract().set(round(riskPerContract));
+                    row.getRiskPerContract().set(r2(riskPerContract));
                     row.getOptimalContract().set(optimal);
-                    row.getCapitalUsed().set(round(capitalUsed));
-                    row.getRealRisk().set(round(realRiskPct));
-                    row.getPotentialProfit().set(round(potentialProfit));
-                    row.getPotentialLoss().set(round(potentialLoss));
-                    // % de riesgo mostrado con 3 decimales (como en tu UI)
-                    row.getRiskPercentage().set(round(riskPctApplied, 3));
+                    row.getCapitalUsed().set(r2(capitalUsed));
+                    row.getRealRisk().set(r3(realRiskPct));                   // 0.995
+                    row.getPotentialProfit().set(r2(potentialProfit));        // 3.01
+                    row.getPotentialLoss().set(r2(potentialLoss));            // 1.99
+                    row.getRiskPercentage().set(r3(riskPctApplied));          // 1.575 / 1.675
 
-                    // Colores por símbolo (micro vs grande)
+                    // Color por símbolo (micro vs grande)
                     String c1 = in.getMarket().getColor1();
                     String c2 = in.getMarket().getColor2();
                     String chosen = (symbol != null && symbol.startsWith("M")) ? c1 : c2;
@@ -155,10 +134,11 @@ public class OptimizationService {
             }
         }
 
-        // Marcar la fila con mayor beneficio potencial
+        // Marcar la fila con mayor Potential Profit (como resalte "óptimo")
         double maxProfit = results.stream()
                 .mapToDouble(r -> r.getPotentialProfit().get())
                 .max().orElse(Double.NaN);
+
         results.forEach(r -> r.getOptimalRow().set(
                 Double.compare(r.getPotentialProfit().get(), maxProfit) == 0));
 

@@ -10,6 +10,7 @@ import com.cwdarmm.service.MarketDataService;
 import com.cwdarmm.model.dto.ResultRowDTO;
 import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.MarketDTO;
+import com.cwdarmm.service.RiskContext;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -17,6 +18,7 @@ import javafx.stage.Stage;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Component
@@ -40,16 +42,11 @@ public class ResultViewController {
     // Servicios que encapsulan la lógica de cálculo y el acceso a markets
     private final OptimizationService optimizationService;
     private final MarketDataService marketDataService;
-
+    private final RiskContext riskContext;
     private Stage dialogStage;
 
-    /**
-     * Request de entrada con los parámetros que el usuario capturó
-     * en la ventana de configuración de riesgo. Si se establece desde
-     * otro controlador, la pestaña Results utilizará exactamente esos
-     * valores en lugar de los ejemplos fijos que se usaban antes.
-     */
     private RiskInputDTO request;
+
 
     @FXML
     public void initialize() {
@@ -70,17 +67,11 @@ public class ResultViewController {
         // Estilos de filas resaltadas
 
         // 4) RowFactory para filas óptimas
-        tblResults.setRowFactory(tv -> new TableRow<ResultRowDTO>() {
-            @Override
-            protected void updateItem(ResultRowDTO item, boolean empty) {
+        tblResults.setRowFactory(tv -> new TableRow<>() {
+            @Override protected void updateItem(ResultRowDTO item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setStyle("");
-                } else if (item.getOptimalRow().get()) {
-                    setStyle("-fx-background-color:yellow;");
-                } else {
-                    setStyle("");
-                }
+                setStyle((empty || item == null) ? "" :
+                        (item.getOptimalRow().get() ? "-fx-background-color: yellow;" : ""));
             }
         });
 
@@ -94,7 +85,9 @@ public class ResultViewController {
      */
     public void setRequest(RiskInputDTO request) {
         this.request = request;
+        riskContext.set(request); // <-- importante
     }
+
     /**
      * Ejecuta el cálculo real de la pestaña Results.
      *
@@ -105,7 +98,13 @@ public class ResultViewController {
      */
     @FXML
     private void onClick() {
+        // 1) Preferimos el request inyectado
         RiskInputDTO req = this.request;
+
+        // 2) Si no llegó, usamos el último guardado por Risk Manager
+        if (req == null) req = riskContext.get();
+
+        // 3) Fallback opcional (coherente con tus capturas Excel)
         if (req == null) {
             List<MarketDTO> markets = marketDataService.findAll();
             if (markets.isEmpty()) {
@@ -113,20 +112,7 @@ public class ResultViewController {
                 return;
             }
             MarketDTO m = markets.get(0);
-            req = RiskInputDTO.builder()
-                    .account(m.getAccount())
-                    .market(m.getMarket())
-                    .marketData(m.getMarketData())
-                    .accountSize(m.getAccountSize())
-                    .riskReward(1.0)
-                    .ticksSl1(1)
-                    .ticksSl2(1)
-                    .house(true)
-                    .firstTrade(true)
-                    .riskPctA(java.math.BigDecimal.valueOf(m.getRiskA()))
-                    .build();
         }
-
         List<ResultRowDTO> rows = optimizationService.calculate(req);
         tblResults.setItems(FXCollections.observableArrayList(rows));
     }
