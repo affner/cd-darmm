@@ -22,6 +22,7 @@ public class MainWindowController {
     @FXML private javafx.scene.control.Tab tabMarketDb;
 
     private final BdMarketController bdMarketController;
+    private final ResultViewController resultViewController;
 
     @FXML
     public void initialize() {
@@ -32,6 +33,13 @@ public class MainWindowController {
         tabMarketDb.setOnSelectionChanged(ev -> {
             if (tabMarketDb.isSelected()) {
                 bdMarketController.refreshTable();
+            }
+        });
+
+        // Al entrar a la pestaña Results recalculamos automáticamente
+        tabResults.setOnSelectionChanged(ev -> {
+            if (tabResults.isSelected()) {
+                resultViewController.onClick();
             }
         });
     }

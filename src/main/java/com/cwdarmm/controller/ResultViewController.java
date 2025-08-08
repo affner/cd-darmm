@@ -6,10 +6,8 @@ package com.cwdarmm.controller;
  */
 
 import com.cwdarmm.service.OptimizationService;
-import com.cwdarmm.service.MarketDataService;
 import com.cwdarmm.model.dto.ResultRowDTO;
 import com.cwdarmm.model.dto.RiskInputDTO;
-import com.cwdarmm.model.dto.MarketDTO;
 import com.cwdarmm.service.RiskContext;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -18,7 +16,6 @@ import javafx.stage.Stage;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Component
@@ -39,9 +36,9 @@ public class ResultViewController {
     @FXML private TableColumn<ResultRowDTO, Double> colLoss;
     @FXML private TableColumn<ResultRowDTO, Double> colRiskPct;
 
-    // Servicios que encapsulan la lógica de cálculo y el acceso a markets
+    // Servicios que encapsulan la lógica de cálculo y el acceso a la última
+    // selección de parámetros (RiskContext)
     private final OptimizationService optimizationService;
-    private final MarketDataService marketDataService;
     private final RiskContext riskContext;
     private Stage dialogStage;
 
@@ -97,22 +94,21 @@ public class ResultViewController {
      * almacenada en la base de datos como ejemplo sencillo.</p>
      */
     @FXML
-    private void onClick() {
-        // 1) Preferimos el request inyectado
+    public void onClick() {
+        // 1) Preferimos el request inyectado directamente por otro controlador
         RiskInputDTO req = this.request;
 
         // 2) Si no llegó, usamos el último guardado por Risk Manager
         if (req == null) req = riskContext.get();
 
-        // 3) Fallback opcional (coherente con tus capturas Excel)
+        // 3) Si sigue sin existir configuración mostramos un mensaje y salimos
         if (req == null) {
-            List<MarketDTO> markets = marketDataService.findAll();
-            if (markets.isEmpty()) {
-                new Alert(Alert.AlertType.INFORMATION, "No market sessions configured").showAndWait();
-                return;
-            }
-            MarketDTO m = markets.get(0);
+            new Alert(Alert.AlertType.INFORMATION,
+                    "No risk session configured").showAndWait();
+            return;
         }
+
+        // 4) Calcular y poblar la tabla
         List<ResultRowDTO> rows = optimizationService.calculate(req);
         tblResults.setItems(FXCollections.observableArrayList(rows));
     }

@@ -31,7 +31,7 @@
     </TableView>
 
     <HBox spacing="8" alignment="CENTER_RIGHT">
-        <Button text="Click" onAction="#onClick"/>
+        <Button text="Recalculate" onAction="#onClick"/>
         <Button text="Close" onAction="#onClose"/>
     </HBox>
 </VBox>
