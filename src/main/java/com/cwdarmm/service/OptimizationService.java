@@ -56,19 +56,20 @@ public class OptimizationService {
         List<ResultRowDTO> results = new ArrayList<>();
 
         // Excel usa SOLO el primer SL (ticksSl1)
+        // Tomar sólo el primer SL introducido por el usuario
         final int sl = in.getTicksSl1();
 
         // Offset idéntico a Optimal Contracts
+        // Establecer el offset: 1 para S&P 500, 2 para NASDAQ
         final int offset = "NASDAQ".equalsIgnoreCase(in.getMarket().getDescription()) ? 2 : 1;
 
         // Blindaje por si riskReward llega 0/null → usa 2
-        double rr = 2.0;
-        try {
-            // si getRiskReward() es Double/BigDecimal, conviértelo con cuidado
-            rr = in.getRiskReward() > 0 ? in.getRiskReward() : 2.0;
-        } catch (Exception ignore) {
+// Leer el Risk to Reward de la interfaz; si es <=0 o menor que 2, usar 2
+        double rr = in.getRiskReward();
+        if (Double.isNaN(rr) || rr <= 0 || rr < 2) {
             rr = 2.0;
         }
+
 
         // Target consistente con Optimal Contracts (ej.: rr=2, sl=1, offset=1 → 3)
         final int targetTicks = (int) Math.round(rr * sl + offset);
