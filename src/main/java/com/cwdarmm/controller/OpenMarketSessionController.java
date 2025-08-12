@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
  */
 
 import java.math.BigDecimal;
+import java.util.ResourceBundle;
 
 @Component
 @RequiredArgsConstructor
@@ -53,6 +54,7 @@ public class OpenMarketSessionController {
     private TextField tfRiskA;
     @FXML
     private TextField tfRiskB;
+    @FXML private ResourceBundle resources;
 
     @FXML
     public void initialize() {
@@ -172,7 +174,7 @@ public class OpenMarketSessionController {
 
     private boolean validateInputs() {
         if (cbAccount.getValue() == null || cbMarket.getValue() == null || cbMarketData.getValue() == null) {
-            showAlert(Alert.AlertType.WARNING, "Debe seleccionar Account, Market y Market Data.");
+            showAlert(Alert.AlertType.WARNING, resources.getString("alert.openmarket.missing"));
             return false;
         }
         try {
@@ -181,7 +183,7 @@ public class OpenMarketSessionController {
             double b = Double.parseDouble(tfRiskB.getText());
             if (size <= 0 || a <= 0 || b <= 0) throw new NumberFormatException();
         } catch (NumberFormatException ex) {
-            showAlert(Alert.AlertType.WARNING, "Account Size, Risk A y Risk B deben ser números mayores a cero.");
+            showAlert(Alert.AlertType.WARNING, resources.getString("alert.openmarket.number"));
             return false;
         }
         return true;
@@ -190,7 +192,7 @@ public class OpenMarketSessionController {
     private void showAlert(Alert.AlertType type, String message) {
         Alert alert = new Alert(type);
         alert.initOwner(dialogStage);
-        alert.setTitle("Validación");
+        alert.setTitle(resources.getString("alert.validation"));
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();

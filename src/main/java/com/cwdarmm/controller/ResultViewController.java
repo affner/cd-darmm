@@ -16,6 +16,8 @@ import javafx.stage.Stage;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
+import java.util.ResourceBundle;
+
 import java.util.List;
 
 @Component
@@ -41,6 +43,8 @@ public class ResultViewController {
     private final OptimizationService optimizationService;
     private final RiskContext riskContext;
     private Stage dialogStage;
+
+    @FXML private ResourceBundle resources;
 
     private RiskInputDTO request;
 
@@ -104,7 +108,7 @@ public class ResultViewController {
         // 3) Si sigue sin existir configuración mostramos un mensaje y salimos
         if (req == null) {
             new Alert(Alert.AlertType.INFORMATION,
-                    "No risk session configured").showAndWait();
+                    resources.getString("alert.norisk")).showAndWait();
             return;
         }
 

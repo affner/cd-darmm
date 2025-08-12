@@ -16,10 +16,10 @@
     <center>
         <TableView fx:id="tblOptimal">
             <columns>
-                <TableColumn fx:id="colSlSize"   text="SL Size (Ticks)" />
-                <TableColumn fx:id="colTicker"   text="FUTURES TICKER" />
-                <TableColumn fx:id="colOptimal"  text="Optimal Contract" />
-                <TableColumn fx:id="colTarget"   text="Target (Ticks)" />
+                <TableColumn fx:id="colSlSize"   text="%optimal.contracts.slsize" />
+                <TableColumn fx:id="colTicker"   text="%optimal.contracts.ticker" />
+                <TableColumn fx:id="colOptimal"  text="%optimal.contracts.optimal" />
+                <TableColumn fx:id="colTarget"   text="%optimal.contracts.target" />
             </columns>
         </TableView>
     </center>

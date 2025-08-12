@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.function.Consumer;
 
 @Component
@@ -78,7 +79,8 @@ public class RiskConfigController {
     private CheckBox chkLoss;
     @FXML
     private ImageView imgCoins;
-
+    @FXML
+    private ResourceBundle resources;
     @FXML
     public void initialize() {
         // 1) Cargamos cuentas
@@ -214,14 +216,14 @@ public class RiskConfigController {
                     marketContext.getMarket().getDescription() + ".xml");
             exportService.exportStrategyToXml(marketContext, rows, xml);
             new Alert(Alert.AlertType.INFORMATION,
-                    "XML generado en:\n" + xml).showAndWait();
+                    resources.getString("alert.xmlgenerated") + "\n" + xml).showAndWait();
         }
         if (doAhk) {
             Path ahk = Path.of(System.getProperty("user.home"),
                     marketContext.getMarket().getDescription() + ".ahk");
             exportService.exportStrategyToAhk(marketContext, rows, ahk);
             new Alert(Alert.AlertType.INFORMATION,
-                    "AHK generado en:\n" + ahk).showAndWait();
+                    resources.getString("alert.ahkgenerated") + "\n" + ahk).showAndWait();
         }
 
         // 7) Refrescar tabla (tu callback monta estas filas en la TableView)
@@ -248,7 +250,7 @@ public class RiskConfigController {
             popup.initOwner(dialogStage.getOwner());
         }
         popup.initModality(Modality.NONE);
-        popup.setTitle(criteriaAccount + " – Optimal Contracts");
+        popup.setTitle(criteriaAccount + " – " + resources.getString("optimal.contracts.window"));
         popup.setScene(new Scene(loader.getRoot()));
         popup.show();
     }
@@ -290,15 +292,15 @@ public class RiskConfigController {
 
     private boolean validate() {
         if (cbRiskAccount.getValue() == null || cbRiskMarket.getValue() == null || cbRiskMarketData.getValue() == null) {
-            alert("Selecciona Account, Market y Market Data.");
+            alert(resources.getString("alert.select.market"));
             return false;
         }
         if (!chkHouse.isSelected() && !chkLunch.isSelected()) {
-            alert("Selecciona al menos HOUSE o LUNCH.");
+            alert(resources.getString("alert.select.session"));
             return false;
         }
         if (!chkWin.isSelected() && !chkLoss.isSelected()) {
-            alert("Selecciona al menos WIN o LOSS.");
+            alert(resources.getString("alert.select.result"));
             return false;
         }
         try {
@@ -307,7 +309,7 @@ public class RiskConfigController {
                     Integer.parseInt(tfTicksSl1.getText()) <= 0 ||
                     Integer.parseInt(tfTicksSl2.getText()) <= 0) throw new Exception();
         } catch (Exception e) {
-            alert("Revisa los valores numéricos.");
+            alert(resources.getString("alert.check.values"));
             return false;
         }
         return true;
@@ -316,7 +318,7 @@ public class RiskConfigController {
     private void alert(String msg) {
         Alert a = new Alert(Alert.AlertType.WARNING);
         a.initOwner(dialogStage);
-        a.setTitle("Validación");
+        a.setTitle(resources.getString("alert.validation"));
         a.setHeaderText(null);
         a.setContentText(msg);
         a.showAndWait();

@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.ResourceBundle;
 
 /**
  * Controlador de la vista principal de mercados.
@@ -59,6 +60,7 @@ public class MarketManagerController {
     @FXML
     private TableColumn<MarketDTO, Double> colFinalLunch;
     @FXML private TableColumn<MarketDTO, Void> colActions;
+    @FXML private ResourceBundle resources;
 
 
     private MarketDTO lastSaved;
@@ -126,7 +128,7 @@ public class MarketManagerController {
             Stage openStage = new Stage();
             openStage.initOwner(tableMarkets.getScene().getWindow());
             openStage.initModality(Modality.WINDOW_MODAL);     // WINDOW_MODAL en lugar de APPLICATION_MODAL
-            openStage.setTitle("Open Market");
+            openStage.setTitle(resources.getString("stage.openmarket"));
             openStage.setScene(new Scene(openLoader.getRoot()));
 
             // 2) Configura callback para guardar el DTO y recargar la tabla
@@ -147,7 +149,7 @@ public class MarketManagerController {
                 Stage riskStage = new Stage();
                 riskStage.initOwner(tableMarkets.getScene().getWindow());
                 riskStage.initModality(Modality.NONE);
-                riskStage.setTitle(lastSaved.getMarket().getDescription() + " – Risk Manager");
+                riskStage.setTitle(lastSaved.getMarket().getDescription() + " – " + resources.getString("risk.dashboard.window"));
                 riskStage.setScene(new Scene(riskLoader.getRoot()));
 
                 MarketRiskDashboardController rtc = riskLoader.getController();
@@ -171,7 +173,7 @@ public class MarketManagerController {
             Stage riskStage = new Stage();
             riskStage.initOwner(tableMarkets.getScene().getWindow());
             riskStage.initModality(Modality.NONE);
-            riskStage.setTitle(context.getMarket().getDescription() + " – Risk Manager");
+            riskStage.setTitle(context.getMarket().getDescription() + " – " + resources.getString("risk.dashboard.window"));
             riskStage.setScene(new Scene(riskLoader.getRoot()));
 
             // 2) Pasa el contexto al controller de Risk Table
@@ -222,7 +224,7 @@ public class MarketManagerController {
             Stage dialog = new Stage();
             dialog.initOwner(tableMarkets.getScene().getWindow());
             dialog.initModality(Modality.WINDOW_MODAL);
-            dialog.setTitle("Editar Market");
+            dialog.setTitle(resources.getString("stage.editmarket"));
             dialog.setScene(new Scene(loader.getRoot()));
 
             OpenMarketSessionController omc = loader.getController();
@@ -242,7 +244,7 @@ public class MarketManagerController {
     // Método de borrado con confirmación
     private void onDeleteMarket(MarketDTO dto) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "¿Eliminar este market?", ButtonType.YES, ButtonType.NO);
+                resources.getString("alert.delete.market"), ButtonType.YES, ButtonType.NO);
         Optional<ButtonType> res = confirm.showAndWait();
         if (res.orElse(ButtonType.NO) == ButtonType.YES) {
             marketDataService.delete(dto.getId());  // necesitas este método en tu servicio

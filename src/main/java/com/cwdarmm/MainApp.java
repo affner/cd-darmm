@@ -39,7 +39,7 @@ public class MainApp extends Application {
         Scene scene = new Scene(root);
         scene.getStylesheets().add(getClass().getResource("/styles/styles.css").toExternalForm());
 
-        primaryStage.setTitle("CW-DARMM - Market Manager");
+        primaryStage.setTitle(fxmlLoader.getResources().getString("app.title"));
         primaryStage.setScene(scene);
         primaryStage.show();
     }

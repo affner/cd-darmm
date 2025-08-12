@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.ResourceBundle;
 
 @Component
 @RequiredArgsConstructor
@@ -45,6 +46,7 @@ public class MarketRiskDashboardController {
     @FXML private TableColumn<RiskResultDTO,Double>  colRiskA;
     @FXML private TableColumn<RiskResultDTO,Double>  colRiskB;
     @FXML private Button btnExportCsv;
+    @FXML private ResourceBundle resources;
 
     private final OutputService outputService;
     private final SpringFXMLLoader springFXMLLoader;
@@ -113,10 +115,10 @@ public class MarketRiskDashboardController {
                 var list = tableResults.getItems();
                 Path file = Path.of(System.getProperty("user.home"), "risk-results.csv");
                 outputService.exportRiskResultsToCsv(list, file);
-                new Alert(Alert.AlertType.INFORMATION, "CSV exportado en:\n" + file)
+                new Alert(Alert.AlertType.INFORMATION, resources.getString("alert.csv.exported") + "\n" + file)
                         .showAndWait();
             } catch (IOException e) {
-                new Alert(Alert.AlertType.ERROR, "Error al exportar CSV:\n" + e.getMessage())
+                new Alert(Alert.AlertType.ERROR, resources.getString("alert.csv.error") + "\n" + e.getMessage())
                         .showAndWait();
             }
         });
@@ -147,7 +149,7 @@ public class MarketRiskDashboardController {
         });
         dialog.initOwner(tableResults.getScene().getWindow());
         dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setTitle(context.getMarket().getDescription() + " – Risk Manager");
+        dialog.setTitle(context.getMarket().getDescription() + " – " + resources.getString("risk.dashboard.window"));
         dialog.setScene(new Scene(loader.getRoot()));
         dialog.showAndWait();
     }
