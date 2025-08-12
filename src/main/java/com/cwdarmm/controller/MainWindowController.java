@@ -70,10 +70,12 @@ public class MainWindowController {
     }
 
     private void reload(Locale locale) throws IOException {
+        // Guardamos la escena **antes** de recargar el FXML, porque al cargarse
+        // de nuevo el controlador se reinicia y los nodos todavía no tienen escena.
+        Scene scene = btnLanguage.getScene();
         springFXMLLoader.setLocale(locale);
         FXMLLoader loader = springFXMLLoader.load("/fxml/MainWindow.fxml");
         Parent root = loader.getRoot();
-        Scene scene = btnLanguage.getScene();
         scene.setRoot(root);
         scene.getWindow().setTitle(loader.getResources().getString("app.title"));
     }
