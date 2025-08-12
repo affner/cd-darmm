@@ -11,25 +11,25 @@
         <Insets top="16" right="16" bottom="16" left="16"/>
     </padding>
 
-    <Label text="BD_MARKET" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
+<Label text="%market.db.title" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
 
     <TableView fx:id="tblMarketDb" prefHeight="400">
         <columns>
-            <TableColumn text="Future"        fx:id="colFuture"/>
-            <TableColumn text="Account"       fx:id="colAccount"/>
-            <TableColumn text="Market Data"   fx:id="colMarketData"/>
-            <TableColumn text="Name"          fx:id="colName"/>
-            <TableColumn text="Symbol"        fx:id="colSymbol"/>
-            <TableColumn text="Multiplier"    fx:id="colMultiplier"/>
-            <TableColumn text="Tick Size"     fx:id="colTickSize"/>
-            <TableColumn text="Tick Value"    fx:id="colTickValue"/>
-            <TableColumn text="Margin"        fx:id="colMargin"/>
-            <TableColumn text="Commission"    fx:id="colCommission"/>
+            <TableColumn text="%market.db.future"        fx:id="colFuture"/>
+            <TableColumn text="%market.db.account"       fx:id="colAccount"/>
+            <TableColumn text="%market.db.marketdata"   fx:id="colMarketData"/>
+            <TableColumn text="%market.db.name"          fx:id="colName"/>
+            <TableColumn text="%market.db.symbol"        fx:id="colSymbol"/>
+            <TableColumn text="%market.db.multiplier"    fx:id="colMultiplier"/>
+            <TableColumn text="%market.db.ticksize"     fx:id="colTickSize"/>
+            <TableColumn text="%market.db.tickvalue"    fx:id="colTickValue"/>
+            <TableColumn text="%market.db.margin"        fx:id="colMargin"/>
+            <TableColumn text="%market.db.commission"    fx:id="colCommission"/>
         </columns>
     </TableView>
 
     <HBox spacing="8" alignment="CENTER_RIGHT">
-        <Button text="Refresh"    onAction="#onRefresh"/>
-        <Button text="Close"      onAction="#onClose"/>
+        <Button text="%market.db.refresh"    onAction="#onRefresh"/>
+        <Button text="%market.db.close"      onAction="#onClose"/>
     </HBox>
 </VBox>

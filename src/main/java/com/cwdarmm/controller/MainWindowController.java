@@ -6,10 +6,17 @@ package com.cwdarmm.controller;
  */
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Tab;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.Locale;
 
 @Component
 @RequiredArgsConstructor
@@ -20,9 +27,11 @@ public class MainWindowController {
 
     @FXML private javafx.scene.control.Tab tabResults;
     @FXML private javafx.scene.control.Tab tabMarketDb;
+    @FXML private MenuButton btnLanguage;
 
     private final BdMarketController bdMarketController;
     private final ResultViewController resultViewController;
+    private final SpringFXMLLoader springFXMLLoader;
 
     @FXML
     public void initialize() {
@@ -48,5 +57,24 @@ public class MainWindowController {
 
     public void showResultsTab() {
         tabPane.getSelectionModel().select(tabResults);
+    }
+
+    @FXML
+    private void switchToSpanish() throws IOException {
+        reload(new Locale("es"));
+    }
+
+    @FXML
+    private void switchToEnglish() throws IOException {
+        reload(Locale.ENGLISH);
+    }
+
+    private void reload(Locale locale) throws IOException {
+        springFXMLLoader.setLocale(locale);
+        FXMLLoader loader = springFXMLLoader.load("/fxml/MainWindow.fxml");
+        Parent root = loader.getRoot();
+        Scene scene = btnLanguage.getScene();
+        scene.setRoot(root);
+        scene.getWindow().setTitle(loader.getResources().getString("app.title"));
     }
 }

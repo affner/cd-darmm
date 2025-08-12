@@ -11,27 +11,27 @@
         <Insets top="16" right="16" bottom="16" left="16"/>
     </padding>
 
-    <Label text="Optimization Results" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
+    <Label text="%result.view.title" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
 
     <TableView fx:id="tblResults" prefHeight="400">
         <columns>
-            <TableColumn text="Asset"               fx:id="colAsset"/>
-            <TableColumn text="Broker"              fx:id="colBroker"/>
-            <TableColumn text="Asset Symbol"        fx:id="colSymbol"/>
-            <TableColumn text="Target"              fx:id="colTarget"/>
-            <TableColumn text="SL Size"             fx:id="colSlSize"/>
-            <TableColumn text="Risk/Contract"       fx:id="colRiskPerContract"/>
-            <TableColumn text="Optimal Contract"    fx:id="colOptimalContract"/>
-            <TableColumn text="Total Capital Used"  fx:id="colCapitalUsed"/>
-            <TableColumn text="Real Risk"           fx:id="colRealRisk"/>
-            <TableColumn text="Potential Profit"    fx:id="colProfit"/>
-            <TableColumn text="Potential Loss"      fx:id="colLoss"/>
-            <TableColumn text="Risk Percentage"     fx:id="colRiskPct"/>
+            <TableColumn text="%result.view.asset"               fx:id="colAsset"/>
+            <TableColumn text="%result.view.broker"              fx:id="colBroker"/>
+            <TableColumn text="%result.view.assetsymbol"        fx:id="colSymbol"/>
+            <TableColumn text="%result.view.target"              fx:id="colTarget"/>
+            <TableColumn text="%result.view.slsize"             fx:id="colSlSize"/>
+            <TableColumn text="%result.view.riskpercontract"       fx:id="colRiskPerContract"/>
+            <TableColumn text="%result.view.optimalcontract"    fx:id="colOptimalContract"/>
+            <TableColumn text="%result.view.capitalused"  fx:id="colCapitalUsed"/>
+            <TableColumn text="%result.view.realrisk"           fx:id="colRealRisk"/>
+            <TableColumn text="%result.view.profit"    fx:id="colProfit"/>
+            <TableColumn text="%result.view.loss"      fx:id="colLoss"/>
+            <TableColumn text="%result.view.riskpct"     fx:id="colRiskPct"/>
         </columns>
     </TableView>
 
     <HBox spacing="8" alignment="CENTER_RIGHT">
-        <Button text="Recalculate" onAction="#onClick"/>
-        <Button text="Close" onAction="#onClose"/>
+        <Button text="%result.view.recalculate" onAction="#onClick"/>
+        <Button text="%result.view.close" onAction="#onClose"/>
     </HBox>
 </VBox>

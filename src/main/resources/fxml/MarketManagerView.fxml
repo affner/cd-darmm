@@ -5,8 +5,8 @@
 <BorderPane fx:id="root" xmlns:fx="http://javafx.com/fxml" fx:controller="com.cwdarmm.controller.MarketManagerController">
     <top>
         <ToolBar>
-            <Label text="Markets" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-            <Button text="Open Market" onAction="#onOpenMarket"/>
+            <Label text="%market.manager.header" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            <Button text="%market.manager.open" onAction="#onOpenMarket"/>
         </ToolBar>
     </top>
     <center>
@@ -19,49 +19,49 @@
                     </cellValueFactory>
                 </TableColumn>
 
-                <TableColumn fx:id="colAccount" text="Account">
+                <TableColumn fx:id="colAccount" text="%market.manager.account">
                     <cellValueFactory>
                         <PropertyValueFactory property="account.name"/>
                     </cellValueFactory>
                 </TableColumn>
-                <TableColumn fx:id="colMarket" text="Market">
+                <TableColumn fx:id="colMarket" text="%market.manager.market">
                     <cellValueFactory>
                         <PropertyValueFactory property="market.name"/>
                     </cellValueFactory>
                 </TableColumn>
-                <TableColumn fx:id="colMarketData" text="Market Data">
+                <TableColumn fx:id="colMarketData" text="%market.manager.marketdata">
                     <cellValueFactory>
                         <PropertyValueFactory property="marketData.name"/>
                     </cellValueFactory>
                 </TableColumn>
 
-                <TableColumn fx:id="colSize" text="Account Size" prefWidth="100">
+                <TableColumn fx:id="colSize" text="%market.manager.accountsize" prefWidth="100">
                     <cellValueFactory>
                         <PropertyValueFactory property="accountSize"/>
                     </cellValueFactory>
                 </TableColumn>
 
-                <TableColumn fx:id="colRiskA" text="Risk A">
+                <TableColumn fx:id="colRiskA" text="%market.manager.riska">
                     <cellValueFactory>
                         <PropertyValueFactory property="riskA"/>
                     </cellValueFactory>
                 </TableColumn>
-                <TableColumn fx:id="colRiskB" text="Risk B">
+                <TableColumn fx:id="colRiskB" text="%market.manager.riskb">
                     <cellValueFactory>
                         <PropertyValueFactory property="riskB"/>
                     </cellValueFactory>
                 </TableColumn>
-                <TableColumn fx:id="colFinalHouse" text="Final House">
+                <TableColumn fx:id="colFinalHouse" text="%market.manager.finalhouse">
                     <cellValueFactory>
                         <PropertyValueFactory property="riskFinalHouse"/>
                     </cellValueFactory>
                 </TableColumn>
-                <TableColumn fx:id="colFinalLunch" text="Final Lunch">
+                <TableColumn fx:id="colFinalLunch" text="%market.manager.finallunch">
                     <cellValueFactory>
                         <PropertyValueFactory property="riskFinalLunch"/>
                     </cellValueFactory>
                 </TableColumn>
-                <TableColumn fx:id="colActions" text="Acciones" prefWidth="80"/>
+                <TableColumn fx:id="colActions" text="%market.manager.actions" prefWidth="80"/>
 
             </columns>
         </TableView>

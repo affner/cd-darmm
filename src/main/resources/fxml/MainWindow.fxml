@@ -1,22 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.HBox?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.cwdarmm.controller.MainWindowController">
+    <top>
+        <ToolBar>
+            <Pane fx:id="spacer" HBox.hgrow="ALWAYS"/>
+            <MenuButton fx:id="btnLanguage" text="%button.language">
+                <items>
+                    <MenuItem text="%lang.es" onAction="#switchToSpanish"/>
+                    <MenuItem text="%lang.en" onAction="#switchToEnglish"/>
+                </items>
+            </MenuButton>
+        </ToolBar>
+    </top>
     <center>
         <TabPane fx:id="tabPane">
             <!-- Tab existente de Markets -->
-            <Tab text="Markets" fx:id="tabMarkets">
+            <Tab text="%tab.markets" fx:id="tabMarkets">
                 <fx:include source="MarketManagerView.fxml"/>
             </Tab>
             <!-- NUEVO: Resultados -->
-            <Tab text="Results" fx:id="tabResults">
+            <Tab text="%tab.results" fx:id="tabResults">
                 <fx:include source="ResultView.fxml"/>
             </Tab>
             <!-- NUEVO: BD_Market -->
-            <Tab text="Market DB" fx:id="tabMarketDb">
+            <Tab text="%tab.marketdb" fx:id="tabMarketDb">
                 <fx:include source="MarketDbView.fxml"/>
             </Tab>
         </TabPane>

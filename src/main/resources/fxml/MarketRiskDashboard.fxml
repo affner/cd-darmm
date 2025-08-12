@@ -12,23 +12,23 @@
     <!-- Top: Título y botón Risk Manage -->
     <top>
         <ToolBar>
-            <Label text="Risk Manager: " style="-fx-font-size:16px; -fx-font-weight:bold;"/>
+            <Label text="%risk.dashboard.titleprefix" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
             <Label fx:id="lblContext" />
             <Pane HBox.hgrow="ALWAYS" />
-            <Button text="Risk Manage" onAction="#onRiskManage" />
+            <Button text="%risk.dashboard.manage" onAction="#onRiskManage" />
         </ToolBar>
     </top>
     <!-- Center: TableView de resultados -->
     <center>
         <TableView fx:id="tableResults">
             <columns>
-                <TableColumn fx:id="colTrade" text="# Trade"/>
-                <TableColumn fx:id="colWl"       text="W/L"/>
-                <TableColumn fx:id="colAccount"  text="Account"/>
-                <TableColumn fx:id="colMarketData" text="Market Data"/>
-                <TableColumn fx:id="colAccountSize" text="Account Size"/>
-                <TableColumn fx:id="colRiskA"    text="Risk Kelly A"/>
-                <TableColumn fx:id="colRiskB"    text="Risk Kelly B"/>
+                <TableColumn fx:id="colTrade" text="%risk.dashboard.trade"/>
+                <TableColumn fx:id="colWl"       text="%risk.dashboard.wl"/>
+                <TableColumn fx:id="colAccount"  text="%risk.dashboard.account"/>
+                <TableColumn fx:id="colMarketData" text="%risk.dashboard.marketdata"/>
+                <TableColumn fx:id="colAccountSize" text="%risk.dashboard.accountsize"/>
+                <TableColumn fx:id="colRiskA"    text="%risk.dashboard.riska"/>
+                <TableColumn fx:id="colRiskB"    text="%risk.dashboard.riskb"/>
             </columns>
         </TableView>
     </center>
@@ -38,8 +38,8 @@
             <padding>
                 <Insets top="8" right="8" bottom="8" left="8"/>
             </padding>
-            <Button fx:id="btnExportCsv" text="Export CSV"/>
-            <Button text="Close" onAction="#onClose" />
+            <Button fx:id="btnExportCsv" text="%risk.dashboard.export"/>
+            <Button text="%risk.dashboard.close" onAction="#onClose" />
         </HBox>
     </bottom>
 </BorderPane>
