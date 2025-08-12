@@ -63,5 +63,54 @@ public class OptimizationServiceCalculateTest {
         assertEquals(3, row.getTarget().get()); // 1*1 + offset(2)
         assertEquals(5, row.getOptimalContract().get());
     }
+
+    /**
+     * The Risk Percentage passed to the service already contains the
+     * compounding from the previous trade. The service must not
+     * multiply it again; otherwise the displayed percentage would be
+     * inflated (e.g. 1.754 instead of 1.675).
+     */
+    @Test
+    void riskPercentageDoesNotDoubleCompound() {
+        BdMarket bd = BdMarket.builder()
+                .id(1L)
+                .account(CatAccount.builder().id(1L).description("NEXGEN").build())
+                .market(CatMarket.builder().id(1L).description("NASDAQ").build())
+                .marketData(CatMarketData.builder().id(1L).description("PROJECTX").build())
+                .contract(CatContract.builder().id(1L).description("E-mini NASDAQ").build())
+                .symbol(CatSymbol.builder().id(1L).symbol("NQ").build())
+                .tickValue(5.0)
+                .commission(1.0)
+                .build();
+
+        BdMarketRepository repo = Mockito.mock(BdMarketRepository.class);
+        Mockito.when(repo.findOneByMktAccMdata(1L,1L,1L))
+                .thenReturn(List.of(bd));
+
+        OptimizationService svc = new OptimizationService(repo);
+
+        // riskPctA ya viene con el compounding aplicado (1.575%)
+        RiskInputDTO req = RiskInputDTO.builder()
+                .account(bd.getAccount())
+                .market(bd.getMarket())
+                .marketData(bd.getMarketData())
+                .accountSize(new BigDecimal("10000"))
+                .riskReward(2.0)
+                .ticksSl1(10)
+                .house(true)
+                .firstTrade(false)
+                .win(true) // no debe influir
+                .riskPctA(new BigDecimal("1.575"))
+                .build();
+
+        List<ResultRowDTO> rows = svc.calculate(req);
+        assertEquals(2, rows.size());
+
+        ResultRowDTO base = rows.get(0); // base percentage
+        ResultRowDTO withX = rows.get(1); // base + X
+
+        assertEquals(1.575, base.getRiskPercentage().get(), 1e-3);
+        assertEquals(1.675, withX.getRiskPercentage().get(), 1e-3);
+    }
 }
 

@@ -68,13 +68,12 @@ public class OptimizationService {
         if (baseRiskPcts.isEmpty()) baseRiskPcts.add(BigDecimal.ZERO);
 
         for (BigDecimal basePctOrig : baseRiskPcts) {
+            // Los porcentajes recibidos ya vienen ajustados desde
+            // {@link RiskAnalysisService#calculate}.  No debemos volver
+            // a aplicar aquí el factor de compounding/drawdown, pues
+            // produciría un doble multiplicador y alteraría el
+            // Risk Percentage mostrado en Results.
             BigDecimal basePct = basePctOrig;
-
-            // Compounding/drawdown si NO es primer trade (igual que en Risk Manager)
-            if (!in.isFirstTrade()) {
-                BigDecimal mult = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
-                basePct = basePct.multiply(mult);
-            }
 
             double pctBase = basePct.doubleValue();
             double x = pctBase < 1.0 ? 0.03 : 0.10; // en tus capturas: 1.500% → 1.575% y 1.675%
@@ -97,6 +96,13 @@ public class OptimizationService {
                     int optimal = 0;
                     if (riskPerContract > 0) {
                         optimal = (int) Math.floor(currentRiskUSD / riskPerContract);
+                    }
+                    // Regla especial: en el primer trade el XLSM permite
+                    // operar 5 contratos si la división anterior produce
+                    // cero (riesgo insuficiente). Esta lógica afecta a
+                    // todas las columnas subsiguientes.
+                    if (in.isFirstTrade() && optimal < 1) {
+                        optimal = 5;
                     }
 
                     // Capital usado y métricas derivadas
