@@ -168,11 +168,23 @@ public class RiskConfigController {
                 .isPresent();
 
         // 4) Construimos el DTO con el flag
-        // construimos el DTO e incluimos el flag de primer trade
-             RiskInputDTO req = buildRequest()
-                             .toBuilder()
-                             .firstTrade(first)
-                            .build();
+        //    Excel sobrescribe el tamaño de la cuenta con el valor
+        //    configurado inicialmente cuando es el primer trade
+        //    (risk_market.frm), por lo que replicamos ese comportamiento
+        //    antes de continuar con los cálculos.
+        RiskInputDTO req = buildRequest()
+                .toBuilder()
+                .firstTrade(first)
+                .build();
+
+        if (first) {
+            // Si es el primer trade, usamos el tamaño inicial de la
+            // cuenta asociado a la selección, ignorando lo que haya
+            // introducido el usuario en el formulario.
+            req = req.toBuilder()
+                    .accountSize(BigDecimal.valueOf(req.getAccount().getInitialSize()))
+                    .build();
+        }
 
         // 5) Llamamos al servicio que calcula el nuevo riesgo y registra el trade
         List<RiskResultDTO> rows = riskAnalysisService.calculate(req);
