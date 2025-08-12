@@ -67,15 +67,10 @@ public class OptimizationService {
         if (in.isLunch() && in.getRiskPctB() != null) baseRiskPcts.add(in.getRiskPctB());
         if (baseRiskPcts.isEmpty()) baseRiskPcts.add(BigDecimal.ZERO);
 
-        for (BigDecimal basePctOrig : baseRiskPcts) {
-            BigDecimal basePct = basePctOrig;
-
-            // Compounding/drawdown si NO es primer trade (igual que en Risk Manager)
-            if (!in.isFirstTrade()) {
-                BigDecimal mult = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
-                basePct = basePct.multiply(mult);
-            }
-
+        for (BigDecimal basePct : baseRiskPcts) {
+            // Los porcentajes de riesgo que llegan aquí ya fueron
+            // ajustados por compounding/drawdown en RiskAnalysisService,
+            // por lo que no debemos volver a multiplicarlos.
             double pctBase = basePct.doubleValue();
             double x = pctBase < 1.0 ? 0.03 : 0.10; // en tus capturas: 1.500% → 1.575% y 1.675%
 
@@ -97,6 +92,11 @@ public class OptimizationService {
                     int optimal = 0;
                     if (riskPerContract > 0) {
                         optimal = (int) Math.floor(currentRiskUSD / riskPerContract);
+                    }
+                    // En el primer trade el Excel permite iniciar con 5 contratos
+                    // aunque el cálculo previo arroje menos de 1.
+                    if (in.isFirstTrade() && optimal < 1) {
+                        optimal = 5;
                     }
 
                     // Capital usado y métricas derivadas
