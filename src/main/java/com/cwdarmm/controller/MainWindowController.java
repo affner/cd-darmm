@@ -5,6 +5,7 @@ package com.cwdarmm.controller;
  * "Markets" y "Results".
  */
 
+import com.cwdarmm.config.SpringFXMLLoader;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -77,6 +78,6 @@ public class MainWindowController {
         FXMLLoader loader = springFXMLLoader.load("/fxml/MainWindow.fxml");
         Parent root = loader.getRoot();
         scene.setRoot(root);
-        scene.getWindow().setTitle(loader.getResources().getString("app.title"));
+      //  scene.getWindow().setTitle(loader.getResources().getString("app.title"));
     }
 }
