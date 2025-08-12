@@ -58,6 +58,7 @@ public class ExcelComparisonTest {
 
         List<ResultRowDTO> rows = svc.calculate(req);
         assertEquals(4, rows.size());
+
         // first row correspond to ES riskPct 1.575
         ResultRowDTO row0 = rows.get(0);
         assertEquals("S&P 500", row0.getAsset().get());
@@ -73,5 +74,14 @@ public class ExcelComparisonTest {
         assertEquals(1, row2.getOptimalContract().get());
         assertEquals(1.99, row2.getRiskPerContract().get(), 0.01);
         assertEquals(1.575, row2.getRiskPercentage().get());
+
+        // Solo la fila con mayor Profit y mayor porcentaje de riesgo debe resaltarse
+        long highlighted = rows.stream().filter(r -> r.getOptimalRow().get()).count();
+        assertEquals(1, highlighted);
+        ResultRowDTO highlightedRow = rows.stream()
+                .filter(r -> r.getOptimalRow().get())
+                .findFirst().orElseThrow();
+        assertEquals("MES", highlightedRow.getSymbol().get());
+        assertEquals(1.675, highlightedRow.getRiskPercentage().get());
     }
 }
