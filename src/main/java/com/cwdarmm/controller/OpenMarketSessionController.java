@@ -144,8 +144,8 @@ public class OpenMarketSessionController {
                 .market(cbMarket.getValue())
                 .marketData(cbMarketData.getValue())
                 .accountSize(new BigDecimal(tfAccountSize.getText()))
-                .riskA(Double.parseDouble(tfRiskA.getText()))
-                .riskB(Double.parseDouble(tfRiskB.getText()))
+                .riskA(tfRiskA.getText().isBlank() ? 0d : Double.parseDouble(tfRiskA.getText()))
+                .riskB(tfRiskB.getText().isBlank() ? 0d : Double.parseDouble(tfRiskB.getText()))
                 .build();
         if (existingDto != null) {
             dto.setId(existingDto.getId());
@@ -179,9 +179,15 @@ public class OpenMarketSessionController {
         }
         try {
             double size = Double.parseDouble(tfAccountSize.getText());
-            double a = Double.parseDouble(tfRiskA.getText());
-            double b = Double.parseDouble(tfRiskB.getText());
-            if (size <= 0 || a <= 0 || b <= 0) throw new NumberFormatException();
+            if (size <= 0) throw new NumberFormatException();
+            if (!tfRiskA.getText().isBlank()) {
+                double a = Double.parseDouble(tfRiskA.getText());
+                if (a < 0) throw new NumberFormatException();
+            }
+            if (!tfRiskB.getText().isBlank()) {
+                double b = Double.parseDouble(tfRiskB.getText());
+                if (b < 0) throw new NumberFormatException();
+            }
         } catch (NumberFormatException ex) {
             showAlert(Alert.AlertType.WARNING, resources.getString("alert.openmarket.number"));
             return false;
