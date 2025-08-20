@@ -17,6 +17,7 @@ import com.cwdarmm.service.ExportService;
 import com.cwdarmm.service.RiskAnalysisService;
 import com.cwdarmm.service.RiskContext;
 import com.cwdarmm.controller.BdMarketController;
+import com.cwdarmm.controller.MarketRiskDashboardController;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -52,6 +53,8 @@ public class RiskConfigController {
     private MarketDTO marketContext;
     private java.math.BigDecimal pctHouse;
     private java.math.BigDecimal pctLunch;
+    // Referencia al dashboard para consultar el riesgo acumulado.
+    private MarketRiskDashboardController riskSource;
 
     @FXML
     private ComboBox<CatAccount> cbRiskAccount;
@@ -127,6 +130,15 @@ public class RiskConfigController {
         this.pctLunch = java.math.BigDecimal.valueOf(context.getRiskB());
     }
 
+    /**
+     * Inyectamos el controlador del dashboard para poder recuperar
+     * los porcentajes actuales de riesgo (Kelly A/B) y así encadenar
+     * los cálculos de forma acumulativa como en el XLSM.
+     */
+    public void setRiskSource(MarketRiskDashboardController source) {
+        this.riskSource = source;
+    }
+
 
     /** Para compatibilidad con viejos callers que usaban Runnable */
     public void setOnCalculated(Runnable callback) {
@@ -174,7 +186,7 @@ public class RiskConfigController {
         //    configurado inicialmente cuando es el primer trade
         //    (risk_market.frm), por lo que replicamos ese comportamiento
         //    antes de continuar con los cálculos.
-        RiskInputDTO req = buildRequest()
+        RiskInputDTO req = buildRequest(first)
                 .toBuilder()
                 .firstTrade(first)
                 .build();
@@ -327,7 +339,15 @@ public class RiskConfigController {
     /**
      * Devuelve un RiskInputDTO construido con los valores actuales del formulario
      */
-    public RiskInputDTO buildRequest() {
+    public RiskInputDTO buildRequest(boolean firstTrade) {
+        // Para el primer trade usamos los porcentajes definidos en el contexto; en los
+        // siguientes trades tomamos los porcentajes actuales del dashboard (Kelly
+        // acumulado) para que el servicio siga compounding como en el XLSM.
+        java.math.BigDecimal riskA = firstTrade ? pctHouse :
+                (riskSource == null ? pctHouse : java.math.BigDecimal.valueOf(riskSource.getCurrentRiskA()));
+        java.math.BigDecimal riskB = firstTrade ? pctLunch :
+                (riskSource == null ? pctLunch : java.math.BigDecimal.valueOf(riskSource.getCurrentRiskB()));
+
         return RiskInputDTO.builder()
                 .account(cbRiskAccount.getValue())
                 .market(cbRiskMarket.getValue())
@@ -341,8 +361,8 @@ public class RiskConfigController {
                 .lunch(chkLunch.isSelected())
                 .win(chkWin.isSelected())
                 .loss(chkLoss.isSelected())
-                .riskPctA(pctHouse)
-                .riskPctB(pctLunch)
+                .riskPctA(riskA)
+                .riskPctB(riskB)
                 .build();
     }
 }

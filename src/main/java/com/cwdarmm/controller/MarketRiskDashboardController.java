@@ -52,18 +52,26 @@ public class MarketRiskDashboardController {
     private final SpringFXMLLoader springFXMLLoader;
     private final RiskAnalysisService riskAnalysisService; // inyectado con Spring
     private MarketDTO context;
+    // Porcentajes de riesgo actualizados trade a trade. Se mantienen aquí para
+    // reproducir el comportamiento acumulativo del XLSM (Kelly compounding).
+    private double currentRiskA;
+    private double currentRiskB;
 
     public void setContext(MarketDTO context) {
         this.context = context;
         lblContext.setText(context.getMarket().getDescription());
+        // Valores iniciales del XLSM: los guardamos como punto de partida para
+        // ir aplicando el porcentaje sobre el acumulado de cada trade.
+        currentRiskA = context.getRiskA();
+        currentRiskB = context.getRiskB();
         // inicializar la tabla con el resultado inicial (trade 0):
         var initial = List.of(RiskResultDTO.builder()
                 .tradeNumber(0).wl("INITIAL")
                 .account(context.getAccount())
                 .marketData(context.getMarketData())
                 .accountSize(context.getAccountSize())
-                .riskKellyA(context.getRiskA())
-                .riskKellyB(context.getRiskB())
+                .riskKellyA(currentRiskA)
+                .riskKellyB(currentRiskB)
                 .build());
         tableResults.setItems(FXCollections.observableArrayList(initial));
     }
@@ -134,9 +142,29 @@ public class MarketRiskDashboardController {
         Stage dialog = new Stage();
         formCtrl.setDialogStage(dialog);
         formCtrl.setMarketContext(context);
+        // Pasamos este controlador para que el formulario pueda consultar el
+        // riesgo acumulado antes de lanzar un nuevo cálculo.
+        formCtrl.setRiskSource(this);
         formCtrl.setOnCalculated(req -> {
             List<RiskResultDTO> rows = riskAnalysisService.calculate(req);
             var items = tableResults.getItems();
+
+            if (!rows.isEmpty()) {
+                // La fila WIN/LOSS devuelve el nuevo porcentaje Kelly aplicado
+                // tras el trade; lo guardamos para el siguiente cálculo.
+                RiskResultDTO last = rows.get(rows.size() - 1);
+                if ("WIN".equalsIgnoreCase(last.getWl()) || "LOSS".equalsIgnoreCase(last.getWl())) {
+                    if (last.getRiskKellyA() != null) {
+                        currentRiskA = last.getRiskKellyA();
+                    }
+                    if (last.getRiskKellyB() != null) {
+                        currentRiskB = last.getRiskKellyB();
+                    }
+                    // Persistimos en el contexto para reutilizar al reabrir el diálogo
+                    context.setRiskA(currentRiskA);
+                    context.setRiskB(currentRiskB);
+                }
+            }
 
             if (req.isFirstTrade()) {
                 // primer trade: limpiamos y mostramos sólo INITIAL
@@ -157,5 +185,17 @@ public class MarketRiskDashboardController {
 
     @FXML private void onClose() {
         ((Stage)tableResults.getScene().getWindow()).close();
+    }
+
+    /**
+     * Expuestos para que RiskConfigController pueda consultar el porcentaje
+     * acumulado de riesgo y enviarlo al servicio, replicando la lógica del XLSM.
+     */
+    public double getCurrentRiskA() {
+        return currentRiskA;
+    }
+
+    public double getCurrentRiskB() {
+        return currentRiskB;
     }
 }
