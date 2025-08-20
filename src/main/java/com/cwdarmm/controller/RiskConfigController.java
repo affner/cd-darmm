@@ -19,13 +19,9 @@ import com.cwdarmm.service.RiskContext;
 import com.cwdarmm.controller.BdMarketController;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import com.cwdarmm.config.SpringFXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import lombok.RequiredArgsConstructor;
@@ -44,11 +40,11 @@ public class RiskConfigController {
     private final RiskAnalysisService riskAnalysisService;
     private final ReferenceDataService referenceDataService;
     private final ExportService exportService;
-    private final SpringFXMLLoader springFXMLLoader;
     private final BdMarketController bdMarketController;
     private final RiskContext riskContext;
     private Stage dialogStage;
     private Consumer<RiskInputDTO> onCalculated;
+    private java.util.function.BiConsumer<RiskInputDTO, List<OptimalContractRow>> onOptimalContracts;
     private MarketDTO marketContext;
     private java.math.BigDecimal pctHouse;
     private java.math.BigDecimal pctLunch;
@@ -136,6 +132,10 @@ public class RiskConfigController {
     /** La nueva sobrecarga que infiere bien el tipo de req */
     public void setOnCalculated(Consumer<RiskInputDTO> callback) {
         this.onCalculated = callback;
+    }
+
+    public void setOnOptimalContracts(java.util.function.BiConsumer<RiskInputDTO, List<OptimalContractRow>> handler) {
+        this.onOptimalContracts = handler;
     }
 
     @FXML
@@ -231,28 +231,13 @@ public class RiskConfigController {
             onCalculated.accept(req);   // ahora le paso el req con riesgo actualizado
         }
 
-        // 8) Mostrar ventana de Optimal Contracts
+        // 8) Mostrar ventana de Optimal Contracts a través del handler externo
         List<OptimalContractRow> optimalRows = riskAnalysisService.generateOptimalContracts(req);
-        showOptimalContracts(optimalRows, req.getAccount().getDescription(), req.getMarket());
+        if (onOptimalContracts != null) {
+            onOptimalContracts.accept(req, optimalRows);
+        }
         bdMarketController.refreshTable();
         dialogStage.close();
-    }
-
-    private void showOptimalContracts(List<OptimalContractRow> rows, String criteriaAccount, CatMarket market) throws IOException {
-        FXMLLoader loader = springFXMLLoader.load("/fxml/OptimalContractsView.fxml");
-        OptimalContractsController ctrl = loader.getController();
-        ctrl.setCriteriaAccount(criteriaAccount);
-        ctrl.setMarket(market);
-        ctrl.setItems(rows);
-
-        Stage popup = new Stage();
-        if (dialogStage != null && dialogStage.getOwner() != null) {
-            popup.initOwner(dialogStage.getOwner());
-        }
-        popup.initModality(Modality.NONE);
-        popup.setTitle(criteriaAccount + " – " + resources.getString("optimal.contracts.window"));
-        popup.setScene(new Scene(loader.getRoot()));
-        popup.show();
     }
 
     @FXML

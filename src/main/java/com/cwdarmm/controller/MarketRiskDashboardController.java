@@ -7,10 +7,14 @@ package com.cwdarmm.controller;
 
 import com.cwdarmm.config.SpringFXMLLoader;
 import com.cwdarmm.model.dto.MarketDTO;
+import com.cwdarmm.model.dto.OptimalContractRow;
+import com.cwdarmm.model.dto.ResultRowDTO;
 import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.RiskResultDTO;
 import com.cwdarmm.service.OutputService;
 import com.cwdarmm.service.RiskAnalysisService;
+import com.cwdarmm.service.OptimizationService;
+import com.cwdarmm.controller.OptimalContractsController;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -29,6 +33,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.ResourceBundle;
 
 @Component
@@ -51,6 +57,8 @@ public class MarketRiskDashboardController {
     private final OutputService outputService;
     private final SpringFXMLLoader springFXMLLoader;
     private final RiskAnalysisService riskAnalysisService; // inyectado con Spring
+    private final OptimizationService optimizationService;
+    private final Map<String, Stage> popups = new HashMap<>();
     private MarketDTO context;
 
     public void setContext(MarketDTO context) {
@@ -139,12 +147,38 @@ public class MarketRiskDashboardController {
             var items = tableResults.getItems();
 
             if (req.isFirstTrade()) {
-                // primer trade: limpiamos y mostramos sólo INITIAL
                 items.clear();
                 items.addAll(rows);
             } else {
-                // trade posterior: añadimos sólo la fila WIN/LOSS
-                items.addAll(rows);
+                int lastTrade = items.isEmpty() ? 0 : items.get(items.size()-1).getTradeNumber();
+                BigDecimal prevAcc = items.isEmpty() ? context.getAccountSize() : items.get(items.size()-1).getAccountSize();
+                RiskResultDTO r = rows.get(0);
+                r.setTradeNumber(lastTrade + 1);
+
+                List<ResultRowDTO> resultRows = optimizationService.calculate(req);
+                if (!resultRows.isEmpty()) {
+                    ResultRowDTO or = resultRows.get(0);
+                    BigDecimal risk = BigDecimal.valueOf(or.getPotentialLoss().get());
+                    BigDecimal profit = BigDecimal.valueOf(or.getPotentialProfit().get());
+                    if ("WIN".equalsIgnoreCase(r.getWl())) {
+                        r.setAccountSize(prevAcc.subtract(risk).add(profit));
+                    } else if ("LOSS".equalsIgnoreCase(r.getWl())) {
+                        r.setAccountSize(prevAcc.subtract(risk));
+                    } else {
+                        r.setAccountSize(prevAcc);
+                    }
+                } else {
+                    r.setAccountSize(prevAcc);
+                }
+
+                items.add(r);
+            }
+        });
+        formCtrl.setOnOptimalContracts((req, rows) -> {
+            try {
+                showOptimalContracts(req, rows);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
         dialog.initOwner(tableResults.getScene().getWindow());
@@ -157,5 +191,30 @@ public class MarketRiskDashboardController {
 
     @FXML private void onClose() {
         ((Stage)tableResults.getScene().getWindow()).close();
+    }
+
+    private void showOptimalContracts(RiskInputDTO req, List<OptimalContractRow> rows) throws IOException {
+        String key = req.getAccount().getId() + "-" + req.getMarket().getId() + "-" + req.getStopLossSize();
+        Stage stage = popups.get(key);
+        if (stage != null) {
+            OptimalContractsController ctrl = (OptimalContractsController) stage.getUserData();
+            ctrl.setItems(rows);
+            stage.toFront();
+        } else {
+            FXMLLoader loader = springFXMLLoader.load("/fxml/OptimalContractsView.fxml");
+            OptimalContractsController ctrl = loader.getController();
+            ctrl.setCriteriaAccount(req.getAccount().getDescription());
+            ctrl.setMarket(req.getMarket());
+            ctrl.setItems(rows);
+            Stage popup = new Stage();
+            popup.initOwner(tableResults.getScene().getWindow());
+            popup.initModality(Modality.NONE);
+            popup.setTitle(req.getAccount().getDescription() + " – " + resources.getString("optimal.contracts.window"));
+            popup.setScene(new Scene(loader.getRoot()));
+            popup.setUserData(ctrl);
+            popup.setOnCloseRequest(e -> popups.remove(key));
+            popups.put(key, popup);
+            popup.show();
+        }
     }
 }
