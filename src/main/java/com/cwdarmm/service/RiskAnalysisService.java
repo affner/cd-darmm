@@ -146,16 +146,14 @@ public class RiskAnalysisService {
         CatContract contract = chosen.getContract();
         CatSymbol symbol = chosen.getSymbol();
 
-        // 3) Ajustamos el riesgo con un multiplicador (compounding/drawdown)
-        //    salvo en el primer trade, donde se usa el valor "en crudo" tal
-        //    como se indicó en el formulario.
+        // 3) Usamos los porcentajes de riesgo tal como llegan en la petición.
+        //    Ya vienen ajustados por compounding/drawdown en
+        //    {@link #calculate(RiskInputDTO)}, por lo que aquí
+        //    no debemos volver a aplicar el multiplicador
+        //    (evita que se eleve al cuadrado cuando se genera el
+        //    "Optimal Contracts" tras registrar un trade).
         BigDecimal riskA = in.getRiskPctA();
         BigDecimal riskB = in.getRiskPctB();
-        if (!in.isFirstTrade()) {
-            BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
-            riskA = riskA == null ? null : riskA.multiply(multiplier);
-            riskB = riskB == null ? null : riskB.multiply(multiplier);
-        }
 
         // 4) Determinamos el offset para el cálculo de targets según el mercado
         int offset = offsetForMarket(in.getMarket());

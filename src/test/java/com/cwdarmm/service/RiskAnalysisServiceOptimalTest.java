@@ -178,4 +178,62 @@ public class RiskAnalysisServiceOptimalTest {
         OptimalContractRow row = rows.get(0);
         assertEquals(new BigDecimal("3"), row.getOptimalContract());
     }
+
+    /**
+     * 🔹 Escenario: el porcentaje Kelly B no debe ajustarse dos veces.
+     *  Tras ganar un trade, RiskAnalysisService.calculate ya incrementa
+     *  el riesgo en 5%. Al generar los contratos óptimos, no debe volver
+     *  a multiplicarse, de lo contrario se opera como si el riesgo fuese
+     *  1.65375% en vez de 1.575%.
+     */
+    @Test
+    void kellyBNotCompoundedTwice() {
+        BdMarket bd = BdMarket.builder()
+                .id(1L)
+                .account(CatAccount.builder().id(1L).description("NEXGEN").build())
+                .market(CatMarket.builder().id(2L).description("S&P 500").build())
+                .marketData(CatMarketData.builder().id(3L).description("PROJECTX").build())
+                .contract(CatContract.builder().id(3L).description("E-mini S&P 500").build())
+                .symbol(CatSymbol.builder().id(4L).symbol("MES").build())
+                .tickValue(1.5)
+                .commission(1.7)
+                .build();
+
+        BdMarketRepository repo = Mockito.mock(BdMarketRepository.class);
+        Mockito.when(repo.findOneByMktAccMdata(2L,1L,3L)).thenReturn(List.of(bd));
+
+        RiskAnalysisService service = new RiskAnalysisService(repo);
+
+        // Paso 1: simular la captura de un trade ganado con riesgo 1.5%
+        RiskInputDTO in = RiskInputDTO.builder()
+                .account(bd.getAccount())
+                .market(bd.getMarket())
+                .marketData(bd.getMarketData())
+                .accountSize(new BigDecimal("200"))
+                .riskReward(2)
+                .ticksSl1(1)
+                .ticksSl2(1)
+                .lunch(true)
+                .win(true)
+                .firstTrade(false)
+                .riskPctB(new BigDecimal("1.5"))
+                .build();
+
+        double newRiskB = service.calculate(in).get(0).getRiskKellyB();
+        assertEquals(1.575, newRiskB, 1e-6);
+
+        // Paso 2: generar contratos óptimos con el riesgo ya ajustado
+        RiskInputDTO next = in.toBuilder()
+                .riskPctB(BigDecimal.valueOf(newRiskB))
+                .build();
+
+        List<OptimalContractRow> rows = service.generateOptimalContracts(next);
+        assertEquals(1, rows.size());
+
+        // Con riesgo 1.575% el sistema debe considerar que el riesgo es demasiado alto
+        // para este instrumento (riskPerContract = 3.2 > 3.15), por lo que no permite contratos.
+        OptimalContractRow row = rows.get(0);
+        assertEquals("The risk is too high", row.getFuturesTicker());
+        assertNull(row.getOptimalContract());
+    }
 }
