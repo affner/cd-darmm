@@ -149,7 +149,7 @@ public class MarketManagerController {
                 Stage riskStage = new Stage();
                 riskStage.initOwner(tableMarkets.getScene().getWindow());
                 riskStage.initModality(Modality.NONE);
-                riskStage.setTitle(lastSaved.getMarket().getDescription() + " – " + resources.getString("risk.dashboard.window"));
+                riskStage.setTitle(lastSaved.getAccount().getDescription() + " – " + resources.getString("risk.dashboard.window"));
                 riskStage.setScene(new Scene(riskLoader.getRoot()));
 
                 MarketRiskDashboardController rtc = riskLoader.getController();
@@ -173,7 +173,7 @@ public class MarketManagerController {
             Stage riskStage = new Stage();
             riskStage.initOwner(tableMarkets.getScene().getWindow());
             riskStage.initModality(Modality.NONE);
-            riskStage.setTitle(context.getMarket().getDescription() + " – " + resources.getString("risk.dashboard.window"));
+            riskStage.setTitle(context.getAccount().getDescription() + " – " + resources.getString("risk.dashboard.window"));
             riskStage.setScene(new Scene(riskLoader.getRoot()));
 
             // 2) Pasa el contexto al controller de Risk Table

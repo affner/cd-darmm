@@ -18,6 +18,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
@@ -37,6 +38,7 @@ public class MarketRiskDashboardController {
     @FXML
     private Label lblContext;
     @FXML private TableView<RiskResultDTO> tableResults;
+    @FXML private VBox tablesContainer;
     // columnas:
     @FXML private TableColumn<RiskResultDTO,Integer> colTrade;
     @FXML private TableColumn<RiskResultDTO,String>  colWl;
@@ -52,10 +54,13 @@ public class MarketRiskDashboardController {
     private final SpringFXMLLoader springFXMLLoader;
     private final RiskAnalysisService riskAnalysisService; // inyectado con Spring
     private MarketDTO context;
+    private int tradesCount = 0;
+    private TableView<RiskResultDTO> currentTable;
+    private static final int MAX_TRADES_PER_TABLE = 2;
 
     public void setContext(MarketDTO context) {
         this.context = context;
-        lblContext.setText(context.getMarket().getDescription());
+        lblContext.setText(context.getAccount().getDescription());
         // inicializar la tabla con el resultado inicial (trade 0):
         var initial = List.of(RiskResultDTO.builder()
                 .tradeNumber(0).wl("INITIAL")
@@ -66,6 +71,7 @@ public class MarketRiskDashboardController {
                 .riskKellyB(context.getRiskB())
                 .build());
         tableResults.setItems(FXCollections.observableArrayList(initial));
+        currentTable = tableResults;
     }
 
     @FXML
@@ -110,9 +116,11 @@ public class MarketRiskDashboardController {
         colRiskB       .setCellValueFactory(feat ->
                 new ReadOnlyObjectWrapper<>(feat.getValue().getRiskKellyB()));
 
+        tableResults.setOnMouseClicked(e -> currentTable = tableResults);
+
         btnExportCsv.setOnAction(evt -> {
             try {
-                var list = tableResults.getItems();
+                var list = currentTable.getItems();
                 Path file = Path.of(System.getProperty("user.home"), "risk-results.csv");
                 outputService.exportRiskResultsToCsv(list, file);
                 new Alert(Alert.AlertType.INFORMATION, resources.getString("alert.csv.exported") + "\n" + file)
@@ -136,26 +144,96 @@ public class MarketRiskDashboardController {
         formCtrl.setMarketContext(context);
         formCtrl.setOnCalculated(req -> {
             List<RiskResultDTO> rows = riskAnalysisService.calculate(req);
-            var items = tableResults.getItems();
-
             if (req.isFirstTrade()) {
-                // primer trade: limpiamos y mostramos sólo INITIAL
-                items.clear();
-                items.addAll(rows);
-            } else {
-                // trade posterior: añadimos sólo la fila WIN/LOSS
-                items.addAll(rows);
+                currentTable.getItems().clear();
+            }
+            for (RiskResultDTO row : rows) {
+                if (row.getTradeNumber() == 1) {
+                    tradesCount++;
+                }
+                currentTable.getItems().add(row);
+                if (tradesCount > MAX_TRADES_PER_TABLE ||
+                        (row.getWl() != null && row.getWl().equalsIgnoreCase("WIN"))) {
+                    startNewTable(row);
+                    tradesCount = 0;
+                }
             }
         });
-        dialog.initOwner(tableResults.getScene().getWindow());
+        dialog.initOwner(currentTable.getScene().getWindow());
         dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setTitle(context.getMarket().getDescription() + " – " + resources.getString("risk.dashboard.window"));
+        dialog.setTitle(context.getAccount().getDescription() + " – " + resources.getString("risk.dashboard.window"));
         dialog.setScene(new Scene(loader.getRoot()));
         dialog.showAndWait();
     }
 
 
+    private void startNewTable(RiskResultDTO last) {
+        TableView<RiskResultDTO> tv = createResultTable();
+        tv.setOnMouseClicked(e -> currentTable = tv);
+        tablesContainer.getChildren().add(tv);
+        currentTable = tv;
+        RiskResultDTO init = RiskResultDTO.builder()
+                .tradeNumber(0).wl("INITIAL")
+                .account(last.getAccount())
+                .marketData(last.getMarketData())
+                .accountSize(last.getAccountSize())
+                .riskKellyA(last.getRiskKellyA())
+                .riskKellyB(last.getRiskKellyB())
+                .build();
+        tv.setItems(FXCollections.observableArrayList(init));
+    }
+
+    private TableView<RiskResultDTO> createResultTable() {
+        TableView<RiskResultDTO> tv = new TableView<>();
+
+        TableColumn<RiskResultDTO, Integer> trade = new TableColumn<>(resources.getString("risk.dashboard.trade"));
+        trade.setCellValueFactory(new PropertyValueFactory<>("tradeNumber"));
+
+        TableColumn<RiskResultDTO, String> wl = new TableColumn<>(resources.getString("risk.dashboard.wl"));
+        wl.setCellValueFactory(new PropertyValueFactory<>("wl"));
+        wl.setCellFactory(col -> new TableCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) { setText(null); setStyle(""); }
+                else {
+                    setText(item);
+                    if ("WIN".equalsIgnoreCase(item)) {
+                        setStyle("-fx-background-color:#92D050;");
+                    } else if ("LOSS".equalsIgnoreCase(item)) {
+                        setStyle("-fx-background-color:#FF0000; -fx-text-fill:white;");
+                    } else { setStyle(""); }
+                }
+            }
+        });
+
+        TableColumn<RiskResultDTO, String> acc = new TableColumn<>(resources.getString("risk.dashboard.account"));
+        acc.setCellValueFactory(feat -> {
+            var a = feat.getValue().getAccount();
+            String txt = (a != null ? a.getDescription() : "");
+            return new ReadOnlyStringWrapper(txt);
+        });
+
+        TableColumn<RiskResultDTO, String> market = new TableColumn<>(resources.getString("risk.dashboard.marketdata"));
+        market.setCellValueFactory(feat -> {
+            var fd = feat.getValue().getMarketData();
+            String txt = (fd != null ? fd.getDescription() : "");
+            return new ReadOnlyStringWrapper(txt);
+        });
+
+        TableColumn<RiskResultDTO, BigDecimal> size = new TableColumn<>(resources.getString("risk.dashboard.accountsize"));
+        size.setCellValueFactory(feat -> new ReadOnlyObjectWrapper<>(feat.getValue().getAccountSize()));
+
+        TableColumn<RiskResultDTO, Double> riskA = new TableColumn<>(resources.getString("risk.dashboard.riska"));
+        riskA.setCellValueFactory(feat -> new ReadOnlyObjectWrapper<>(feat.getValue().getRiskKellyA()));
+
+        TableColumn<RiskResultDTO, Double> riskB = new TableColumn<>(resources.getString("risk.dashboard.riskb"));
+        riskB.setCellValueFactory(feat -> new ReadOnlyObjectWrapper<>(feat.getValue().getRiskKellyB()));
+
+        tv.getColumns().addAll(trade, wl, acc, market, size, riskA, riskB);
+        return tv;
+    }
+
     @FXML private void onClose() {
-        ((Stage)tableResults.getScene().getWindow()).close();
+        ((Stage) currentTable.getScene().getWindow()).close();
     }
 }
