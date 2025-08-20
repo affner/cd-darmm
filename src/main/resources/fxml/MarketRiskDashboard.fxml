@@ -7,6 +7,7 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.VBox?>
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.cwdarmm.controller.MarketRiskDashboardController">
     <!-- Top: Título y botón Risk Manage -->
@@ -18,19 +19,23 @@
             <Button text="%risk.dashboard.manage" onAction="#onRiskManage" />
         </ToolBar>
     </top>
-    <!-- Center: TableView de resultados -->
+    <!-- Center: contenedor para múltiples tablas de resultados -->
     <center>
-        <TableView fx:id="tableResults">
-            <columns>
-                <TableColumn fx:id="colTrade" text="%risk.dashboard.trade"/>
-                <TableColumn fx:id="colWl"       text="%risk.dashboard.wl"/>
-                <TableColumn fx:id="colAccount"  text="%risk.dashboard.account"/>
-                <TableColumn fx:id="colMarketData" text="%risk.dashboard.marketdata"/>
-                <TableColumn fx:id="colAccountSize" text="%risk.dashboard.accountsize"/>
-                <TableColumn fx:id="colRiskA"    text="%risk.dashboard.riska"/>
-                <TableColumn fx:id="colRiskB"    text="%risk.dashboard.riskb"/>
-            </columns>
-        </TableView>
+        <VBox fx:id="tablesContainer">
+            <children>
+                <TableView fx:id="tableResults">
+                    <columns>
+                        <TableColumn fx:id="colTrade" text="%risk.dashboard.trade"/>
+                        <TableColumn fx:id="colWl"       text="%risk.dashboard.wl"/>
+                        <TableColumn fx:id="colAccount"  text="%risk.dashboard.account"/>
+                        <TableColumn fx:id="colMarketData" text="%risk.dashboard.marketdata"/>
+                        <TableColumn fx:id="colAccountSize" text="%risk.dashboard.accountsize"/>
+                        <TableColumn fx:id="colRiskA"    text="%risk.dashboard.riska"/>
+                        <TableColumn fx:id="colRiskB"    text="%risk.dashboard.riskb"/>
+                    </columns>
+                </TableView>
+            </children>
+        </VBox>
     </center>
     <!-- Bottom: botón Close con padding correcto -->
     <bottom>
