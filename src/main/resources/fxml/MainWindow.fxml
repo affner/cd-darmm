@@ -1,25 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
-<?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.Pane?>
-<?import javafx.scene.layout.HBox?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.cwdarmm.controller.MainWindowController">
     <top>
-        <ToolBar>
-            <Pane fx:id="spacer" HBox.hgrow="ALWAYS"/>
-            <MenuButton fx:id="btnLanguage" text="%button.language">
-                <items>
-                    <MenuItem text="%lang.es" onAction="#switchToSpanish"/>
-                    <MenuItem text="%lang.en" onAction="#switchToEnglish"/>
-                </items>
-            </MenuButton>
-        </ToolBar>
+        <MenuBar fx:id="menuBar">
+            <menus>
+                <Menu text="%menu.file">
+                    <items>
+                        <MenuItem text="%menu.open" onAction="#openFile"/>
+                        <MenuItem text="%menu.exit" onAction="#exit"/>
+                    </items>
+                </Menu>
+                <Menu text="%menu.options">
+                    <items>
+                        <Menu text="%menu.language">
+                            <items>
+                                <MenuItem text="%lang.es" onAction="#switchToSpanish"/>
+                                <MenuItem text="%lang.en" onAction="#switchToEnglish"/>
+                            </items>
+                        </Menu>
+                    </items>
+                </Menu>
+                <Menu text="%menu.help">
+                    <items>
+                        <MenuItem text="%menu.about" onAction="#showAbout"/>
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
     </top>
     <center>
         <TabPane fx:id="tabPane">

@@ -6,13 +6,17 @@ package com.cwdarmm.controller;
  */
 
 import com.cwdarmm.config.SpringFXMLLoader;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -24,11 +28,11 @@ import java.util.Locale;
 public class MainWindowController {
 
     @FXML private TabPane tabPane;
-    @FXML private javafx.scene.control.Tab tabMarkets;
+    @FXML private Tab tabMarkets;
 
-    @FXML private javafx.scene.control.Tab tabResults;
-    @FXML private javafx.scene.control.Tab tabMarketDb;
-    @FXML private MenuButton btnLanguage;
+    @FXML private Tab tabResults;
+    @FXML private Tab tabMarketDb;
+    @FXML private MenuBar menuBar;
 
     private final BdMarketController bdMarketController;
     private final ResultViewController resultViewController;
@@ -73,11 +77,34 @@ public class MainWindowController {
     private void reload(Locale locale) throws IOException {
         // Guardamos la escena **antes** de recargar el FXML, porque al cargarse
         // de nuevo el controlador se reinicia y los nodos todavía no tienen escena.
-        Scene scene = btnLanguage.getScene();
+        Scene scene = menuBar.getScene();
         springFXMLLoader.setLocale(locale);
         FXMLLoader loader = springFXMLLoader.load("/fxml/MainWindow.fxml");
         Parent root = loader.getRoot();
         scene.setRoot(root);
       //  scene.getWindow().setTitle(loader.getResources().getString("app.title"));
+    }
+
+    @FXML
+    private void openFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.showOpenDialog(menuBar.getScene().getWindow());
+    }
+
+    @FXML
+    private void exit() {
+        Platform.exit();
+    }
+
+    @FXML
+    private void showAbout() throws IOException {
+        FXMLLoader loader = springFXMLLoader.load("/fxml/AboutDialog.fxml");
+        Parent root = loader.getRoot();
+        Stage stage = new Stage();
+        stage.setScene(new Scene(root));
+        stage.setTitle(loader.getResources().getString("menu.about"));
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.initOwner(menuBar.getScene().getWindow());
+        stage.showAndWait();
     }
 }
