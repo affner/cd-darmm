@@ -36,6 +36,7 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 @Component
@@ -48,7 +49,7 @@ public class RiskConfigController {
     private final BdMarketController bdMarketController;
     private final RiskContext riskContext;
     private Stage dialogStage;
-    private Consumer<RiskInputDTO> onCalculated;
+    private BiConsumer<RiskInputDTO, List<RiskResultDTO>> onCalculated;
     private MarketDTO marketContext;
     private java.math.BigDecimal pctHouse;
     private java.math.BigDecimal pctLunch;
@@ -130,11 +131,16 @@ public class RiskConfigController {
 
     /** Para compatibilidad con viejos callers que usaban Runnable */
     public void setOnCalculated(Runnable callback) {
-        this.onCalculated = dto -> callback.run();
+        this.onCalculated = (req, rows) -> callback.run();
     }
 
-    /** La nueva sobrecarga que infiere bien el tipo de req */
+    /** La sobrecarga que acepta sólo el request */
     public void setOnCalculated(Consumer<RiskInputDTO> callback) {
+        this.onCalculated = (req, rows) -> callback.accept(req);
+    }
+
+    /** Nueva sobrecarga que entrega también las filas calculadas */
+    public void setOnCalculated(BiConsumer<RiskInputDTO, List<RiskResultDTO>> callback) {
         this.onCalculated = callback;
     }
 
@@ -228,7 +234,7 @@ public class RiskConfigController {
 
         // 7) Refrescar tabla (tu callback monta estas filas en la TableView)
         if (onCalculated != null) {
-            onCalculated.accept(req);   // ahora le paso el req con riesgo actualizado
+            onCalculated.accept(req, rows);   // ahora le paso el req con riesgo actualizado
         }
 
         // 8) Mostrar ventana de Optimal Contracts

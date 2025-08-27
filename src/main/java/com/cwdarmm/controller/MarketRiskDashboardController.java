@@ -7,10 +7,8 @@ package com.cwdarmm.controller;
 
 import com.cwdarmm.config.SpringFXMLLoader;
 import com.cwdarmm.model.dto.MarketDTO;
-import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.RiskResultDTO;
 import com.cwdarmm.service.OutputService;
-import com.cwdarmm.service.RiskAnalysisService;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -50,7 +48,6 @@ public class MarketRiskDashboardController {
 
     private final OutputService outputService;
     private final SpringFXMLLoader springFXMLLoader;
-    private final RiskAnalysisService riskAnalysisService; // inyectado con Spring
     private MarketDTO context;
 
     public void setContext(MarketDTO context) {
@@ -134,8 +131,7 @@ public class MarketRiskDashboardController {
         Stage dialog = new Stage();
         formCtrl.setDialogStage(dialog);
         formCtrl.setMarketContext(context);
-        formCtrl.setOnCalculated(req -> {
-            List<RiskResultDTO> rows = riskAnalysisService.calculate(req);
+        formCtrl.setOnCalculated((req, rows) -> {
             var items = tableResults.getItems();
 
             if (req.isFirstTrade()) {
