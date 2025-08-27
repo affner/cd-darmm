@@ -59,6 +59,9 @@ public class RiskAnalysisService {
         //     explicación del flujo de riesgo)
         List<RiskResultDTO> rows = new ArrayList<>();
 
+        log.info("CALC IN  firstTrade={} win={} riskA={} riskB={}",
+                in.isFirstTrade(), in.isWin(), in.getRiskPctA(), in.getRiskPctB());
+
         // 2) Si es el primer trade, sólo devolvemos INITIAL y salimos
         if (in.isFirstTrade()) {
             rows.add(RiskResultDTO.builder()
@@ -146,16 +149,10 @@ public class RiskAnalysisService {
         CatContract contract = chosen.getContract();
         CatSymbol symbol = chosen.getSymbol();
 
-        // 3) Ajustamos el riesgo con un multiplicador (compounding/drawdown)
-        //    salvo en el primer trade, donde se usa el valor "en crudo" tal
-        //    como se indicó en el formulario.
+        // 3) Los porcentajes de riesgo llegan ya ajustados por compounding/drawdown
         BigDecimal riskA = in.getRiskPctA();
         BigDecimal riskB = in.getRiskPctB();
-        if (!in.isFirstTrade()) {
-            BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
-            riskA = riskA == null ? null : riskA.multiply(multiplier);
-            riskB = riskB == null ? null : riskB.multiply(multiplier);
-        }
+
 
         // 4) Determinamos el offset para el cálculo de targets según el mercado
         int offset = offsetForMarket(in.getMarket());

@@ -61,10 +61,19 @@ public class OptimizationService {
         // Target consistente con la ventana de Optimal Contracts
         final int targetTicks = (int) Math.round(rr * sl + offset);
 
+        // Aplicar compounding/drawdown al porcentaje de riesgo si no es el primer trade
+        BigDecimal riskA = in.getRiskPctA();
+        BigDecimal riskB = in.getRiskPctB();
+//        if (!in.isFirstTrade()) {
+//            BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
+//            riskA = riskA == null ? null : riskA.multiply(multiplier);
+//            riskB = riskB == null ? null : riskB.multiply(multiplier);
+//        }
+
         // Lista de porcentajes base activos (Kelly A/B) + variación "x"
         List<BigDecimal> baseRiskPcts = new ArrayList<>();
-        if (in.isHouse() && in.getRiskPctA() != null) baseRiskPcts.add(in.getRiskPctA());
-        if (in.isLunch() && in.getRiskPctB() != null) baseRiskPcts.add(in.getRiskPctB());
+        if (in.isHouse() && riskA != null) baseRiskPcts.add(riskA);
+        if (in.isLunch() && riskB != null) baseRiskPcts.add(riskB);
         if (baseRiskPcts.isEmpty()) baseRiskPcts.add(BigDecimal.ZERO);
 
         for (BigDecimal basePct : baseRiskPcts) {
