@@ -7,10 +7,8 @@ package com.cwdarmm.controller;
 
 import com.cwdarmm.config.SpringFXMLLoader;
 import com.cwdarmm.model.dto.MarketDTO;
-import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.RiskResultDTO;
 import com.cwdarmm.service.OutputService;
-import com.cwdarmm.service.RiskAnalysisService;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -18,7 +16,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.util.Callback;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -50,7 +47,6 @@ public class MarketRiskDashboardController {
 
     private final OutputService outputService;
     private final SpringFXMLLoader springFXMLLoader;
-    private final RiskAnalysisService riskAnalysisService; // inyectado con Spring
     private MarketDTO context;
 
     public void setContext(MarketDTO context) {
@@ -134,18 +130,15 @@ public class MarketRiskDashboardController {
         Stage dialog = new Stage();
         formCtrl.setDialogStage(dialog);
         formCtrl.setMarketContext(context);
-        formCtrl.setOnCalculated(req -> {
-            List<RiskResultDTO> rows = riskAnalysisService.calculate(req);
+        formCtrl.setOnCalculated((req, rows) -> {
             var items = tableResults.getItems();
 
             if (req.isFirstTrade()) {
                 // primer trade: limpiamos y mostramos sólo INITIAL
                 items.clear();
-                items.addAll(rows);
-            } else {
-                // trade posterior: añadimos sólo la fila WIN/LOSS
-                items.addAll(rows);
             }
+            // tanto si es primer trade como posterior, añadimos las filas calculadas
+            items.addAll(rows);
         });
         dialog.initOwner(tableResults.getScene().getWindow());
         dialog.initModality(Modality.APPLICATION_MODAL);

@@ -5,6 +5,7 @@ package com.cwdarmm.controller;
  * y lanzar los cálculos correspondientes.
  */
 
+import com.cwdarmm.config.SpringFXMLLoader;
 import com.cwdarmm.model.domain.CatAccount;
 import com.cwdarmm.model.domain.CatMarket;
 import com.cwdarmm.model.domain.CatMarketData;
@@ -12,15 +13,13 @@ import com.cwdarmm.model.dto.MarketDTO;
 import com.cwdarmm.model.dto.OptimalContractRow;
 import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.RiskResultDTO;
-import com.cwdarmm.service.ReferenceDataService;
 import com.cwdarmm.service.ExportService;
+import com.cwdarmm.service.ReferenceDataService;
 import com.cwdarmm.service.RiskAnalysisService;
 import com.cwdarmm.service.RiskContext;
-import com.cwdarmm.controller.BdMarketController;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import com.cwdarmm.config.SpringFXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -36,7 +35,7 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 @Component
 @RequiredArgsConstructor
@@ -48,7 +47,8 @@ public class RiskConfigController {
     private final BdMarketController bdMarketController;
     private final RiskContext riskContext;
     private Stage dialogStage;
-    private Consumer<RiskInputDTO> onCalculated;
+
+    private BiConsumer<RiskInputDTO, List<RiskResultDTO>> onCalculated;
     private MarketDTO marketContext;
     private java.math.BigDecimal pctHouse;
     private java.math.BigDecimal pctLunch;
@@ -130,11 +130,12 @@ public class RiskConfigController {
 
     /** Para compatibilidad con viejos callers que usaban Runnable */
     public void setOnCalculated(Runnable callback) {
-        this.onCalculated = dto -> callback.run();
+        this.onCalculated = (dto, rows) -> callback.run();
     }
 
     /** La nueva sobrecarga que infiere bien el tipo de req */
-    public void setOnCalculated(Consumer<RiskInputDTO> callback) {
+    /** La nueva sobrecarga que expone el request y las filas calculadas */
+    public void setOnCalculated(BiConsumer<RiskInputDTO, List<RiskResultDTO>> callback) {
         this.onCalculated = callback;
     }
 
@@ -228,7 +229,7 @@ public class RiskConfigController {
 
         // 7) Refrescar tabla (tu callback monta estas filas en la TableView)
         if (onCalculated != null) {
-            onCalculated.accept(req);   // ahora le paso el req con riesgo actualizado
+            onCalculated.accept(req, rows);   // ahora le paso el req con riesgo actualizado
         }
 
         // 8) Mostrar ventana de Optimal Contracts
