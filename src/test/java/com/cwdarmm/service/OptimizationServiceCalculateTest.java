@@ -63,5 +63,55 @@ public class OptimizationServiceCalculateTest {
         assertEquals(3, row.getTarget().get()); // 1*1 + offset(2)
         assertEquals(5, row.getOptimalContract().get());
     }
+
+    /**
+     * The row highlighted for the next trade depends on the result of the
+     * previous trade. After a WIN the "base + x" scenario must be highlighted;
+     * after a LOSS the base scenario is highlighted.
+     */
+    @Test
+    void highlightRowMatchesTradeResult() {
+        BdMarket bd = BdMarket.builder()
+                .id(2L)
+                .account(CatAccount.builder().id(1L).description("ACC").build())
+                .market(CatMarket.builder().id(1L).description("S&P500").build())
+                .marketData(CatMarketData.builder().id(1L).description("DATA").build())
+                .contract(CatContract.builder().id(1L).description("ES").build())
+                .symbol(CatSymbol.builder().id(1L).symbol("ES").build())
+                .tickValue(12.5)
+                .commission(2.0)
+                .build();
+
+        BdMarketRepository repo = Mockito.mock(BdMarketRepository.class);
+        Mockito.when(repo.findOneByMktAccMdata(1L,1L,1L))
+                .thenReturn(List.of(bd));
+
+        OptimizationService svc = new OptimizationService(repo);
+
+        RiskInputDTO base = RiskInputDTO.builder()
+                .account(bd.getAccount())
+                .market(bd.getMarket())
+                .marketData(bd.getMarketData())
+                .accountSize(new BigDecimal("200"))
+                .riskReward(2.0)
+                .ticksSl1(1)
+                .ticksSl2(1)
+                .lunch(true)
+                .firstTrade(false)
+                .riskPctB(new BigDecimal("1.5"))
+                .build();
+
+        // WIN → highlight second row (k=1)
+        List<ResultRowDTO> winRows = svc.calculate(base.toBuilder().win(true).build());
+        assertEquals(2, winRows.size());
+        assertTrue(winRows.get(1).getOptimalRow().get());
+        assertFalse(winRows.get(0).getOptimalRow().get());
+
+        // LOSS → highlight first row (k=0)
+        List<ResultRowDTO> lossRows = svc.calculate(base.toBuilder().win(false).build());
+        assertEquals(2, lossRows.size());
+        assertTrue(lossRows.get(0).getOptimalRow().get());
+        assertFalse(lossRows.get(1).getOptimalRow().get());
+    }
 }
 
