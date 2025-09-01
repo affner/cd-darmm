@@ -111,7 +111,8 @@ public class RiskAnalysisServiceCalcTest {
     }
 
     /**
-     * Verifica la secuencia WIN → LOSS → WIN para Kelly B con redondeo a 3 decimales.
+     * Verifica la secuencia WIN → LOSS → WIN para Kelly B manteniendo la precisión
+     * completa en cada paso (sin redondeo intermedio).
      */
     @Test
     void kellyBSequenceUsesLastRisk() {
@@ -133,7 +134,7 @@ public class RiskAnalysisServiceCalcTest {
                 .build();
 
         double step2 = service.calculate(second).get(0).getRiskKellyB();
-        assertEquals(1.544, step2, 1e-9);
+        assertEquals(1.5435, step2, 1e-9);
 
         RiskInputDTO third = baseInput().toBuilder()
                 .firstTrade(false)
@@ -143,6 +144,6 @@ public class RiskAnalysisServiceCalcTest {
                 .build();
 
         double step3 = service.calculate(third).get(0).getRiskKellyB();
-        assertEquals(1.621, step3, 1e-9);
+        assertEquals(1.620675, step3, 1e-9);
     }
 }
