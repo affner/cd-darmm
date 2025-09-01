@@ -147,22 +147,24 @@ public class OptimizationService {
         }
 
         // Marcar la fila con mayor Potential Profit (como resalte "óptimo").
-        // En Excel, si varias filas comparten el mismo Profit, se resalta
-        // únicamente la de mayor porcentaje de riesgo. Replicamos ese criterio
-        // para evitar resaltar múltiples filas cuando el profit redondeado es
-        // idéntico (caso de ES/MES enviado por el usuario).
+        // La macro de Excel ordena previamente los resultados por tamaño de stop
+        // y selecciona la primera fila que alcanza el beneficio máximo.
+        // Para replicar ese comportamiento, identificamos la primera ocurrencia
+        // del mayor "Potential Profit" y marcamos únicamente esa fila.
         double maxProfit = results.stream()
                 .mapToDouble(r -> r.getPotentialProfit().get())
                 .max().orElse(Double.NaN);
 
-        double minRiskPct = results.stream()
-                .filter(r -> Double.compare(r.getPotentialProfit().get(), maxProfit) == 0)
-                .mapToDouble(r -> r.getRiskPercentage().get())
-                .min().orElse(Double.NaN);
-
-        results.forEach(r -> r.getOptimalRow().set(
-                Double.compare(r.getPotentialProfit().get(), maxProfit) == 0 &&
-                        Double.compare(r.getRiskPercentage().get(), minRiskPct) == 0));
+        boolean highlighted = false;
+        for (ResultRowDTO r : results) {
+            boolean isBest = Double.compare(r.getPotentialProfit().get(), maxProfit) == 0;
+            if (isBest && !highlighted) {
+                r.getOptimalRow().set(true);
+                highlighted = true;
+            } else {
+                r.getOptimalRow().set(false);
+            }
+        }
 
         return results;
     }
