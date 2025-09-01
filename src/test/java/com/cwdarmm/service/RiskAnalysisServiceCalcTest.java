@@ -109,4 +109,40 @@ public class RiskAnalysisServiceCalcTest {
         assertEquals(3.0 * 0.98, r.getRiskKellyA(), 1e-9);
         assertEquals(2.0 * 0.98, r.getRiskKellyB(), 1e-9);
     }
+
+    /**
+     * Verifica la secuencia WIN → LOSS → WIN para Kelly B con redondeo a 3 decimales.
+     */
+    @Test
+    void kellyBSequenceUsesLastRisk() {
+        RiskInputDTO first = baseInput().toBuilder()
+                .firstTrade(false)
+                .lunch(true)
+                .win(true)
+                .riskPctB(new BigDecimal("1.500"))
+                .build();
+
+        double step1 = service.calculate(first).get(0).getRiskKellyB();
+        assertEquals(1.575, step1, 1e-9);
+
+        RiskInputDTO second = baseInput().toBuilder()
+                .firstTrade(false)
+                .lunch(true)
+                .win(false)
+                .riskPctB(BigDecimal.valueOf(step1))
+                .build();
+
+        double step2 = service.calculate(second).get(0).getRiskKellyB();
+        assertEquals(1.544, step2, 1e-9);
+
+        RiskInputDTO third = baseInput().toBuilder()
+                .firstTrade(false)
+                .lunch(true)
+                .win(true)
+                .riskPctB(BigDecimal.valueOf(step2))
+                .build();
+
+        double step3 = service.calculate(third).get(0).getRiskKellyB();
+        assertEquals(1.621, step3, 1e-9);
+    }
 }

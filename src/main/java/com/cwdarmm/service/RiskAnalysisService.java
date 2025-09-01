@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
  */
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -46,6 +47,11 @@ public class RiskAnalysisService {
      * Valor por defecto si no se especifica el porcentaje de riesgo.
      */
     private static final BigDecimal DEFAULT_RISK_PCT = new BigDecimal("2.5");
+
+    /** Multiplicadores compounding/contracción. */
+    private static final BigDecimal WIN_MULTIPLIER = new BigDecimal("1.05");
+    private static final BigDecimal LOSS_MULTIPLIER = new BigDecimal("0.98");
+    private static final int RISK_SCALE = 3;
 
 
     private final BdMarketRepository bdMarketRepo;
@@ -77,9 +83,13 @@ public class RiskAnalysisService {
         }
 
         // 3) Según el resultado del trade ajustamos los porcentajes de riesgo
-        BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
-        BigDecimal newRiskA = in.isHouse() && in.getRiskPctA() != null ? in.getRiskPctA().multiply(multiplier) : null;
-        BigDecimal newRiskB = in.isLunch() && in.getRiskPctB() != null ? in.getRiskPctB().multiply(multiplier) : null;
+        BigDecimal multiplier = in.isWin() ? WIN_MULTIPLIER : LOSS_MULTIPLIER;
+        BigDecimal newRiskA = in.isHouse() && in.getRiskPctA() != null
+                ? in.getRiskPctA().multiply(multiplier).setScale(RISK_SCALE, RoundingMode.HALF_UP)
+                : null;
+        BigDecimal newRiskB = in.isLunch() && in.getRiskPctB() != null
+                ? in.getRiskPctB().multiply(multiplier).setScale(RISK_SCALE, RoundingMode.HALF_UP)
+                : null;
 
         // 4) Registramos el trade actual, WIN o LOSS
         String wl = in.isWin() ? "WIN" : "LOSS";
