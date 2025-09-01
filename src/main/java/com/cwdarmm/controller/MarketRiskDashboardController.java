@@ -139,6 +139,13 @@ public class MarketRiskDashboardController {
             }
             // tanto si es primer trade como posterior, añadimos las filas calculadas
             items.addAll(rows);
+
+            if (req.getRiskPctA() != null) {
+                context.setRiskA(req.getRiskPctA().doubleValue());
+            }
+            if (req.getRiskPctB() != null) {
+                context.setRiskB(req.getRiskPctB().doubleValue());
+            }
         });
         dialog.initOwner(tableResults.getScene().getWindow());
         dialog.initModality(Modality.APPLICATION_MODAL);
