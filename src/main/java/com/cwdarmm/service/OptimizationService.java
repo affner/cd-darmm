@@ -50,6 +50,12 @@ public class OptimizationService {
         }
 
         List<ResultRowDTO> results = new ArrayList<>();
+        // Seguimos el mismo criterio que el Excel para resaltar la fila óptima:
+        // se selecciona la que tenga mayor beneficio potencial sin redondear.
+        // Si hubiera empate en el beneficio, se escoge la de mayor porcentaje de riesgo.
+        ResultRowDTO bestRow = null;
+        double bestProfitRaw = Double.NEGATIVE_INFINITY;
+        double bestRiskPctRaw = Double.NEGATIVE_INFINITY;
 
         // Excel usa solo el primer SL:
         final int sl = in.getTicksSl1();
@@ -141,28 +147,24 @@ public class OptimizationService {
                     String chosen = (symbol != null && symbol.startsWith("M")) ? c1 : c2;
                     row.getRowColor().set(chosen);
 
+                    // Determinar si esta es la mejor fila según el beneficio sin redondear
+                    if (potentialProfit > bestProfitRaw ||
+                            (Double.compare(potentialProfit, bestProfitRaw) == 0 &&
+                                    riskPctApplied > bestRiskPctRaw)) {
+                        bestProfitRaw = potentialProfit;
+                        bestRiskPctRaw = riskPctApplied;
+                        bestRow = row;
+                    }
+
                     results.add(row);
                 }
             }
         }
 
-        // Marcar la fila con mayor Potential Profit (como resalte "óptimo").
-        // En Excel, si varias filas comparten el mismo Profit, se resalta
-        // únicamente la de mayor porcentaje de riesgo. Replicamos ese criterio
-        // para evitar resaltar múltiples filas cuando el profit redondeado es
-        // idéntico (caso de ES/MES enviado por el usuario).
-        double maxProfit = results.stream()
-                .mapToDouble(r -> r.getPotentialProfit().get())
-                .max().orElse(Double.NaN);
-
-        double maxRiskPct = results.stream()
-                .filter(r -> Double.compare(r.getPotentialProfit().get(), maxProfit) == 0)
-                .mapToDouble(r -> r.getRiskPercentage().get())
-                .max().orElse(Double.NaN);
-
-        results.forEach(r -> r.getOptimalRow().set(
-                Double.compare(r.getPotentialProfit().get(), maxProfit) == 0 &&
-                        Double.compare(r.getRiskPercentage().get(), maxRiskPct) == 0));
+        // Marcar la fila con mayor beneficio como óptima
+        if (bestRow != null) {
+            bestRow.getOptimalRow().set(true);
+        }
 
         return results;
     }
