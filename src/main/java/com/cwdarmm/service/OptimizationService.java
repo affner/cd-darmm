@@ -155,14 +155,17 @@ public class OptimizationService {
                 .mapToDouble(r -> r.getPotentialProfit().get())
                 .max().orElse(Double.NaN);
 
-        double minRiskPct = results.stream()
+        // Excel subraya la fila con MAYOR porcentaje de riesgo cuando el profit
+        // es idéntico. El código previo tomaba el mínimo, lo que producía un
+        // resaltado incorrecto en casos como ES/MES.
+        double maxRiskPct = results.stream()
                 .filter(r -> Double.compare(r.getPotentialProfit().get(), maxProfit) == 0)
                 .mapToDouble(r -> r.getRiskPercentage().get())
-                .min().orElse(Double.NaN);
+                .max().orElse(Double.NaN);
 
         results.forEach(r -> r.getOptimalRow().set(
                 Double.compare(r.getPotentialProfit().get(), maxProfit) == 0 &&
-                        Double.compare(r.getRiskPercentage().get(), minRiskPct) == 0));
+                        Double.compare(r.getRiskPercentage().get(), maxRiskPct) == 0));
 
         return results;
     }
