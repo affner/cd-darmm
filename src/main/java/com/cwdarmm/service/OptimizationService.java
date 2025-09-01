@@ -155,14 +155,14 @@ public class OptimizationService {
                 .mapToDouble(r -> r.getPotentialProfit().get())
                 .max().orElse(Double.NaN);
 
-        double maxRiskPct = results.stream()
+        double minRiskPct = results.stream()
                 .filter(r -> Double.compare(r.getPotentialProfit().get(), maxProfit) == 0)
                 .mapToDouble(r -> r.getRiskPercentage().get())
-                .max().orElse(Double.NaN);
+                .min().orElse(Double.NaN);
 
         results.forEach(r -> r.getOptimalRow().set(
                 Double.compare(r.getPotentialProfit().get(), maxProfit) == 0 &&
-                        Double.compare(r.getRiskPercentage().get(), maxRiskPct) == 0));
+                        Double.compare(r.getRiskPercentage().get(), minRiskPct) == 0));
 
         return results;
     }
