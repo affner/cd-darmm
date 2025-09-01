@@ -141,29 +141,16 @@ public class OptimizationService {
                     String chosen = (symbol != null && symbol.startsWith("M")) ? c1 : c2;
                     row.getRowColor().set(chosen);
 
+                    // Destacar el escenario de riesgo efectivo para el próximo trade.
+                    // Si el último trade fue ganador, se subraya la fila k=1 (Kelly B + x).
+                    // Tras una pérdida o en cualquier otro caso, se subraya la fila base k=0.
+                    boolean highlight = !in.isFirstTrade() && (in.isWin() ? k == 1 : k == 0);
+                    row.getOptimalRow().set(highlight);
+
                     results.add(row);
                 }
             }
         }
-
-        // Marcar la fila con mayor Potential Profit (como resalte "óptimo").
-        // En Excel, si varias filas comparten el mismo Profit, se resalta
-        // únicamente la de mayor porcentaje de riesgo. Replicamos ese criterio
-        // para evitar resaltar múltiples filas cuando el profit redondeado es
-        // idéntico (caso de ES/MES enviado por el usuario).
-        double maxProfit = results.stream()
-                .mapToDouble(r -> r.getPotentialProfit().get())
-                .max().orElse(Double.NaN);
-
-        double minRiskPct = results.stream()
-                .filter(r -> Double.compare(r.getPotentialProfit().get(), maxProfit) == 0)
-                .mapToDouble(r -> r.getRiskPercentage().get())
-                .min().orElse(Double.NaN);
-
-        results.forEach(r -> r.getOptimalRow().set(
-                Double.compare(r.getPotentialProfit().get(), maxProfit) == 0 &&
-                        Double.compare(r.getRiskPercentage().get(), minRiskPct) == 0));
-
         return results;
     }
 }
