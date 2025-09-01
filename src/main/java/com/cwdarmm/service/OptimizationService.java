@@ -50,6 +50,8 @@ public class OptimizationService {
         }
 
         List<ResultRowDTO> results = new ArrayList<>();
+        // Guardamos el profit sin redondear para replicar el resaltado del Excel
+        List<Double> rawProfits = new ArrayList<>();
 
         // Excel usa solo el primer SL:
         final int sl = in.getTicksSl1();
@@ -142,27 +144,33 @@ public class OptimizationService {
                     row.getRowColor().set(chosen);
 
                     results.add(row);
+                    rawProfits.add(potentialProfit);
                 }
             }
         }
 
         // Marcar la fila con mayor Potential Profit (como resalte "óptimo").
-        // En Excel, si varias filas comparten el mismo Profit, se resalta
-        // únicamente la de mayor porcentaje de riesgo. Replicamos ese criterio
-        // para evitar resaltar múltiples filas cuando el profit redondeado es
-        // idéntico (caso de ES/MES enviado por el usuario).
-        double maxProfit = results.stream()
-                .mapToDouble(r -> r.getPotentialProfit().get())
+        // Usamos los valores sin redondear para que coincida con el Excel.
+        double maxProfit = rawProfits.stream()
+                .mapToDouble(Double::doubleValue)
                 .max().orElse(Double.NaN);
 
-        double minRiskPct = results.stream()
-                .filter(r -> Double.compare(r.getPotentialProfit().get(), maxProfit) == 0)
-                .mapToDouble(r -> r.getRiskPercentage().get())
-                .min().orElse(Double.NaN);
+        double minRiskPct = Double.POSITIVE_INFINITY;
+        for (int i = 0; i < results.size(); i++) {
+            if (Double.compare(rawProfits.get(i), maxProfit) == 0) {
+                double rpct = results.get(i).getRiskPercentage().get();
+                if (rpct < minRiskPct) {
+                    minRiskPct = rpct;
+                }
+            }
+        }
 
-        results.forEach(r -> r.getOptimalRow().set(
-                Double.compare(r.getPotentialProfit().get(), maxProfit) == 0 &&
-                        Double.compare(r.getRiskPercentage().get(), minRiskPct) == 0));
+        for (int i = 0; i < results.size(); i++) {
+            ResultRowDTO r = results.get(i);
+            boolean highlight = Double.compare(rawProfits.get(i), maxProfit) == 0 &&
+                    Double.compare(r.getRiskPercentage().get(), minRiskPct) == 0;
+            r.getOptimalRow().set(highlight);
+        }
 
         return results;
     }
