@@ -14,3 +14,8 @@
 .text-field       { -fx-font-size: 11; }
 .button           { -fx-font-size: 11; -fx-font-weight: bold; }
 .chk .text        { -fx-fill: white; }
+
+/* Resaltado de filas óptimas en ResultView */
+.table-row-cell.optimal-row .table-cell {
+    -fx-background-color: yellow;
+}

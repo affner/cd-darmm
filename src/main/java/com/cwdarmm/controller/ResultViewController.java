@@ -77,10 +77,19 @@ public class ResultViewController {
 
         // 4) RowFactory para filas óptimas
         tblResults.setRowFactory(tv -> new TableRow<>() {
-            @Override protected void updateItem(ResultRowDTO item, boolean empty) {
+            @Override
+            protected void updateItem(ResultRowDTO item, boolean empty) {
                 super.updateItem(item, empty);
-                setStyle((empty || item == null) ? "" :
-                        (item.getOptimalRow().get() ? "-fx-background-color: yellow;" : ""));
+
+                if (empty || item == null) {
+                    getStyleClass().remove("optimal-row");
+                } else if (item.getOptimalRow().get()) {
+                    if (!getStyleClass().contains("optimal-row")) {
+                        getStyleClass().add("optimal-row");
+                    }
+                } else {
+                    getStyleClass().remove("optimal-row");
+                }
             }
         });
 
