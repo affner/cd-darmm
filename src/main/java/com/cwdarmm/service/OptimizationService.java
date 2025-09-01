@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,11 +68,11 @@ public class OptimizationService {
         // Aplicar compounding/drawdown al porcentaje de riesgo si no es el primer trade
         BigDecimal riskA = in.getRiskPctA();
         BigDecimal riskB = in.getRiskPctB();
-//        if (!in.isFirstTrade()) {
-//            BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
-//            riskA = riskA == null ? null : riskA.multiply(multiplier);
-//            riskB = riskB == null ? null : riskB.multiply(multiplier);
-//        }
+        if (!in.isFirstTrade()) {
+            BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
+            riskA = riskA == null ? null : riskA.multiply(multiplier).setScale(6, RoundingMode.HALF_UP);
+            riskB = riskB == null ? null : riskB.multiply(multiplier).setScale(6, RoundingMode.HALF_UP);
+        }
 
         // Lista de porcentajes base activos (Kelly A/B) + variación "x"
         List<BigDecimal> baseRiskPcts = new ArrayList<>();
@@ -146,23 +147,21 @@ public class OptimizationService {
             }
         }
 
-        // Marcar la fila con mayor Potential Profit (como resalte "óptimo").
-        // En Excel, si varias filas comparten el mismo Profit, se resalta
-        // únicamente la de mayor porcentaje de riesgo. Replicamos ese criterio
-        // para evitar resaltar múltiples filas cuando el profit redondeado es
-        // idéntico (caso de ES/MES enviado por el usuario).
+        // Marcar la primera fila con mayor Potential Profit (como resalte "óptimo"),
+        // replicando la macro de Excel que selecciona la primera ocurrencia.
         double maxProfit = results.stream()
                 .mapToDouble(r -> r.getPotentialProfit().get())
                 .max().orElse(Double.NaN);
 
-        double minRiskPct = results.stream()
-                .filter(r -> Double.compare(r.getPotentialProfit().get(), maxProfit) == 0)
-                .mapToDouble(r -> r.getRiskPercentage().get())
-                .min().orElse(Double.NaN);
-
-        results.forEach(r -> r.getOptimalRow().set(
-                Double.compare(r.getPotentialProfit().get(), maxProfit) == 0 &&
-                        Double.compare(r.getRiskPercentage().get(), minRiskPct) == 0));
+        boolean flagged = false;
+        for (ResultRowDTO r : results) {
+            if (!flagged && Double.compare(r.getPotentialProfit().get(), maxProfit) == 0) {
+                r.getOptimalRow().set(true);
+                flagged = true;
+            } else {
+                r.getOptimalRow().set(false);
+            }
+        }
 
         return results;
     }
