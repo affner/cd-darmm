@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
 import java.util.ResourceBundle;
+import java.util.Locale;
 
 import java.util.List;
 
@@ -64,6 +65,13 @@ public class ResultViewController {
         colProfit             .setCellValueFactory(cd -> cd.getValue().getPotentialProfit().asObject());
         colLoss               .setCellValueFactory(cd -> cd.getValue().getPotentialLoss().asObject());
         colRiskPct            .setCellValueFactory(cd -> cd.getValue().getRiskPercentage().asObject());
+        colRiskPct.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(Double item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : String.format(Locale.US, "%.6f", item));
+            }
+        });
 
         // Estilos de filas resaltadas
 
