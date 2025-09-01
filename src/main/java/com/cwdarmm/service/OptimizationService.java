@@ -24,6 +24,9 @@ public class OptimizationService {
     private static double r3(double v) {
         return new BigDecimal(v).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
     }
+    private static double r6(double v) {
+        return new BigDecimal(v).setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
+    }
 
     private static int offsetFor(String marketDescription) {
         return "NASDAQ".equalsIgnoreCase(marketDescription) ? 2 : 1; // S&P500 → 1
@@ -130,7 +133,7 @@ public class OptimizationService {
                     row.getRealRisk().set(r3(realRiskPct));                   // 0.995
                     row.getPotentialProfit().set(r2(potentialProfit));        // 3.01
                     row.getPotentialLoss().set(r2(potentialLoss));            // 1.99
-                    row.getRiskPercentage().set(r3(riskPctApplied));          // 1.575 / 1.675
+                    row.getRiskPercentage().set(r6(riskPctApplied));          // 1.575000 / 1.675000
 
                     // Color por símbolo (micro vs grande)
                     String c1 = in.getMarket().getColor1();
