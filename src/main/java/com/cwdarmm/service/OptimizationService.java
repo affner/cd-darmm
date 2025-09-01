@@ -146,23 +146,40 @@ public class OptimizationService {
             }
         }
 
-        // Marcar la fila con mayor Potential Profit (como resalte "óptimo").
-        // En Excel, si varias filas comparten el mismo Profit, se resalta
-        // únicamente la de mayor porcentaje de riesgo. Replicamos ese criterio
-        // para evitar resaltar múltiples filas cuando el profit redondeado es
-        // idéntico (caso de ES/MES enviado por el usuario).
-        double maxProfit = results.stream()
-                .mapToDouble(r -> r.getPotentialProfit().get())
-                .max().orElse(Double.NaN);
+        // Determinar qué fila subrayar en la vista Results.
+        //
+        // En el Excel original la fila resaltada corresponde al porcentaje de
+        // riesgo base (sin la variación "x"). Para replicarlo, priorizamos
+        // marcar aquella fila cuyo porcentaje de riesgo coincide exactamente
+        // con el porcentaje utilizado para el cálculo (riskA o riskB según el
+        // "bucket" activo). Si por alguna razón no hay coincidencia, usamos
+        // como fallback el antiguo criterio de mayor profit / menor riesgo.
+        BigDecimal highlightPct = null;
+        if (in.isLunch() && riskB != null) {
+            highlightPct = riskB; // Kelly B
+        } else if (in.isHouse() && riskA != null) {
+            highlightPct = riskA; // Kelly A
+        }
 
-        double minRiskPct = results.stream()
-                .filter(r -> Double.compare(r.getPotentialProfit().get(), maxProfit) == 0)
-                .mapToDouble(r -> r.getRiskPercentage().get())
-                .min().orElse(Double.NaN);
+        if (highlightPct != null) {
+            double ref = highlightPct.doubleValue();
+            results.forEach(r -> r.getOptimalRow().set(
+                    Double.compare(r.getRiskPercentage().get(), ref) == 0));
+        } else {
+            // Fallback: mayor profit y, en caso de empate, menor riesgo.
+            double maxProfit = results.stream()
+                    .mapToDouble(r -> r.getPotentialProfit().get())
+                    .max().orElse(Double.NaN);
 
-        results.forEach(r -> r.getOptimalRow().set(
-                Double.compare(r.getPotentialProfit().get(), maxProfit) == 0 &&
-                        Double.compare(r.getRiskPercentage().get(), minRiskPct) == 0));
+            double minRiskPct = results.stream()
+                    .filter(r -> Double.compare(r.getPotentialProfit().get(), maxProfit) == 0)
+                    .mapToDouble(r -> r.getRiskPercentage().get())
+                    .min().orElse(Double.NaN);
+
+            results.forEach(r -> r.getOptimalRow().set(
+                    Double.compare(r.getPotentialProfit().get(), maxProfit) == 0 &&
+                            Double.compare(r.getRiskPercentage().get(), minRiskPct) == 0));
+        }
 
         return results;
     }
