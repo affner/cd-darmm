@@ -51,7 +51,8 @@ public class RiskAnalysisService {
     /** Multiplicadores compounding/contracción. */
     private static final BigDecimal WIN_MULTIPLIER = new BigDecimal("1.05");
     private static final BigDecimal LOSS_MULTIPLIER = new BigDecimal("0.98");
-    private static final int RISK_SCALE = 3;
+    // Usamos más precisión para evitar redondeos prematuros en los porcentajes de riesgo.
+    private static final int RISK_SCALE = 6;
 
 
     private final BdMarketRepository bdMarketRepo;
