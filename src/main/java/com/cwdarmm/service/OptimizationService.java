@@ -160,9 +160,19 @@ public class OptimizationService {
                 .mapToDouble(r -> r.getRiskPercentage().get())
                 .min().orElse(Double.NaN);
 
-        results.forEach(r -> r.getOptimalRow().set(
-                Double.compare(r.getPotentialProfit().get(), maxProfit) == 0 &&
-                        Double.compare(r.getRiskPercentage().get(), minRiskPct) == 0));
+        int optimalIndex = -1;
+        for (int i = 0; i < results.size(); i++) {
+            ResultRowDTO r = results.get(i);
+            if (Double.compare(r.getPotentialProfit().get(), maxProfit) == 0 &&
+                    Double.compare(r.getRiskPercentage().get(), minRiskPct) == 0) {
+                optimalIndex = i;
+                break;
+            }
+        }
+
+        for (int i = 0; i < results.size(); i++) {
+            results.get(i).getOptimalRow().set(i == optimalIndex);
+        }
 
         return results;
     }
