@@ -16,6 +16,7 @@ import com.cwdarmm.model.dto.RiskResultDTO;
 import com.cwdarmm.service.ExportService;
 import com.cwdarmm.service.ReferenceDataService;
 import com.cwdarmm.service.RiskAnalysisService;
+import com.cwdarmm.service.RiskStateService;
 import com.cwdarmm.service.RiskContext;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -46,7 +47,10 @@ public class RiskConfigController {
     private final SpringFXMLLoader springFXMLLoader;
     private final BdMarketController bdMarketController;
     private final RiskContext riskContext;
+    private final RiskStateService riskStateService;
     private Stage dialogStage;
+    private Stage optimalStage;
+    private OptimalContractsController optimalContractsController;
 
     private BiConsumer<RiskInputDTO, List<RiskResultDTO>> onCalculated;
     private MarketDTO marketContext;
@@ -112,6 +116,8 @@ public class RiskConfigController {
 
         // Carga imagen
         imgCoins.setImage(new Image(getClass().getResourceAsStream("/img/coins.png")));
+        chkWin.selectedProperty().addListener((obs, o, n) -> { if (n) chkLoss.setSelected(false); });
+        chkLoss.selectedProperty().addListener((obs, o, n) -> { if (n) chkWin.setSelected(false); });
     }
 
     public void setDialogStage(Stage stage) {
@@ -123,8 +129,8 @@ public class RiskConfigController {
         cbRiskAccount.setValue(context.getAccount());
         cbRiskMarket.setValue(context.getMarket());
         cbRiskMarketData.setValue(context.getMarketData());
-        this.pctHouse = java.math.BigDecimal.valueOf(context.getRiskA());
-        this.pctLunch = java.math.BigDecimal.valueOf(context.getRiskB());
+        this.pctHouse = RiskStateService.r3(riskStateService.getRisk(context.getAccount().getId(), context.getMarket().getId(), context.getMarketData().getId(), RiskStateService.KellyType.A, BigDecimal.valueOf(context.getRiskA())));
+        this.pctLunch = RiskStateService.r3(riskStateService.getRisk(context.getAccount().getId(), context.getMarket().getId(), context.getMarketData().getId(), RiskStateService.KellyType.B, BigDecimal.valueOf(context.getRiskB())));
     }
 
 
@@ -196,12 +202,15 @@ public class RiskConfigController {
         if (!rows.isEmpty()) {
             RiskResultDTO last = rows.get(rows.size() - 1);
             if (last.getRiskKellyA() != null) {
-                this.pctHouse = java.math.BigDecimal.valueOf(last.getRiskKellyA());
+                this.pctHouse = RiskStateService.r3(BigDecimal.valueOf(last.getRiskKellyA()));
+                riskStateService.updateRisk(req.getAccount().getId(), req.getMarket().getId(), req.getMarketData().getId(),
+                        RiskStateService.KellyType.A, pctHouse, BigDecimal.valueOf(marketContext.getRiskA()));
             }
             if (last.getRiskKellyB() != null) {
-                this.pctLunch = java.math.BigDecimal.valueOf(last.getRiskKellyB());
+                this.pctLunch = RiskStateService.r3(BigDecimal.valueOf(last.getRiskKellyB()));
+                riskStateService.updateRisk(req.getAccount().getId(), req.getMarket().getId(), req.getMarketData().getId(),
+                        RiskStateService.KellyType.B, pctLunch, BigDecimal.valueOf(marketContext.getRiskB()));
             }
-            // reconstruimos el request con los porcentajes ajustados
             req = req.toBuilder()
                     .riskPctA(pctHouse)
                     .riskPctB(pctLunch)
@@ -234,26 +243,28 @@ public class RiskConfigController {
 
         // 8) Mostrar ventana de Optimal Contracts
         List<OptimalContractRow> optimalRows = riskAnalysisService.generateOptimalContracts(req);
-        showOptimalContracts(optimalRows, req.getAccount().getDescription(), req.getMarket());
+        showOptimalContracts(optimalRows, req);
         bdMarketController.refreshTable();
         dialogStage.close();
     }
 
-    private void showOptimalContracts(List<OptimalContractRow> rows, String criteriaAccount, CatMarket market) throws IOException {
-        FXMLLoader loader = springFXMLLoader.load("/fxml/OptimalContractsView.fxml");
-        OptimalContractsController ctrl = loader.getController();
-        ctrl.setCriteriaAccount(criteriaAccount);
-        ctrl.setMarket(market);
-        ctrl.setItems(rows);
-
-        Stage popup = new Stage();
-        if (dialogStage != null && dialogStage.getOwner() != null) {
-            popup.initOwner(dialogStage.getOwner());
+    private void showOptimalContracts(List<OptimalContractRow> rows, RiskInputDTO req) throws IOException {
+        if (optimalStage == null) {
+            FXMLLoader loader = springFXMLLoader.load("/fxml/OptimalContractsView.fxml");
+            optimalContractsController = loader.getController();
+            optimalStage = new Stage();
+            if (dialogStage != null && dialogStage.getOwner() != null) {
+                optimalStage.initOwner(dialogStage.getOwner());
+            }
+            optimalStage.initModality(Modality.NONE);
+            optimalStage.setTitle(req.getAccount().getDescription() + " – " + resources.getString("optimal.contracts.window"));
+            optimalStage.setScene(new Scene(loader.getRoot()));
+            optimalStage.show();
         }
-        popup.initModality(Modality.NONE);
-        popup.setTitle(criteriaAccount + " – " + resources.getString("optimal.contracts.window"));
-        popup.setScene(new Scene(loader.getRoot()));
-        popup.show();
+        optimalContractsController.setMarket(req.getMarket());
+        optimalContractsController.setCriteriaAccount(req.getAccount().getDescription());
+        optimalContractsController.addTable(rows, req.getMarket());
+        optimalStage.toFront();
     }
 
     @FXML

@@ -4,6 +4,7 @@ import com.cwdarmm.model.domain.*;
 import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.OptimalContractRow;
 import com.cwdarmm.repository.BdMarketRepository;
+import com.cwdarmm.service.OptimalContractsCalculator;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -50,7 +51,7 @@ public class RiskAnalysisServiceOptimalTest {
                 .thenReturn(List.of(bd)); // ← Match por mercado, cuenta y config de datos
 
         // ✅ Creamos el servicio real con ese repositorio simulado
-        RiskAnalysisService service = new RiskAnalysisService(repo);
+        RiskAnalysisService service = new RiskAnalysisService(new OptimalContractsCalculator(repo));
 
         // 📥 Creamos el input del cálculo de riesgo
         RiskInputDTO req = RiskInputDTO.builder()
@@ -107,7 +108,7 @@ public class RiskAnalysisServiceOptimalTest {
         Mockito.when(repo.findOneByMktAccMdata(2L,1L,3L))
                 .thenReturn(List.of(es));
 
-        RiskAnalysisService service = new RiskAnalysisService(repo);
+        RiskAnalysisService service = new RiskAnalysisService(new OptimalContractsCalculator(repo));
 
         RiskInputDTO req = RiskInputDTO.builder()
                 .account(es.getAccount())
@@ -157,7 +158,7 @@ public class RiskAnalysisServiceOptimalTest {
         Mockito.when(repo.findOneByMktAccMdata(2L,1L,3L))
                 .thenReturn(List.of(es));
 
-        RiskAnalysisService service = new RiskAnalysisService(repo);
+        RiskAnalysisService service = new RiskAnalysisService(new OptimalContractsCalculator(repo));
 
         RiskInputDTO req = RiskInputDTO.builder()
                 .account(es.getAccount())

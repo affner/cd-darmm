@@ -5,23 +5,18 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.cwdarmm.controller.OptimalContractsController"
             prefWidth="500" prefHeight="300">
-
     <top>
         <ToolBar>
             <Label fx:id="lblAccount"
                    style="-fx-font-size:14px; -fx-font-weight:bold;"/>
+            <Button text="Reset" onAction="#onReset"/>
         </ToolBar>
     </top>
-
     <center>
-        <TableView fx:id="tblOptimal">
-            <columns>
-                <TableColumn fx:id="colSlSize"   text="%optimal.contracts.slsize" />
-                <TableColumn fx:id="colTicker"   text="%optimal.contracts.ticker" />
-                <TableColumn fx:id="colOptimal"  text="%optimal.contracts.optimal" />
-                <TableColumn fx:id="colTarget"   text="%optimal.contracts.target" />
-            </columns>
-        </TableView>
+        <ScrollPane fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER">
+            <content>
+                <HBox fx:id="boxTables" spacing="10"/>
+            </content>
+        </ScrollPane>
     </center>
-
 </BorderPane>

@@ -5,6 +5,7 @@ import com.cwdarmm.model.domain.CatMarketData;
 import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.RiskResultDTO;
 import com.cwdarmm.repository.BdMarketRepository;
+import com.cwdarmm.service.OptimalContractsCalculator;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -21,7 +22,7 @@ public class RiskAnalysisServiceCalcTest {
 
     // Creamos una instancia del servicio de riesgo usando un repositorio simulado (mock).
     // Esto es para poder probar sin depender de la base de datos.
-    private RiskAnalysisService service = new RiskAnalysisService(Mockito.mock(BdMarketRepository.class));
+    private RiskAnalysisService service = new RiskAnalysisService(new OptimalContractsCalculator(Mockito.mock(BdMarketRepository.class)));
 
     // Método auxiliar que construye un objeto base con datos de entrada mínimos.
     private RiskInputDTO baseInput() {

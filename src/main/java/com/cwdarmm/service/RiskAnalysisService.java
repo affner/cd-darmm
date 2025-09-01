@@ -1,14 +1,8 @@
 package com.cwdarmm.service;
 
-import com.cwdarmm.model.domain.BdMarket;
-import com.cwdarmm.model.domain.CatContract;
-import com.cwdarmm.model.domain.CatSymbol;
-import com.cwdarmm.model.domain.CatMarket;
-import com.cwdarmm.model.dto.MarketDbRowDTO;
 import com.cwdarmm.model.dto.OptimalContractRow;
 import com.cwdarmm.model.dto.RiskInputDTO;
 import com.cwdarmm.model.dto.RiskResultDTO;
-import com.cwdarmm.repository.BdMarketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -30,11 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -42,13 +32,8 @@ public class RiskAnalysisService {
 
     private static final Logger log = LoggerFactory.getLogger(RiskAnalysisService.class);
 
-    /**
-     * Valor por defecto si no se especifica el porcentaje de riesgo.
-     */
-    private static final BigDecimal DEFAULT_RISK_PCT = new BigDecimal("2.5");
 
-
-    private final BdMarketRepository bdMarketRepo;
+    private final OptimalContractsCalculator optimalContractsCalculator;
 
     /**
      * Ejecuta la simulación de trades y calcula métricas básicas.
@@ -79,7 +64,9 @@ public class RiskAnalysisService {
         // 3) Según el resultado del trade ajustamos los porcentajes de riesgo
         BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
         BigDecimal newRiskA = in.isHouse() && in.getRiskPctA() != null ? in.getRiskPctA().multiply(multiplier) : null;
+        if (newRiskA != null) newRiskA = newRiskA.setScale(3, java.math.RoundingMode.HALF_UP);
         BigDecimal newRiskB = in.isLunch() && in.getRiskPctB() != null ? in.getRiskPctB().multiply(multiplier) : null;
+        if (newRiskB != null) newRiskB = newRiskB.setScale(3, java.math.RoundingMode.HALF_UP);
 
         // 4) Registramos el trade actual, WIN o LOSS
         String wl = in.isWin() ? "WIN" : "LOSS";
@@ -97,176 +84,8 @@ public class RiskAnalysisService {
         return rows;
     }
 
-    /**
-     * Genera la tabla de Optimal Contracts para la ventana emergente,
-     * imitando las fórmulas del XLSM original.
-     */
+
     public List<OptimalContractRow> generateOptimalContracts(RiskInputDTO in) {
-        // 1) Traemos todas las filas de bd_markets para esta tupla (market, account, marketData)
-        List<BdMarket> rows = bdMarketRepo.findOneByMktAccMdata(
-                in.getMarket().getId(),
-                in.getAccount().getId(),
-                in.getMarketData().getId()
-        );
-        if (rows.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "No existe configuración BD_MARKET para " + " market:" +
-                            in.getMarket().getId() + " /  Account:" +
-                            in.getAccount().getId() + " /  marketData:" +
-                            in.getMarketData().getId()
-            );
-        }
-
-        log.debug("BD_MARKET rows found: {}", rows.size());
-
-        // 2) Selección del contrato “principal”
-        //    En el XLSM no pedías al usuario elegir “ES” vs “MES”,
-        //    así que usamos la fila cuyo multiplier == 1 (si existiera),
-        //    o, de lo contrario, la primera de la lista (equivalente al .get(0) previo).
-        // 1) Elegir primero el "micro" (MES, M2K, etc.) por tickValue más pequeño:
-        // 2) Selección: elegimos siempre el micro (symbol empieza por "M") o, si no, el de menor tickValue
-        // 2) Selección del contrato “principal”
-        BdMarket chosen;
-        if (in.isFirstTrade()) {
-            // Primer trade: elige siempre el “grande”, es decir, el que NO empieza con 'M'
-            chosen = rows.stream()
-                    .filter(r -> !r.getSymbol().getSymbol().startsWith("M"))
-                    .findFirst()
-                    .orElse(rows.get(0));
-            log.debug("First trade - selected contract: {}", chosen.getSymbol().getSymbol());
-        } else {
-            // Trades siguientes: usas tu lógica de micro / tickValue …
-            chosen = rows.stream()
-                    .filter(r -> r.getSymbol().getSymbol().startsWith("M"))
-                    .findFirst()
-                    .orElse(rows.stream()
-                            .min(Comparator.comparing(BdMarket::getTickValue))
-                            .orElse(rows.get(0)));
-            log.debug("Subsequent trade - selected contract: {}", chosen.getSymbol().getSymbol());
-        }
-
-        // Extraemos aquí los objetos contract y symbol para pasarlos a makeRow:
-        CatContract contract = chosen.getContract();
-        CatSymbol symbol = chosen.getSymbol();
-
-        // 3) Los porcentajes de riesgo llegan ya ajustados por compounding/drawdown
-        BigDecimal riskA = in.getRiskPctA();
-        BigDecimal riskB = in.getRiskPctB();
-
-
-        // 4) Determinamos el offset para el cálculo de targets según el mercado
-        int offset = offsetForMarket(in.getMarket());
-
-        // 5) Generamos una fila para cada "bote" (House/Lunch)
-        return Stream.of(
-                        in.isHouse() ? makeRowRange(in, chosen, riskA, contract, symbol, offset, in.isFirstTrade()) : null,
-                        in.isLunch() ? makeRowRange(in, chosen, riskB, contract, symbol, offset, in.isFirstTrade()) : null
-                )
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-    }
-
-    private int offsetForMarket(CatMarket market) {
-        String name = market.getDescription();
-        return "NASDAQ".equalsIgnoreCase(name) ? 2 : 1;
-    }
-
-    private OptimalContractRow makeRowRange(RiskInputDTO in,
-                                            BdMarket bd,
-                                            BigDecimal riskPct,
-                                            CatContract contract,
-                                            CatSymbol symbol,
-                                            int offset,
-                                            boolean firstTrade) {
-        // --- Mapeo directo de las celdas de Excel al código Java ---
-        // 1) Calcular el riesgo disponible para este trade
-        //    (sección "Risk per trade" en docs/GOOD ARTICLE.pdf)
-        BigDecimal appliedPct = riskPct == null ? DEFAULT_RISK_PCT : riskPct;
-        BigDecimal currentRisk = in.getAccountSize()
-                .multiply(appliedPct)
-                .divide(BigDecimal.valueOf(100), 8, BigDecimal.ROUND_HALF_UP);
-        log.debug("appliedPct={}, currentRisk={}", appliedPct, currentRisk);
-
-        BigDecimal tickValue = BigDecimal.valueOf(bd.getTickValue());
-        BigDecimal commission = BigDecimal.valueOf(bd.getCommission());
-        log.debug("tickValue={}, commission={}", tickValue, commission);
-
-        // 2) Establecemos el rango de SL ticks a evaluar
-        //    según lo introducido en la ventana de configuración
-// Sustitúyelo por:
-        int start = in.getTicksSl1();
-// El Excel evalúa un único tamaño de stop‑loss; no un rango
-        int end = start;
-
-        BigDecimal bestProfit = null;
-        BigDecimal bestContracts = null;
-        int bestSl = start;
-
-        // 3) Recorremos cada posible SL buscando la mejor relación
-        for (int sl = start; sl <= end; sl++) {
-            // 3.a) Riesgo por contrato = ticks SL * tickValue + comisión.
-            //     La versión VBA siempre suma la comisión al riesgo por
-            //     contrato, incluso en el primer trade.
-            BigDecimal riskPerContract = tickValue
-                    .multiply(BigDecimal.valueOf(sl))
-                    .add(commission);
-            log.debug("sl={}, riskPerContract={}", sl, riskPerContract);
-
-            if (riskPerContract.compareTo(BigDecimal.ZERO) <= 0) continue;
-
-            // 3.b) Número óptimo de contratos = floor(currentRisk / riskPerContract)
-            BigDecimal optContracts = currentRisk
-                    .divide(riskPerContract, 0, BigDecimal.ROUND_DOWN);
-            // En el primer trade el VBA permite operar 5 contratos como arranque
-            if (firstTrade && optContracts.compareTo(BigDecimal.ONE) < 0) {
-                optContracts = BigDecimal.valueOf(5);
-            }
-            log.debug("optContracts for sl {} = {}", sl, optContracts);
-
-            // 3.c) Ticks objetivo en formato decimal.
-            //     En el XLSM el valor se utiliza sin redondear para calcular
-            //     el beneficio potencial y luego se trunca al mostrarlo.
-            BigDecimal decimalTarget = BigDecimal.valueOf(in.getRiskReward())
-                    .multiply(BigDecimal.valueOf(sl))
-                    .add(BigDecimal.valueOf(offset));
-
-            // 3.d) Beneficio potencial restando comisiones
-            BigDecimal potentialProfit = optContracts
-                    .multiply(tickValue.multiply(decimalTarget))
-                    .subtract(commission.multiply(optContracts));
-            log.debug("potentialProfit for sl {} = {}", sl, potentialProfit);
-
-            // 3.e) Guardamos el mejor SL encontrado
-            if (bestProfit == null || potentialProfit.compareTo(bestProfit) > 0) {
-                bestProfit = potentialProfit;
-                bestContracts = optContracts;
-                bestSl = sl;
-                log.debug("New best found: sl={}, contracts={}, profit={}", sl, bestContracts, bestProfit);
-            }
-        }
-
-        // ——————————————————————————————
-        // REDONDEO del target **igual que en VBA** (no truncar)
-        BigDecimal bestDecimalTarget = BigDecimal.valueOf(in.getRiskReward())
-                .multiply(BigDecimal.valueOf(bestSl))
-                .add(BigDecimal.valueOf(offset));
-        int targetTicks = Math.round(bestDecimalTarget.floatValue());
-        String futuresTicker = symbol.getSymbol();
-        if (bestContracts == null || bestContracts.compareTo(BigDecimal.ONE) < 0) {
-            // riesgo excesivo → mensaje (mismo comportamiento que en el XLSM)
-            log.debug("Risk too high at first trade? {}", firstTrade);
-            return new OptimalContractRow(
-                    start,
-                    "The risk is too high",
-                    null,
-                    targetTicks
-            );
-        }
-
-        log.debug("Best SL={}, contracts={}, targetTicks={}", bestSl, bestContracts, targetTicks);
-        // 5) Devolvemos la fila que representa el escenario óptimo
-        return new OptimalContractRow(bestSl, futuresTicker, bestContracts, targetTicks);
+        return optimalContractsCalculator.calculate(in);
     }
 }
-
-
