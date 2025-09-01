@@ -75,13 +75,13 @@ public class ExcelComparisonTest {
         assertEquals(1.99, row2.getRiskPerContract().get(), 0.01);
         assertEquals(1.575, row2.getRiskPercentage().get());
 
-        // Solo la fila con mayor Profit y mayor porcentaje de riesgo debe resaltarse
+        // Solo la fila con mayor Profit y menor porcentaje de riesgo debe resaltarse
         long highlighted = rows.stream().filter(r -> r.getOptimalRow().get()).count();
         assertEquals(1, highlighted);
         ResultRowDTO highlightedRow = rows.stream()
                 .filter(r -> r.getOptimalRow().get())
                 .findFirst().orElseThrow();
         assertEquals("MES", highlightedRow.getSymbol().get());
-        assertEquals(1.675, highlightedRow.getRiskPercentage().get());
+        assertEquals(1.575, highlightedRow.getRiskPercentage().get());
     }
 }
