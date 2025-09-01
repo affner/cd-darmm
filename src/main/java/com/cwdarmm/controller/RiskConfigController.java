@@ -17,6 +17,8 @@ import com.cwdarmm.service.ExportService;
 import com.cwdarmm.service.ReferenceDataService;
 import com.cwdarmm.service.RiskAnalysisService;
 import com.cwdarmm.service.RiskContext;
+import com.cwdarmm.service.RiskStateService;
+import com.cwdarmm.service.KellyType;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -46,12 +48,16 @@ public class RiskConfigController {
     private final SpringFXMLLoader springFXMLLoader;
     private final BdMarketController bdMarketController;
     private final RiskContext riskContext;
+    private final RiskStateService riskStateService;
     private Stage dialogStage;
 
     private BiConsumer<RiskInputDTO, List<RiskResultDTO>> onCalculated;
     private MarketDTO marketContext;
-    private java.math.BigDecimal pctHouse;
-    private java.math.BigDecimal pctLunch;
+    private BigDecimal pctHouse;
+    private BigDecimal pctLunch;
+
+    private Stage optimalStage;
+    private OptimalContractsContainerController optimalCtrl;
 
     @FXML
     private ComboBox<CatAccount> cbRiskAccount;
@@ -123,8 +129,13 @@ public class RiskConfigController {
         cbRiskAccount.setValue(context.getAccount());
         cbRiskMarket.setValue(context.getMarket());
         cbRiskMarketData.setValue(context.getMarketData());
-        this.pctHouse = java.math.BigDecimal.valueOf(context.getRiskA());
-        this.pctLunch = java.math.BigDecimal.valueOf(context.getRiskB());
+        Long accId = context.getAccount().getId();
+        Long mktId = context.getMarket().getId();
+        Long mdId  = context.getMarketData().getId();
+        this.pctHouse = BigDecimal.valueOf(
+                riskStateService.getLastRisk(accId, mktId, mdId, KellyType.A, context.getRiskA()));
+        this.pctLunch = BigDecimal.valueOf(
+                riskStateService.getLastRisk(accId, mktId, mdId, KellyType.B, context.getRiskB()));
     }
 
 
@@ -187,6 +198,17 @@ public class RiskConfigController {
             req = req.toBuilder()
                     .accountSize(BigDecimal.valueOf(req.getAccount().getInitialSize()))
                     .build();
+
+            // Reset del estado de riesgo semanal/inicial
+            Long accId = req.getAccount().getId();
+            Long mktId = req.getMarket().getId();
+            Long mdId = req.getMarketData().getId();
+            if (chkHouse.isSelected()) {
+                riskStateService.reset(accId, mktId, mdId, KellyType.A, marketContext.getRiskA());
+            }
+            if (chkLunch.isSelected()) {
+                riskStateService.reset(accId, mktId, mdId, KellyType.B, marketContext.getRiskB());
+            }
         }
 
         // 5) Llamamos al servicio que calcula el nuevo riesgo y registra el trade
@@ -195,11 +217,16 @@ public class RiskConfigController {
         // 5.a) Actualizamos los porcentajes de riesgo con los valores devueltos
         if (!rows.isEmpty()) {
             RiskResultDTO last = rows.get(rows.size() - 1);
+            Long accId = req.getAccount().getId();
+            Long mktId = req.getMarket().getId();
+            Long mdId = req.getMarketData().getId();
             if (last.getRiskKellyA() != null) {
-                this.pctHouse = java.math.BigDecimal.valueOf(last.getRiskKellyA());
+                this.pctHouse = BigDecimal.valueOf(last.getRiskKellyA());
+                riskStateService.save(accId, mktId, mdId, KellyType.A, last.getRiskKellyA());
             }
             if (last.getRiskKellyB() != null) {
-                this.pctLunch = java.math.BigDecimal.valueOf(last.getRiskKellyB());
+                this.pctLunch = BigDecimal.valueOf(last.getRiskKellyB());
+                riskStateService.save(accId, mktId, mdId, KellyType.B, last.getRiskKellyB());
             }
             // reconstruimos el request con los porcentajes ajustados
             req = req.toBuilder()
@@ -240,20 +267,19 @@ public class RiskConfigController {
     }
 
     private void showOptimalContracts(List<OptimalContractRow> rows, String criteriaAccount, CatMarket market) throws IOException {
-        FXMLLoader loader = springFXMLLoader.load("/fxml/OptimalContractsView.fxml");
-        OptimalContractsController ctrl = loader.getController();
-        ctrl.setCriteriaAccount(criteriaAccount);
-        ctrl.setMarket(market);
-        ctrl.setItems(rows);
-
-        Stage popup = new Stage();
-        if (dialogStage != null && dialogStage.getOwner() != null) {
-            popup.initOwner(dialogStage.getOwner());
+        if (optimalStage == null) {
+            FXMLLoader loader = springFXMLLoader.load("/fxml/OptimalContractsContainer.fxml");
+            optimalCtrl = loader.getController();
+            optimalStage = new Stage();
+            if (dialogStage != null && dialogStage.getOwner() != null) {
+                optimalStage.initOwner(dialogStage.getOwner());
+            }
+            optimalStage.initModality(Modality.NONE);
+            optimalStage.setTitle(resources.getString("optimal.contracts.window"));
+            optimalStage.setScene(new Scene(loader.getRoot()));
         }
-        popup.initModality(Modality.NONE);
-        popup.setTitle(criteriaAccount + " – " + resources.getString("optimal.contracts.window"));
-        popup.setScene(new Scene(loader.getRoot()));
-        popup.show();
+        optimalCtrl.addTable(rows, criteriaAccount, market);
+        optimalStage.show();
     }
 
     @FXML

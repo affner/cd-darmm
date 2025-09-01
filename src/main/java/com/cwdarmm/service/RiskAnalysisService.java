@@ -78,8 +78,12 @@ public class RiskAnalysisService {
 
         // 3) Según el resultado del trade ajustamos los porcentajes de riesgo
         BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
-        BigDecimal newRiskA = in.isHouse() && in.getRiskPctA() != null ? in.getRiskPctA().multiply(multiplier) : null;
-        BigDecimal newRiskB = in.isLunch() && in.getRiskPctB() != null ? in.getRiskPctB().multiply(multiplier) : null;
+        BigDecimal newRiskA = in.isHouse() && in.getRiskPctA() != null
+                ? in.getRiskPctA().multiply(multiplier).setScale(3, BigDecimal.ROUND_HALF_UP)
+                : null;
+        BigDecimal newRiskB = in.isLunch() && in.getRiskPctB() != null
+                ? in.getRiskPctB().multiply(multiplier).setScale(3, BigDecimal.ROUND_HALF_UP)
+                : null;
 
         // 4) Registramos el trade actual, WIN o LOSS
         String wl = in.isWin() ? "WIN" : "LOSS";

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.cwdarmm.controller.OptimalContractsContainerController">
+    <top>
+        <ToolBar>
+            <Button text="Reset" onAction="#onReset" />
+        </ToolBar>
+    </top>
+    <center>
+        <ScrollPane fitToHeight="true">
+            <content>
+                <HBox fx:id="tablesBox" spacing="10" />
+            </content>
+        </ScrollPane>
+    </center>
+</BorderPane>
