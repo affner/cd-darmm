@@ -4,70 +4,104 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.cwdarmm.controller.RiskConfigController">
-    <!-- Top: Título de la pestaña, puede incluir icono -->
+    <!-- Top: título destacado del diálogo -->
     <top>
-        <ToolBar>
-            <Label text="%risk.config.title" style="-fx-font-size:18px; -fx-font-weight:bold;"/>
+        <ToolBar styleClass="dialog-toolbar">
+            <Label text="%risk.config.title" styleClass="dialog-title"/>
         </ToolBar>
     </top>
 
-    <!-- Center: Formulario de inputs -->
+    <!-- Center: contenido desplazable -->
     <center>
-        <VBox spacing="12">
-            <padding>
-                <Insets top="16" right="16" bottom="16" left="16"/>
-            </padding>
-            <GridPane hgap="8" vgap="8">
-                <columnConstraints>
-                    <ColumnConstraints percentWidth="30"/>
-                    <ColumnConstraints percentWidth="70"/>
-                </columnConstraints>
-                <!-- Step 1,2,3 -->
-                <Label text="%risk.config.step1" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                <ComboBox fx:id="cbRiskAccount" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+            <content>
+                <VBox spacing="18" styleClass="risk-dialog" prefWidth="520">
+                    <padding>
+                        <Insets top="20" right="24" bottom="20" left="24"/>
+                    </padding>
 
-                <Label text="%risk.config.step2" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                <ComboBox fx:id="cbRiskMarket" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                    <Label text="%risk.config.subtitle" wrapText="true" styleClass="dialog-subtitle"/>
 
-                <Label text="%risk.config.step3" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                <ComboBox fx:id="cbRiskMarketData" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                    <TitledPane text="%risk.config.section.market" collapsible="false" expanded="true" styleClass="risk-section">
+                        <content>
+                            <VBox spacing="14" styleClass="section-body">
+                                <Label text="%risk.config.section.market.helper" wrapText="true" styleClass="section-helper"/>
+                                <GridPane hgap="14" vgap="12" styleClass="form-grid">
+                                    <columnConstraints>
+                                        <ColumnConstraints minWidth="190" prefWidth="220" halignment="RIGHT"/>
+                                        <ColumnConstraints hgrow="ALWAYS" percentWidth="100"/>
+                                    </columnConstraints>
+                                    <Label text="%risk.config.step1" wrapText="true" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                    <ComboBox fx:id="cbRiskAccount" promptText="%risk.config.step1.placeholder" prefWidth="280" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
-                <!-- Parámetros de riesgo -->
-                <Label text="%risk.config.accountsize" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-                <TextField fx:id="tfRiskAccountSize" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                                    <Label text="%risk.config.step2" wrapText="true" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                    <ComboBox fx:id="cbRiskMarket" promptText="%risk.config.step2.placeholder" prefWidth="280" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
-                <Label text="%risk.config.risktoreward" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-                <TextField fx:id="tfRiskReward" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                                    <Label text="%risk.config.step3" wrapText="true" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                                    <ComboBox fx:id="cbRiskMarketData" promptText="%risk.config.step3.placeholder" prefWidth="280" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                                </GridPane>
+                            </VBox>
+                        </content>
+                    </TitledPane>
 
-                <Label text="%risk.config.slsize" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
-                <HBox spacing="8" GridPane.rowIndex="5" GridPane.columnIndex="1">
-                    <TextField fx:id="tfTicksSl1" prefWidth="60"/>
-                    <TextField fx:id="tfTicksSl2" prefWidth="60"/>
-                </HBox>
+                    <TitledPane text="%risk.config.section.parameters" collapsible="false" expanded="true" styleClass="risk-section">
+                        <content>
+                            <VBox spacing="14" styleClass="section-body">
+                                <Label text="%risk.config.section.parameters.helper" wrapText="true" styleClass="section-helper"/>
+                                <GridPane hgap="14" vgap="12" styleClass="form-grid">
+                                    <columnConstraints>
+                                        <ColumnConstraints minWidth="190" prefWidth="220" halignment="RIGHT"/>
+                                        <ColumnConstraints hgrow="ALWAYS" percentWidth="100"/>
+                                    </columnConstraints>
+                                    <Label text="%risk.config.accountsize" wrapText="true" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="tfRiskAccountSize" promptText="%risk.config.accountsize.placeholder" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
-                <Label text="%risk.config.stoplosssize" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
-                <TextField fx:id="tfStopLossSize" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+                                    <Label text="%risk.config.risktoreward" wrapText="true" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="tfRiskReward" promptText="%risk.config.risktoreward.placeholder" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
-                <!-- Sesiones -->
-                <HBox spacing="16" GridPane.rowIndex="7" GridPane.columnIndex="1">
-                    <CheckBox fx:id="chkHouse" text="%risk.config.house"/>
-                    <CheckBox fx:id="chkLunch" text="%risk.config.lunch"/>
-                    <CheckBox fx:id="chkWin" text="%risk.config.win"/>
-                    <CheckBox fx:id="chkLoss" text="%risk.config.loss"/>
-                </HBox>
-            </GridPane>
+                                    <Label text="%risk.config.slsize" wrapText="true" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                                    <HBox spacing="10" alignment="CENTER_LEFT" GridPane.rowIndex="2" GridPane.columnIndex="1">
+                                        <TextField fx:id="tfTicksSl1" prefWidth="100" promptText="%risk.config.slsize.primary"/>
+                                        <TextField fx:id="tfTicksSl2" prefWidth="100" promptText="%risk.config.slsize.secondary"/>
+                                    </HBox>
 
-            <!-- Botones -->
-            <HBox spacing="12" alignment="CENTER_RIGHT">
-                <Button text="%risk.config.optimalcontracts" onAction="#onCalculate"/>
-                <Button text="%risk.config.close" onAction="#onClose"/>
-            </HBox>
-        </VBox>
+                                    <Label text="%risk.config.stoplosssize" wrapText="true" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                                    <TextField fx:id="tfStopLossSize" promptText="%risk.config.stoplosssize.placeholder" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                                </GridPane>
+                            </VBox>
+                        </content>
+                    </TitledPane>
+
+                    <TitledPane text="%risk.config.section.sessions" collapsible="false" expanded="true" styleClass="risk-section">
+                        <content>
+                            <VBox spacing="14" styleClass="section-body">
+                                <Label text="%risk.config.section.sessions.helper" wrapText="true" styleClass="section-helper"/>
+                                <FlowPane hgap="12" vgap="10" prefWrapLength="360" styleClass="session-group">
+                                    <CheckBox fx:id="chkHouse" text="%risk.config.house" styleClass="session-check"/>
+                                    <CheckBox fx:id="chkLunch" text="%risk.config.lunch" styleClass="session-check"/>
+                                    <CheckBox fx:id="chkWin" text="%risk.config.win" styleClass="session-check"/>
+                                    <CheckBox fx:id="chkLoss" text="%risk.config.loss" styleClass="session-check"/>
+                                </FlowPane>
+                            </VBox>
+                        </content>
+                    </TitledPane>
+
+                    <HBox spacing="12" alignment="CENTER_RIGHT">
+                        <Button text="%risk.config.optimalcontracts" onAction="#onCalculate" styleClass="cta-button"/>
+                        <Button text="%risk.config.close" onAction="#onClose"/>
+                    </HBox>
+                </VBox>
+            </content>
+        </ScrollPane>
     </center>
 
     <!-- Bottom: Imagen decorativa -->
     <bottom>
-        <ImageView fx:id="imgCoins" fitHeight="40" preserveRatio="true"
-                   pickOnBounds="true"/>
+        <StackPane alignment="CENTER">
+            <padding>
+                <Insets top="12" bottom="16"/>
+            </padding>
+            <ImageView fx:id="imgCoins" fitHeight="48" preserveRatio="true" pickOnBounds="true"/>
+        </StackPane>
     </bottom>
 </BorderPane>
