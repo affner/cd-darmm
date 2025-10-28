@@ -29,6 +29,7 @@
                 <TableColumn fx:id="colAccountSize" text="%risk.dashboard.accountsize"/>
                 <TableColumn fx:id="colRiskA"    text="%risk.dashboard.riska"/>
                 <TableColumn fx:id="colRiskB"    text="%risk.dashboard.riskb"/>
+                <TableColumn fx:id="colActions"  text="%risk.dashboard.actions" prefWidth="100"/>
             </columns>
         </TableView>
     </center>
