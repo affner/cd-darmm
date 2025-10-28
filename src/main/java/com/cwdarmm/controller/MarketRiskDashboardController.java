@@ -12,11 +12,14 @@ import com.cwdarmm.service.OutputService;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +29,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 @Component
@@ -42,6 +46,7 @@ public class MarketRiskDashboardController {
     @FXML private TableColumn<RiskResultDTO, BigDecimal>  colAccountSize;
     @FXML private TableColumn<RiskResultDTO,Double>  colRiskA;
     @FXML private TableColumn<RiskResultDTO,Double>  colRiskB;
+    @FXML private TableColumn<RiskResultDTO, Void>  colActions;
     @FXML private Button btnExportCsv;
     @FXML private ResourceBundle resources;
 
@@ -118,6 +123,8 @@ public class MarketRiskDashboardController {
                         .showAndWait();
             }
         });
+
+        initActionsColumn();
     }
 
     @FXML
@@ -154,6 +161,126 @@ public class MarketRiskDashboardController {
         dialog.showAndWait();
     }
 
+
+    private void initActionsColumn() {
+        if (colActions == null) {
+            return;
+        }
+
+        colActions.setCellFactory(col -> new TableCell<>() {
+            private final Button btnEdit = new Button("✎");
+            private final Button btnDelete = new Button("✖");
+            private final HBox pane = new HBox(5, btnEdit, btnDelete);
+
+            {
+                btnEdit.setOnAction(evt -> {
+                    int index = getIndex();
+                    if (index < 0 || index >= getTableView().getItems().size()) {
+                        return;
+                    }
+                    RiskResultDTO dto = getTableView().getItems().get(index);
+                    onEditRow(dto);
+                });
+                btnDelete.setOnAction(evt -> {
+                    int index = getIndex();
+                    if (index < 0 || index >= getTableView().getItems().size()) {
+                        return;
+                    }
+                    RiskResultDTO dto = getTableView().getItems().get(index);
+                    onDeleteRow(dto);
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    int index = getIndex();
+                    if (index < 0 || index >= getTableView().getItems().size()) {
+                        setGraphic(null);
+                        return;
+                    }
+                    RiskResultDTO dto = getTableView().getItems().get(index);
+                    btnDelete.setDisable(dto.getTradeNumber() == 0);
+                    setGraphic(pane);
+                }
+            }
+        });
+    }
+
+    private void onEditRow(RiskResultDTO dto) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initOwner(tableResults.getScene().getWindow());
+        dialog.setTitle(resources.getString("risk.dashboard.edit.title"));
+        dialog.setHeaderText(resources.getString("risk.dashboard.edit.header"));
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        TextField tfRiskA = new TextField(dto.getRiskKellyA() == null ? "" : dto.getRiskKellyA().toString());
+        TextField tfRiskB = new TextField(dto.getRiskKellyB() == null ? "" : dto.getRiskKellyB().toString());
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.add(new Label(resources.getString("risk.dashboard.riska")), 0, 0);
+        grid.add(tfRiskA, 1, 0);
+        grid.add(new Label(resources.getString("risk.dashboard.riskb")), 0, 1);
+        grid.add(tfRiskB, 1, 1);
+        dialog.getDialogPane().setContent(grid);
+
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        okButton.addEventFilter(ActionEvent.ACTION, evt -> {
+            try {
+                Double newRiskA = parseNullableDouble(tfRiskA.getText());
+                Double newRiskB = parseNullableDouble(tfRiskB.getText());
+                dto.setRiskKellyA(newRiskA);
+                dto.setRiskKellyB(newRiskB);
+                if (dto.getTradeNumber() == 0 && context != null) {
+                    if (newRiskA != null) {
+                        context.setRiskA(newRiskA);
+                    }
+                    if (newRiskB != null) {
+                        context.setRiskB(newRiskB);
+                    }
+                }
+            } catch (NumberFormatException ex) {
+                evt.consume();
+                new Alert(Alert.AlertType.ERROR, resources.getString("risk.dashboard.edit.error"))
+                        .showAndWait();
+            }
+        });
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            tableResults.refresh();
+        }
+    }
+
+    private void onDeleteRow(RiskResultDTO dto) {
+        if (dto.getTradeNumber() == 0) {
+            new Alert(Alert.AlertType.WARNING, resources.getString("risk.dashboard.delete.initial"))
+                    .showAndWait();
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                resources.getString("risk.dashboard.delete.confirm"), ButtonType.YES, ButtonType.NO);
+        confirm.initOwner(tableResults.getScene().getWindow());
+        Optional<ButtonType> response = confirm.showAndWait();
+        if (response.orElse(ButtonType.NO) == ButtonType.YES) {
+            tableResults.getItems().remove(dto);
+            tableResults.refresh();
+        }
+    }
+
+    private Double parseNullableDouble(String text) {
+        String value = text == null ? "" : text.trim();
+        if (value.isEmpty()) {
+            return null;
+        }
+        return Double.valueOf(value);
+    }
 
     @FXML private void onClose() {
         ((Stage)tableResults.getScene().getWindow()).close();
