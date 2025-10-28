@@ -128,6 +128,42 @@ public class RiskConfigController {
     }
 
 
+    public void setInitialRequest(RiskInputDTO request) {
+        if (request == null) {
+            return;
+        }
+
+        if (request.getAccount() != null) {
+            cbRiskAccount.setValue(request.getAccount());
+        }
+        if (request.getMarket() != null) {
+            cbRiskMarket.setValue(request.getMarket());
+        }
+        if (request.getMarketData() != null) {
+            cbRiskMarketData.setDisable(false);
+            cbRiskMarketData.setValue(request.getMarketData());
+        }
+
+        tfRiskAccountSize.setText(request.getAccountSize() == null
+                ? ""
+                : request.getAccountSize().toPlainString());
+        tfRiskReward.setText(String.valueOf(request.getRiskReward()));
+        tfTicksSl1.setText(request.getTicksSl1() == null ? "" : request.getTicksSl1().toString());
+        tfTicksSl2.setText(request.getTicksSl2() == null ? "" : request.getTicksSl2().toString());
+        tfStopLossSize.setText(request.getStopLossSize() == 0
+                ? ""
+                : Integer.toString(request.getStopLossSize()));
+
+        chkHouse.setSelected(request.isHouse());
+        chkLunch.setSelected(request.isLunch());
+        chkWin.setSelected(request.isWin());
+        chkLoss.setSelected(request.isLoss());
+
+        this.pctHouse = request.getRiskPctA();
+        this.pctLunch = request.getRiskPctB();
+    }
+
+
     /** Para compatibilidad con viejos callers que usaban Runnable */
     public void setOnCalculated(Runnable callback) {
         this.onCalculated = (dto, rows) -> callback.run();
