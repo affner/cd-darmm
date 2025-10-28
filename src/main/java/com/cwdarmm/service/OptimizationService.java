@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +32,10 @@ public class OptimizationService {
     private static int offsetFor(String marketDescription) {
         return "NASDAQ".equalsIgnoreCase(marketDescription) ? 2 : 1; // S&P500 → 1
     }
+
+    private static final BigDecimal WIN_MULTIPLIER = new BigDecimal("1.05");
+    private static final BigDecimal LOSS_MULTIPLIER = new BigDecimal("0.98");
+    private static final int RISK_SCALE = 6;
 
     /**
      * Calcula la tabla Results replicando las fórmulas del Excel.
@@ -67,11 +72,15 @@ public class OptimizationService {
         // Aplicar compounding/drawdown al porcentaje de riesgo si no es el primer trade
         BigDecimal riskA = in.getRiskPctA();
         BigDecimal riskB = in.getRiskPctB();
-//        if (!in.isFirstTrade()) {
-//            BigDecimal multiplier = in.isWin() ? new BigDecimal("1.05") : new BigDecimal("0.98");
-//            riskA = riskA == null ? null : riskA.multiply(multiplier);
-//            riskB = riskB == null ? null : riskB.multiply(multiplier);
-//        }
+        if (!in.isFirstTrade()) {
+            BigDecimal multiplier = in.isWin() ? WIN_MULTIPLIER : LOSS_MULTIPLIER;
+            if (in.isHouse() && riskA != null) {
+                riskA = riskA.multiply(multiplier).setScale(RISK_SCALE, RoundingMode.HALF_UP);
+            }
+            if (in.isLunch() && riskB != null) {
+                riskB = riskB.multiply(multiplier).setScale(RISK_SCALE, RoundingMode.HALF_UP);
+            }
+        }
 
         // Lista de porcentajes base activos (Kelly A/B) + variación "x"
         List<BigDecimal> baseRiskPcts = new ArrayList<>();
